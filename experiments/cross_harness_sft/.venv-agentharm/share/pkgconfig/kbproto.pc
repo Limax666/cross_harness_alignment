@@ -1,0 +1,8 @@
+prefix=/root/cross_harness_aligement/experiments/cross_harness_sft/.venv-agentharm
+includedir=${prefix}/include
+
+Name: KBProto
+Description: KB extension headers
+Version: 1.0.7
+Cflags: -I${includedir}
+Requires: xproto >= 7.0.33

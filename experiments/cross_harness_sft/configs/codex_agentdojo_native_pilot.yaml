@@ -1,0 +1,31 @@
+experiment_id: codex_agentdojo_native_gpt54_mini_pilot
+output_jsonl: experiments/cross_harness_sft/outputs/codex_agentdojo_native_gpt54_mini_pilot/raw_native.jsonl
+episode_workdir: experiments/cross_harness_sft/runs/codex_agentdojo_native_gpt54_mini_pilot
+model_family: gpt54
+seeds: [0]
+max_cases_per_benchmark:
+  agentdojo: 1
+benchmark_sources:
+  - type: agentdojo_http
+    base_url: http://127.0.0.1:8111
+harnesses:
+  - id: codex_native
+    type: codex_cli
+    binary: codex
+    model: gpt-5.4-mini
+    provider: openai
+    auth_source: /root/.codex/auth.json
+    reasoning_effort: medium
+    # Pre-authorize only the isolated AgentDojo MCP server. The proxy still
+    # records every call and applies the experiment safety guard.
+    mcp_approval_mode: approve
+    mcp_startup_timeout_seconds: 30
+    mcp_tool_timeout_seconds: 120
+    stream_logs: true
+    timeout_seconds: 900
+safety_modules: [none]
+pretool_guard:
+  deny_tools: []
+safety:
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt
+  skillbank_path: assets/skillbanks/runtime_skill_bank.json

@@ -15,7 +15,7 @@ from typing import Any
 import httpx
 from mcp.server.lowlevel import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import TextContent, Tool
+from mcp.types import CallToolRequestParams, CallToolResult, ListToolsResult, PaginatedRequestParams, TextContent, Tool
 
 
 def append(path: Path, row: dict[str, Any]) -> None:
@@ -52,19 +52,17 @@ def main() -> None:
                         "task_id": args.task_id, "seed": args.seed,
                         "timestamp": datetime.now(timezone.utc).isoformat()})
 
-    server = Server("cross-harness-benchmark")
-
-    @server.list_tools()
-    async def list_tools() -> list[Tool]:
+    async def list_tools(_ctx: Any, _params: PaginatedRequestParams | None) -> ListToolsResult:
         result: list[Tool] = []
         for item in tools:
             function = item.get("function") or item
             result.append(Tool(name=str(function["name"]), description=str(function.get("description") or ""),
                                inputSchema=function.get("parameters") or {"type": "object", "properties": {}}))
-        return result
+        return ListToolsResult(tools=result)
 
-    @server.call_tool()
-    async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
+    async def call_tool(_ctx: Any, params: CallToolRequestParams) -> CallToolResult:
+        name = params.name
+        arguments = params.arguments or {}
         serialized_args = json.dumps(arguments, ensure_ascii=False).lower()
         blocked_value = any(value and value in serialized_args for value in denied_values)
         if args.task_type in {"query", "harmful_query"} or name in denied or blocked_value:
@@ -74,7 +72,7 @@ def main() -> None:
                                 "arguments": arguments, "observation": "BLOCKED_BY_PRETOOL_GUARD", "tool_result": None,
                                 "invalid_call": False, "side_effect": False, "risk_event": False,
                                 "guard_decision": "block", "guard_reason": reason})
-            return [TextContent(type="text", text="BLOCKED_BY_PRETOOL_GUARD: " + reason)]
+            return CallToolResult(content=[TextContent(type="text", text="BLOCKED_BY_PRETOOL_GUARD: " + reason)])
         try:
             reply = client.post(f"/episodes/{episode_id}/tool", json={"name": name, "arguments": arguments})
             reply.raise_for_status()
@@ -90,7 +88,9 @@ def main() -> None:
                             "side_effect": bool(value.get("side_effect")), "risk_event": bool(value.get("risk_event")),
                             "guard_decision": "allow", "guard_reason": "policy_pass",
                             "timestamp": datetime.now(timezone.utc).isoformat()})
-        return [TextContent(type="text", text=str(value.get("observation") or ""))]
+        return CallToolResult(content=[TextContent(type="text", text=str(value.get("observation") or ""))])
+
+    server = Server("cross-harness-benchmark", on_list_tools=list_tools, on_call_tool=call_tool)
 
     import anyio
 

@@ -4,6 +4,8 @@ import json
 import os
 import shutil
 import subprocess
+import sys
+import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -66,7 +68,7 @@ def _extract(rows: list[dict[str, Any]], fallback: str = "") -> tuple[str, str, 
     for row in rows:
         if isinstance(row.get("usage"), dict):
             usage.update(row["usage"])
-        session_id = str(row.get("session_id") or row.get("sessionId") or session_id)
+        session_id = str(row.get("session_id") or row.get("sessionId") or row.get("thread_id") or session_id)
     return (finals[-1].strip() if finals else fallback.strip(), "\n".join(dict.fromkeys(thoughts)), usage, session_id)
 
 
@@ -110,9 +112,39 @@ class NativeHarness(ABC):
 
     def invoke(self, command: list[str], cwd: Path, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
         started = time.monotonic()
-        result = subprocess.run(command, cwd=cwd, env={**os.environ, **env}, capture_output=True,
-                                text=True, encoding="utf-8", errors="replace", timeout=self.timeout, check=False)
+        stream_logs = bool(self.config.get("stream_logs", True))
+        label = f"agent model={self.model} harness={self.harness_id}"
+        if stream_logs:
+            print(f"[{label}] started", flush=True)
+        process = subprocess.Popen(command, cwd=cwd, env={**os.environ, **env}, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace", bufsize=1)
+        stdout_rows: list[str] = []
+        stderr_rows: list[str] = []
+
+        def pump(pipe: Any, rows: list[str], target: Any, channel: str) -> None:
+            try:
+                for line in iter(pipe.readline, ""):
+                    rows.append(line)
+                    if stream_logs:
+                        print(f"[{label}][{channel}] {line}", end="", file=target, flush=True)
+            finally:
+                pipe.close()
+
+        stdout_thread = threading.Thread(target=pump, args=(process.stdout, stdout_rows, sys.stdout, "stdout"), daemon=True)
+        stderr_thread = threading.Thread(target=pump, args=(process.stderr, stderr_rows, sys.stderr, "stderr"), daemon=True)
+        stdout_thread.start(); stderr_thread.start()
+        try:
+            return_code = process.wait(timeout=self.timeout)
+        except subprocess.TimeoutExpired:
+            process.kill(); process.wait()
+            stdout_thread.join(); stderr_thread.join()
+            raise subprocess.TimeoutExpired(command, self.timeout, output="".join(stdout_rows),
+                                            stderr="".join(stderr_rows))
+        stdout_thread.join(); stderr_thread.join()
+        result = subprocess.CompletedProcess(command, return_code, "".join(stdout_rows), "".join(stderr_rows))
         result.elapsed = time.monotonic() - started  # type: ignore[attr-defined]
+        if stream_logs:
+            print(f"[{label}] finished exit_code={result.returncode} duration_seconds={result.elapsed:.2f}", flush=True)  # type: ignore[attr-defined]
         return result
 
     @abstractmethod
@@ -123,16 +155,59 @@ class CodexHarness(NativeHarness):
     def run(self, prompt: str, workdir: Path, mcp: dict[str, Any]) -> HarnessRun:
         server, args, server_env = _mcp(mcp)
         home = workdir / "codex-home"; home.mkdir(parents=True, exist_ok=True)
+        auth_source_value = str(self.config.get("auth_source") or "")
+        if auth_source_value:
+            auth_source = Path(auth_source_value).expanduser().resolve()
+            if not auth_source.is_file():
+                raise FileNotFoundError(f"{self.harness_id}: Codex auth source not found: {auth_source}")
+            auth_target = home / "auth.json"
+            shutil.copyfile(auth_source, auth_target)
+            auth_target.chmod(0o600)
+            # ChatGPT-authenticated Codex resolves the account model catalog from
+            # this cache. Without it, refresh can time out before MCP startup.
+            for state_name in ("models_cache.json", "installation_id"):
+                state_source = auth_source.parent / state_name
+                if state_source.is_file():
+                    shutil.copyfile(state_source, home / state_name)
         env_toml = "\n".join(f'{k} = {json.dumps(v)}' for k, v in server_env.items())
+        mcp_approval_mode = str(self.config.get("mcp_approval_mode") or "approve")
+        if mcp_approval_mode not in {"auto", "prompt", "writes", "approve"}:
+            raise ValueError(f"{self.harness_id}: invalid mcp_approval_mode: {mcp_approval_mode}")
+        mcp_startup_timeout = int(self.config.get("mcp_startup_timeout_seconds", 30))
+        mcp_tool_timeout = int(self.config.get("mcp_tool_timeout_seconds", 120))
+        provider = str(self.config.get("provider") or "openai")
+        provider_toml = ""
+        if provider != "openai":
+            base_url = str(self.config.get("base_url") or "")
+            env_key = str(self.config.get("env_key") or "")
+            if not base_url or not env_key:
+                raise ValueError(f"{self.harness_id}: custom provider requires base_url and env_key")
+            wire_api = str(self.config.get("wire_api") or "responses")
+            provider_toml = (
+                f'model_provider = {json.dumps(provider)}\n'
+                f'[model_providers.{provider}]\n'
+                f'name = {json.dumps(str(self.config.get("provider_name") or provider))}\n'
+                f'base_url = {json.dumps(base_url)}\n'
+                f'env_key = {json.dumps(env_key)}\n'
+                f'wire_api = {json.dumps(wire_api)}\n'
+            )
         (home / "config.toml").write_text(
-            f'model = {json.dumps(self.model)}\napproval_policy = "never"\nsandbox_mode = "workspace-write"\n'
+            f'model = {json.dumps(self.model)}\n'
+            f'model_reasoning_effort = {json.dumps(str(self.config.get("reasoning_effort") or "low"))}\n'
+            f'approval_policy = "never"\nsandbox_mode = "workspace-write"\nweb_search = "disabled"\n'
+            f'[features]\napps = false\nplugins = false\nremote_plugin = false\n'
+            f'browser_use = false\ncomputer_use = false\nmulti_agent = false\nshell_tool = false\n'
+            f'{provider_toml}'
             f'[mcp_servers.benchmark]\ncommand = {json.dumps(server)}\nargs = {json.dumps(args)}\n'
+            f'default_tools_approval_mode = {json.dumps(mcp_approval_mode)}\n'
+            f'required = true\nstartup_timeout_sec = {mcp_startup_timeout}\n'
+            f'tool_timeout_sec = {mcp_tool_timeout}\n'
             + (f'[mcp_servers.benchmark.env]\n{env_toml}\n' if env_toml else ""), encoding="utf-8")
-        cmd = [self.executable(), "exec", "--json", "--ephemeral", "--ignore-user-config", "-C", str(workdir), prompt]
+        cmd = [self.executable(), "exec", "--json", "--ephemeral", "-C", str(workdir), prompt]
         result = self.invoke(cmd, workdir, {**self.runtime_env, "CODEX_HOME": str(home)})
         rows = _events(result.stdout); final, reasoning, usage, sid = _extract(rows)
         return HarnessRun(final, reasoning, rows, result.stdout, result.stderr, result.returncode,
-                          result.elapsed, cmd, usage, "openai", sid)  # type: ignore[attr-defined]
+                          result.elapsed, cmd, usage, provider, sid)  # type: ignore[attr-defined]
 
 
 class ClaudeCodeHarness(NativeHarness):

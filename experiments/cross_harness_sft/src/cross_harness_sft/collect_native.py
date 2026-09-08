@@ -66,16 +66,44 @@ def read_audit(path: Path) -> tuple[str, list[dict[str, Any]], bool]:
     return str(starts[0]["episode_id"]), calls, parser_problem
 
 
-def messages_from_audit(system: str, case: Case, reasoning: str, final: str,
-                        calls: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def messages_from_events(system: str, case: Case, reasoning: str, final: str,
+                         native_events: list[dict[str, Any]], calls: list[dict[str, Any]]) -> list[dict[str, Any]]:
     messages: list[dict[str, Any]] = [{"role": "system", "content": system}, {"role": "user", "content": case.user_query}]
-    for index, call in enumerate(calls):
+    completed_items: list[dict[str, Any]] = []
+    for event in native_events:
+        if event.get("type") == "item.completed" and isinstance(event.get("item"), dict):
+            completed_items.append(event["item"])
+    final_message_index = max(
+        (index for index, item in enumerate(completed_items) if item.get("type") == "agent_message"),
+        default=-1,
+    )
+    call_index = 0
+    pending_assistant_text: list[str] = []
+    for item_index, item in enumerate(completed_items):
+        item_type = str(item.get("type") or "")
+        if item_type == "agent_message":
+            # The last native agent message becomes the normalized final target below.
+            if item_index != final_message_index and str(item.get("text") or "").strip():
+                pending_assistant_text.append(str(item["text"]).strip())
+        elif item_type == "mcp_tool_call" and call_index < len(calls):
+            call = calls[call_index]
+            call_id = str(item.get("id") or f"benchmark_call_{call_index}")
+            content = "\n\n".join(pending_assistant_text)
+            pending_assistant_text.clear()
+            messages.append({"role": "assistant", "content": content, "tool_calls": [{"id": call_id, "type": "function",
+                "function": {"name": str(call["tool_name"]), "arguments": json.dumps(call.get("arguments") or {}, ensure_ascii=False)}}]})
+            messages.append({"role": "tool", "tool_call_id": call_id, "name": str(call["tool_name"]),
+                             "content": str(call.get("observation") or "")})
+            call_index += 1
+    # Preserve audited calls even if a harness omits their completed events.
+    for index, call in enumerate(calls[call_index:], start=call_index):
         call_id = f"benchmark_call_{index}"
-        content = reasoning if index == 0 else ""
-        messages.append({"role": "assistant", "content": content, "tool_calls": [{"id": call_id, "type": "function",
+        messages.append({"role": "assistant", "content": "", "tool_calls": [{"id": call_id, "type": "function",
             "function": {"name": str(call["tool_name"]), "arguments": json.dumps(call.get("arguments") or {}, ensure_ascii=False)}}]})
         messages.append({"role": "tool", "tool_call_id": call_id, "name": str(call["tool_name"]),
                          "content": str(call.get("observation") or "")})
+    if pending_assistant_text:
+        messages.append({"role": "assistant", "content": "\n\n".join(pending_assistant_text)})
     target = (f"<think>\n{reasoning.strip()}\n</think>\n\n" if reasoning.strip() else "<think>\n\n</think>\n\n") + final.strip()
     messages.append({"role": "assistant", "content": target})
     return messages
@@ -123,7 +151,7 @@ def collect_one(config: dict[str, Any], adapter: BenchmarkAdapter, case: Case, h
         invalid = sum(bool(call.get("invalid_call")) for call in tool_history)
         task_type = "query" if case.task_type in {"query", "harmful_query"} else case.task_type
         system = prompt.removesuffix("\n\nUSER TASK:\n" + case.user_query)
-        messages = messages_from_audit(system, case, reasoning, final_answer, tool_history)
+        messages = messages_from_events(system, case, reasoning, final_answer, run.native_events, tool_history)
         manifest = harness.manifest()
         metadata = {**manifest, "teacher_provider": run.provider, "teacher_session_id": run.session_id,
             "benchmark_id": case.benchmark_id, "benchmark_version": adapter.version(), "task_id": case.task_id,
@@ -177,10 +205,15 @@ def main() -> int:
                     key = sha256_json({"benchmark": case.benchmark_id, "task": case.task_id, "harness": harness.harness_id,
                                        "safety": safety_module, "seed": seed, "teacher": harness.model})
                     if key in existing: continue
-                    try: append_jsonl(output, collect_one(config, adapter, case, harness, safety_module, seed)); done += 1
+                    print(f"[episode] start benchmark={case.benchmark_id} task={case.task_id} "
+                          f"model={harness.model} harness={harness.harness_id} safety={safety_module} seed={seed}", flush=True)
+                    try:
+                        append_jsonl(output, collect_one(config, adapter, case, harness, safety_module, seed)); done += 1
+                        print(f"[episode] completed id={key}", flush=True)
                     except Exception as exc:
                         append_jsonl(output.with_suffix(".errors.jsonl"), {"episode_id": key, "error": str(exc),
                                      "traceback": traceback.format_exc(), "case": case.__dict__, "harness": harness.harness_id}); failures += 1
+                        print(f"[episode] failed id={key} error={type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
                     cells[cell] += 1
     print(json.dumps({"planned": planned, "completed": done, "failed": failures, "output": str(output)}, indent=2))
     return 1 if failures else 0

@@ -1,0 +1,28 @@
+experiment_id: codex_agentdojo_openrouter_qwen38_flash_pilot
+output_jsonl: experiments/cross_harness_sft/outputs/codex_agentdojo_openrouter_pilot/raw_native.jsonl
+episode_workdir: experiments/cross_harness_sft/runs/codex_agentdojo_openrouter_pilot
+model_family: qwen38
+seeds: [0]
+max_cases_per_benchmark:
+  agentdojo: 1
+benchmark_sources:
+  - type: agentdojo_http
+    base_url: http://127.0.0.1:8111
+harnesses:
+  - id: codex_openrouter
+    type: codex_cli
+    binary: codex
+    model: qwen/qwen3.8-flash
+    provider: openrouter
+    provider_name: OpenRouter
+    base_url: https://openrouter.ai/api/v1
+    env_key: OPENROUTER_API_KEY
+    wire_api: responses
+    stream_logs: true
+    timeout_seconds: 900
+safety_modules: [none]
+pretool_guard:
+  deny_tools: []
+safety:
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt
+  skillbank_path: assets/skillbanks/runtime_skill_bank.json

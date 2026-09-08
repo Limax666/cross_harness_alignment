@@ -1,0 +1,30 @@
+experiment_id: codex_agentdojo_native_gpt56_sol_full
+output_jsonl: experiments/cross_harness_sft/outputs/codex_agentdojo_native_gpt56_sol_full/raw_native.jsonl
+episode_workdir: experiments/cross_harness_sft/runs/codex_agentdojo_native_gpt56_sol_full
+model_family: gpt56_sol
+seeds: [0]
+max_cases_per_benchmark:
+  # Zero means every case exposed by all four official AgentDojo suites.
+  agentdojo: 0
+benchmark_sources:
+  - type: agentdojo_http
+    base_url: http://127.0.0.1:8111
+harnesses:
+  - id: codex_native
+    type: codex_cli
+    binary: codex
+    model: gpt-5.6-sol
+    provider: openai
+    auth_source: /root/.codex/auth.json
+    reasoning_effort: medium
+    mcp_approval_mode: approve
+    mcp_startup_timeout_seconds: 30
+    mcp_tool_timeout_seconds: 120
+    stream_logs: true
+    timeout_seconds: 900
+safety_modules: [none]
+pretool_guard:
+  deny_tools: []
+safety:
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt
+  skillbank_path: assets/skillbanks/runtime_skill_bank.json

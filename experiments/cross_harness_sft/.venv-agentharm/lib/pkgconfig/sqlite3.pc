@@ -1,0 +1,13 @@
+# Package Information for pkg-config
+
+prefix=/root/cross_harness_aligement/experiments/cross_harness_sft/.venv-agentharm
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: SQLite
+Description: SQL database engine
+Version: 3.53.2
+Libs: -L${libdir} -lsqlite3
+Libs.private: -lm -lz -ldl -lpthread 
+Cflags: -I${includedir}
