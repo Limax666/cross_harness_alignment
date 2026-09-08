@@ -1,0 +1,4 @@
+benchmark_version: v1.2.2
+suites: [workspace, travel, banking, slack]
+include_clean: true
+include_injection: true

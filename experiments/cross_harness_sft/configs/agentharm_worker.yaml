@@ -1,0 +1,4 @@
+split: test_public
+task_names: [benign, harmful]
+force_redownload: false
+semantic_judge: openai/gpt-4o-2024-08-06

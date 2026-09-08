@@ -1,0 +1,9 @@
+.venv/
+vendor/
+outputs/
+data/
+*.eval
+*.log
+.env
+__pycache__/
+.pytest_cache/

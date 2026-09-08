@@ -1,0 +1,11 @@
+experiments/cross_harness_sft/.venv/
+experiments/cross_harness_sft/vendor/
+experiments/cross_harness_sft/outputs/
+experiments/cross_harness_sft/data/
+experiments/cross_harness_sft/runs/
+*.eval
+*.log
+.env
+__pycache__/
+.pytest_cache/
+*.pyc

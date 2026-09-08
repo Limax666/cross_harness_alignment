@@ -1,0 +1,46 @@
+experiment_id: cross_harness_native_rft_v2
+output_jsonl: experiments/cross_harness_sft/outputs/formal/raw_native.jsonl
+episode_workdir: experiments/cross_harness_sft/runs
+model_family: qwen35
+seeds: [0, 1, 2, 3]
+max_cases_per_benchmark:
+  agentdojo: 0
+  agentharm: 0
+benchmark_sources:
+  - type: agentdojo_http
+    base_url: http://127.0.0.1:8111
+  - type: agentharm_http
+    base_url: http://127.0.0.1:8112
+harnesses:
+  - id: codex
+    type: codex_cli
+    binary: codex
+    model: ${CODEX_TEACHER_MODEL}
+    timeout_seconds: 900
+  - id: claude_code
+    type: claude_code
+    binary: claude
+    model: ${CLAUDE_TEACHER_MODEL}
+    max_turns: 20
+    timeout_seconds: 900
+  - id: openclaw
+    type: openclaw
+    binary: openclaw
+    model: ${OPENCLAW_TEACHER_MODEL}
+    provider: ${OPENCLAW_TEACHER_PROVIDER}
+    timeout_seconds: 900
+  - id: hermes
+    type: hermes
+    binary: hermes
+    model: ${HERMES_TEACHER_MODEL}
+    provider: ${HERMES_TEACHER_PROVIDER}
+    command_tail: [chat, --json, --prompt]
+    timeout_seconds: 900
+safety_modules: [none, static_prompt, safeevolve_skillbank, pretool_guard]
+pretool_guard:
+  # harmful_query tasks are always no-tool; add benchmark-specific forbidden
+  # tool names here without replacing the benchmark's own verifier.
+  deny_tools: []
+safety:
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt
+  skillbank_path: assets/skillbanks/runtime_skill_bank.json

@@ -1,0 +1,38 @@
+experiment_id: cross_harness_same_task_eval_v2
+output_jsonl: ${EVAL_OUTPUT_JSONL}
+episode_workdir: experiments/cross_harness_sft/runs/eval
+model_family: qwen35
+seeds: [101, 102, 103]
+max_cases_per_benchmark: {agentdojo: 0, agentharm: 0}
+benchmark_sources:
+  - {type: agentdojo_http, base_url: "http://127.0.0.1:8111"}
+  - {type: agentharm_http, base_url: "http://127.0.0.1:8112"}
+harnesses:
+  - id: codex
+    type: codex_cli
+    binary: codex
+    model: ${EVAL_MODEL_ID}
+    env: {OPENAI_BASE_URL: "${EVAL_OPENAI_BASE_URL}", OPENAI_API_KEY: "${EVAL_API_KEY}"}
+  - id: claude_code
+    type: claude_code
+    binary: claude
+    model: ${EVAL_MODEL_ID}
+    env: {ANTHROPIC_BASE_URL: "${EVAL_ANTHROPIC_BASE_URL}", ANTHROPIC_API_KEY: "${EVAL_API_KEY}"}
+  - id: openclaw
+    type: openclaw
+    binary: openclaw
+    model: ${EVAL_MODEL_ID}
+    provider: openai-compatible
+    env: {OPENAI_BASE_URL: "${EVAL_OPENAI_BASE_URL}", OPENAI_API_KEY: "${EVAL_API_KEY}"}
+  - id: hermes
+    type: hermes
+    binary: hermes
+    model: ${EVAL_MODEL_ID}
+    provider: openai-compatible
+    command_tail: [chat, --json, --prompt]
+    env: {OPENAI_BASE_URL: "${EVAL_OPENAI_BASE_URL}", OPENAI_API_KEY: "${EVAL_API_KEY}"}
+safety_modules: [none, static_prompt, safeevolve_skillbank, pretool_guard]
+pretool_guard: {deny_tools: []}
+safety:
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt
+  skillbank_path: assets/skillbanks/runtime_skill_bank.json
