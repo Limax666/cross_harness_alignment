@@ -30,6 +30,10 @@ VeRL 当前策略在线生成 + AgentDojo 官方重置环境及 verifier + Herme
 
 2026-10-06 的 2048-token r17 单卡尝试未产生 rollout 或 optimizer step：GPU1 上 actor/reference + vLLM 加载后，**step 0 初始权重同步**需额外 2 GiB，而只剩约 658 MiB，因 OOM 退出。日志留在旧服务器的 `outputs/rl/hermes_agentdojo_grpo_r17_budget2048_16cells_20261005/launch.log`。新服务器用两张实际空闲 GPU 预检；不要用单卡失败日志画新 RL 曲线。代码中的 bounded path reward 虽支持 `path_weight<=0.25`，但 `verified_safe_subgoals` 尚未由真实路径证据填充，调大权重本身不能解决中性塌缩。
 
+## 正式多 harness 在线 RL 尚未交付
+
+GitHub 当前**只有 Hermes 协议映射 + AgentDojo 官方可复位工具环境的 16-cell 在线 pilot**。`configs/rl_native_pilot_agent_loop.yaml`、`scripts/rl_verl_native_agentdojo_loop.py` 和已提交的 `outputs/rl/native_pilot_train_20261005_hermes_mcp_16cells.parquet` 都只服务这条路径；在线 loop 的 harness 字段也是 Hermes。`scripts/rl_group_sampler.py` 可表达多 harness 分层采样，但尚无 NanoBot/OpenClaw 等 harness 的生产级可复位 train-family fixture、真实工具执行适配器、逐步/最终副作用审计和对应 task-cell manifest，因此**不存在可从 GitHub 再拉取的正式多 harness RL 数据包或启动脚本**。旧机 `data/raw/multi_harness_teacher_v1/` 和 `data/sft/teacher_release_v7/` 是离线教师/SFT 数据，不能代替当前策略在线 rollout 的执行环境；HarnessRisk 的保留评测 case 不能直接转成 RL train cell。下一步需逐 harness 建立隔离 train-family 环境、验证器及配对 benign/risk cells，通过反例、reset、工具协议和 family-disjoint 验证门槛后再扩展 VeRL loop 与 CHS-PO 采样，不能仅把 pilot Parquet 复制或改标签宣称多 harness RL。
+
 ## 新服务器复现与继续工作的顺序
 
 1. 克隆本仓库的 `handoff/rl-20261006` 分支（或其合并后的 `main`），确认读到本文件、实验 README 和 `experiments/cross_harness_sft/scripts/rl_*`。代码已移除被误纳入旧 Git 历史的虚拟环境；本分支也不包含 checkpoint、原始轨迹和 API key。
