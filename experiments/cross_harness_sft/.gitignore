@@ -1,9 +1,13 @@
 .venv/
+.venv-*/
 vendor/
 outputs/
 data/
+checkpoints/
+runtime/
 *.eval
 *.log
 .env
 __pycache__/
 .pytest_cache/
+.safeclaw-openclaw/

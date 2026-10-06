@@ -1,0 +1,38 @@
+# Windows local pilot: 真实 Claude Code + AgentDojo，教师模型 openai/gpt-5.6-sol (OpenRouter)。
+#
+# 与 Codex 那份配置的唯一差别是 LLM 传输路径。Claude Code 只说 Anthropic Messages 协议，
+# 而该模型在 OpenRouter 上按出口 IP 做区域门控：本机直连返回 403 "This model is not
+# available in your region"，经 127.0.0.1:7897 出口返回 200（含原生 tool_use 流式往返）。
+# Claude Code 自身的 HTTP 客户端无法固定出口，所以用一个本地透明转发器承担这一件事——
+# 它不转换协议、不改写请求字段、不做模型回退。
+experiment_id: claude_agentdojo_openrouter_gpt56_sol_pilot
+output_jsonl: experiments/cross_harness_sft/outputs/claude_agentdojo_openrouter_gpt56_sol_pilot/raw_native.jsonl
+episode_workdir: experiments/cross_harness_sft/runs/claude_agentdojo_openrouter_gpt56_sol_pilot
+model_family: gpt56_sol
+seeds: [0]
+max_cases_per_benchmark:
+  agentdojo: 1
+benchmark_sources:
+  - type: agentdojo_http
+    base_url: http://127.0.0.1:8211
+harnesses:
+  - id: claude_code_openrouter
+    type: claude_code
+    binary: ${CLAUDE_BINARY}
+    model: openai/gpt-5.6-sol
+    provider: openrouter
+    max_turns: 20
+    stream_logs: true
+    timeout_seconds: 900
+    # Only the loopback facade token reaches this child process; the upstream credential
+    # stays in the forwarder. require_loopback fails closed if that ever changes.
+    facade:
+      base_url: http://127.0.0.1:8311
+      local_token_env: FACADE_LOCAL_TOKEN
+      require_loopback: true
+safety_modules: [none]
+pretool_guard:
+  deny_tools: []
+safety:
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt
+  skillbank_path: assets/skillbanks/runtime_skill_bank.json

@@ -1,0 +1,4 @@
+split: val
+task_names: [benign, harmful]
+force_redownload: false
+collection_only: true

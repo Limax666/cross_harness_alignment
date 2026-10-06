@@ -1,0 +1,28 @@
+experiment_id: agentharm_codex_gpt56_sol_test_public_v1
+collection_only: true
+output_jsonl: experiments/cross_harness_sft/outputs/agentharm_codex_gpt56_sol_native/test_public_v1.jsonl
+episode_workdir: experiments/cross_harness_sft/runs/agentharm_codex_gpt56_sol_test_public
+model_family: qwen35
+seeds: [0]
+max_tool_calls: 12
+max_cases_per_benchmark:
+  agentharm: 0
+benchmark_sources:
+  - type: agentharm_http
+    base_url: ${AGENTHARM_BASE_URL}
+harnesses:
+  - id: codex
+    type: codex_cli
+    binary: /data/home/liumingxiao/.local/bin/codex
+    model: gpt-5.6-sol
+    auth_source: /data/home/liumingxiao/.codex/auth.json
+    reasoning_effort: low
+    timeout_seconds: 600
+    mcp_startup_timeout_seconds: 60
+    mcp_tool_timeout_seconds: 120
+safety_modules: [static_prompt]
+pretool_guard:
+  deny_tools: []
+safety:
+  inject_harness_context: true
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt

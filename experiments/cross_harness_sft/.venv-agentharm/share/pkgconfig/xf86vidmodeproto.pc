@@ -1,7 +1,0 @@
-prefix=/root/cross_harness_aligement/experiments/cross_harness_sft/.venv-agentharm
-includedir=${prefix}/include
-
-Name: XF86VidModeProto
-Description: XF86VidMode extension headers
-Version: 2.3.1
-Cflags: -I${includedir}

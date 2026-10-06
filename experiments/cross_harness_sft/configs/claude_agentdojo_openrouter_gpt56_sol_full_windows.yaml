@@ -1,0 +1,31 @@
+# Windows full run: 真实 Claude Code + AgentDojo 全量，教师模型 openai/gpt-5.6-sol (OpenRouter)。
+# 传输层说明与 -1-case 的 pilot 配置相同，见 claude_agentdojo_openrouter_gpt56_sol_pilot_windows.yaml。
+experiment_id: claude_agentdojo_openrouter_gpt56_sol_full
+output_jsonl: experiments/cross_harness_sft/outputs/claude_agentdojo_openrouter_gpt56_sol_full/raw_native.jsonl
+episode_workdir: experiments/cross_harness_sft/runs/claude_agentdojo_openrouter_gpt56_sol_full
+model_family: gpt56_sol
+seeds: [0]
+max_cases_per_benchmark:
+  agentdojo: 0
+benchmark_sources:
+  - type: agentdojo_http
+    base_url: http://127.0.0.1:8211
+harnesses:
+  - id: claude_code_openrouter
+    type: claude_code
+    binary: ${CLAUDE_BINARY}
+    model: openai/gpt-5.6-sol
+    provider: openrouter
+    max_turns: 20
+    stream_logs: true
+    timeout_seconds: 900
+    facade:
+      base_url: http://127.0.0.1:8312
+      local_token_env: FACADE_LOCAL_TOKEN
+      require_loopback: true
+safety_modules: [none]
+pretool_guard:
+  deny_tools: []
+safety:
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt
+  skillbank_path: assets/skillbanks/runtime_skill_bank.json

@@ -1,0 +1,10 @@
+experiments/cross_harness_sft/outputs/codex_agentdojo_native_gpt56_sol_full/raw_native.jsonl -text
+experiments/cross_harness_sft/outputs/claude_agentdojo_openrouter_gpt56_sol_full/raw_native.jsonl -text
+experiments/cross_harness_sft/outputs/agentdojo_codex_claude_teacher_raw_native.zip -text
+*.py text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+.gitignore text eol=lf
+experiments/cross_harness_sft/.gitignore text eol=lf

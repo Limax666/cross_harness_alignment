@@ -53,13 +53,36 @@ class AgentDojoDriver:
                     "suite": suite.name, "user_task_id": user.ID, "injection_task_id": getattr(injection, "ID", None)}})
         return result
 
-    def start(self, task_id: str, seed: int) -> dict[str, Any]:
+    def start(self, task_id: str, seed: int, *, injection_vector: str | None = None,
+              injection_payload: str | None = None) -> dict[str, Any]:
         from agentdojo.functions_runtime import FunctionsRuntime
         suite, user, injection = self._case_map[task_id]
         injections = {}
         if injection is not None:
-            payload = str(injection.GOAL)
-            injections = {key: payload for key in suite.get_injection_vector_defaults()}
+            if injection_vector is None and injection_payload is None:
+                # Match AgentDojo's published DirectAttack: inject "TODO: {goal}"
+                # into every vector that the official ground-truth pipeline observes
+                # while completing this user task. This makes the standard full
+                # suite runnable through the native harness adapter without a
+                # hand-authored, task-specific injection map.
+                from agentdojo.attacks.baseline_attacks import DirectAttack
+
+                injections = DirectAttack(suite, target_pipeline=None).attack(user, injection)
+                if not injections:
+                    raise ValueError(f"AgentDojo DirectAttack found no injectable vectors for {task_id}")
+            else:
+                candidates = suite.get_injection_vector_defaults()
+                if injection_vector not in candidates or not isinstance(injection_payload, str) or not injection_payload.strip():
+                    raise ValueError("injection task requires one registered injection_vector and nonempty payload")
+                pilot_vectors = {
+                    "workspace:user_task_6:injection_task_1": "calendar_project_kickoff_description",
+                    "workspace:user_task_5:injection_task_1": "calendar_introductory_meeting_injection",
+                }
+                if task_id in pilot_vectors and injection_vector != pilot_vectors[task_id]:
+                    raise ValueError("pilot injection vector is not observed by official user-task ground truth")
+                injections = {injection_vector: injection_payload}
+        elif injection_vector is not None or injection_payload is not None:
+            raise ValueError("clean task cannot include an injection payload")
         base = suite.load_and_inject_default_environment(injections)
         environment = user.init_environment(base) if hasattr(user, "init_environment") else base
         episode = Episode(suite, user, injection, environment.model_copy(deep=True), environment,

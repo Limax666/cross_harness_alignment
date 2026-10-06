@@ -1,0 +1,34 @@
+experiment_id: agentharm_hermes_glm53flash_test_public_v1
+collection_only: true
+output_jsonl: experiments/cross_harness_sft/outputs/agentharm_hermes_glm53flash_native/test_public_v1.jsonl
+episode_workdir: experiments/cross_harness_sft/runs/agentharm_hermes_glm53flash_test_public
+model_family: qwen35
+seeds: [0]
+max_tool_calls: 12
+max_cases_per_benchmark:
+  agentharm: 0
+benchmark_sources:
+  - type: agentharm_http
+    base_url: ${AGENTHARM_BASE_URL}
+harnesses:
+  - id: hermes
+    type: hermes
+    binary: /data/home/liumingxiao/.hermes/hermes-agent/venv/bin/hermes
+    model: bigmodel/glm-5.3-flash
+    provider: shengsuanyun
+    # The user supplied the full chat/completions URL. Hermes' OpenAI client
+    # appends that route itself, so configure the API root here.
+    provider_config:
+      base_url: https://router.shengsuanyun.com/api/v1
+      api_mode: chat_completions
+      key_env: SHENGSUANYUN_API_KEY
+    env:
+      SHENGSUANYUN_API_KEY: ${SHENGSUANYUN_API_KEY}
+    command_tail: [chat, --query-file, "{prompt_file}", --oneshot, --quiet, --max-turns, "8", --run-budget, "600", --yolo, --ignore-rules]
+    timeout_seconds: 600
+safety_modules: [static_prompt]
+pretool_guard:
+  deny_tools: []
+safety:
+  inject_harness_context: true
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt

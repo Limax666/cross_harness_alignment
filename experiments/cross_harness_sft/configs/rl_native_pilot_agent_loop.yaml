@@ -1,0 +1,4 @@
+- name: native_agentdojo_pilot
+  _target_: rl_verl_native_agentdojo_loop.NativeAgentDojoVeRLLoop
+  worker_config: /data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/configs/agentdojo_worker.yaml
+  max_turns: 6

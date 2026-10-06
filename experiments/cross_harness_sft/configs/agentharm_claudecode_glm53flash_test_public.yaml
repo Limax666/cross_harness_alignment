@@ -1,0 +1,32 @@
+experiment_id: agentharm_claudecode_glm53flash_test_public_v1
+collection_only: true
+output_jsonl: experiments/cross_harness_sft/outputs/agentharm_claudecode_glm53flash_native/test_public_v1.jsonl
+episode_workdir: experiments/cross_harness_sft/runs/agentharm_claudecode_glm53flash_test_public
+model_family: glm53
+seeds: [0]
+max_tool_calls: 12
+max_cases_per_benchmark:
+  agentharm: 0
+benchmark_sources:
+  - type: agentharm_http
+    base_url: ${AGENTHARM_BASE_URL}
+harnesses:
+  - id: claude_code
+    type: claude_code
+    binary: /data/home/liumingxiao/.npm-global/bin/claude
+    model: bigmodel/glm-5.3-flash
+    provider: shengsuanyun
+    cli_model: claude-sonnet-4-20250514
+    max_turns: 20
+    stream_logs: true
+    timeout_seconds: 600
+    facade:
+      base_url: http://127.0.0.1:8411
+      local_token_env: FACADE_LOCAL_TOKEN
+      require_loopback: true
+safety_modules: [static_prompt]
+pretool_guard:
+  deny_tools: []
+safety:
+  inject_harness_context: true
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt

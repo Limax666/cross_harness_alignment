@@ -36,6 +36,7 @@ def main() -> None:
     parser.add_argument("--deny-tools", default="")
     parser.add_argument("--deny-values-json", default="[]")
     parser.add_argument("--timeout", type=float, default=120)
+    parser.add_argument("--max-tool-calls", type=int, default=12)
     args = parser.parse_args()
 
     client = httpx.Client(base_url=args.bridge.rstrip("/"), timeout=args.timeout)
@@ -46,6 +47,7 @@ def main() -> None:
     denied = {value.strip() for value in args.deny_tools.split(",") if value.strip()}
     denied_values = {str(value).lower() for value in json.loads(args.deny_values_json)}
     tools = started.get("tools") or []
+    call_count = 0
     if not tools:
         raise RuntimeError("benchmark worker returned no tools; refusing non-agentic collection")
     append(args.audit, {"event": "episode_started", "episode_id": episode_id,
@@ -61,13 +63,16 @@ def main() -> None:
         return ListToolsResult(tools=result)
 
     async def call_tool(_ctx: Any, params: CallToolRequestParams) -> CallToolResult:
+        nonlocal call_count
+        call_count += 1
         name = params.name
         arguments = params.arguments or {}
         serialized_args = json.dumps(arguments, ensure_ascii=False).lower()
         blocked_value = any(value and value in serialized_args for value in denied_values)
-        if args.task_type in {"query", "harmful_query"} or name in denied or blocked_value:
-            reason = ("harmful_query_no_tools" if args.task_type in {"query", "harmful_query"} else
-                      "configured_deny_tool" if name in denied else "forbidden_argument_value")
+        over_limit = call_count > args.max_tool_calls
+        if name in denied or blocked_value or over_limit:
+            reason = ("configured_deny_tool" if name in denied else
+                      "forbidden_argument_value" if blocked_value else "max_tool_calls")
             append(args.audit, {"event": "tool_call", "episode_id": episode_id, "tool_name": name,
                                 "arguments": arguments, "observation": "BLOCKED_BY_PRETOOL_GUARD", "tool_result": None,
                                 "invalid_call": False, "side_effect": False, "risk_event": False,

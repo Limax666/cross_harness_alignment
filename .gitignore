@@ -1,11 +1,18 @@
 experiments/cross_harness_sft/.venv/
+experiments/cross_harness_sft/.venv-*/
 experiments/cross_harness_sft/vendor/
 experiments/cross_harness_sft/outputs/
 experiments/cross_harness_sft/data/
 experiments/cross_harness_sft/runs/
+experiments/cross_harness_sft/checkpoints/
+experiments/cross_harness_sft/runtime/
 *.eval
 *.log
 .env
+.agentharm_token_plan.env
 __pycache__/
 .pytest_cache/
 *.pyc
+
+# TandemKit: commit coordination text, ignore binary verification assets.
+TandemKit/*/Assets/

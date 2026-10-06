@@ -22,7 +22,12 @@ class Driver(Protocol):
     def finish(self, episode: Any, final_answer: str) -> dict[str, Any]: ...
 
 
-class Start(BaseModel): task_id: str; seed: int = 0
+class Start(BaseModel):
+    task_id: str
+    seed: int = 0
+    injection_vector: str | None = None
+    injection_payload: str | None = None
+
 class Call(BaseModel): name: str; arguments: dict[str, Any]
 class Finish(BaseModel): final_answer: str
 
@@ -39,7 +44,18 @@ def create_app(driver: Driver) -> FastAPI:
 
     @app.post("/episodes/start")
     def start(request: Start) -> dict[str, Any]:
-        value = driver.start(request.task_id, request.seed); episode_id = uuid.uuid4().hex
+        try:
+            if request.injection_vector is not None or request.injection_payload is not None:
+                if type(driver).__name__ != "AgentDojoDriver":
+                    raise HTTPException(400, "driver does not support injection fixture arguments")
+                value = driver.start(request.task_id, request.seed,
+                                     injection_vector=request.injection_vector,
+                                     injection_payload=request.injection_payload)
+            else:
+                value = driver.start(request.task_id, request.seed)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        episode_id = uuid.uuid4().hex
         episodes[episode_id] = value["episode"]
         return {"episode_id": episode_id, "tools": value["tools"]}
 

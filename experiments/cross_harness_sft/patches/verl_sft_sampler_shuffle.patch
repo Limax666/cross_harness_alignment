@@ -1,0 +1,12 @@
+diff --git a/experiments/cross_harness_sft/vendor/verl/verl/trainer/sft_trainer.py b/experiments/cross_harness_sft/vendor/verl/verl/trainer/sft_trainer.py
+--- a/experiments/cross_harness_sft/vendor/verl/verl/trainer/sft_trainer.py
++++ b/experiments/cross_harness_sft/vendor/verl/verl/trainer/sft_trainer.py
+@@ -237,3 +237,7 @@
+         self.train_sampler = DistributedSampler(
+-            self.train_dataset, shuffle=True, num_replicas=dp_size, rank=dp_rank, drop_last=True
++            self.train_dataset,
++            shuffle=config.data.get("sampler_shuffle", True),
++            num_replicas=dp_size,
++            rank=dp_rank,
++            drop_last=True,
+         )

@@ -19,6 +19,14 @@ bash experiments/cross_harness_sft/scripts/setup_server.sh
 - [`experiments/cross_harness_sft/README.md`](experiments/cross_harness_sft/README.md)
 - [`DESIGN_zh.md`](DESIGN_zh.md)
 
+## TandemKit
+
+This project uses TandemKit — Claude and Codex always work in tandem for planning and evaluation.
+
+**To start a new mission:** Run `/tandemkit:planner` and describe your goal. The Planner guides you through everything — including how to start the Generator and Evaluator sessions once the plan is ready.
+
+Project-specific role context: `TandemKit/Planner.md`, `TandemKit/Generator.md`, `TandemKit/Evaluator.md`.
+
 正式配置：`experiments/cross_harness_sft/configs/formal_native.yaml`。
 
 ## 数据边界

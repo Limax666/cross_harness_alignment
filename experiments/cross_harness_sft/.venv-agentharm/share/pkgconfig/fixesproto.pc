@@ -1,8 +1,0 @@
-prefix=/root/cross_harness_aligement/experiments/cross_harness_sft/.venv-agentharm
-includedir=${prefix}/include
-
-Name: FixesProto
-Description: X Fixes extension headers
-Version: 6.1
-Cflags: -I${includedir}
-Requires: xextproto >= 7.0.99.1

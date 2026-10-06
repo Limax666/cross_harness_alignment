@@ -1,7 +1,0 @@
-prefix=/root/cross_harness_aligement/experiments/cross_harness_sft/.venv-agentharm
-includedir=${prefix}/include
-
-Name: XF86DGAProto
-Description: XF86DGA extension headers
-Version: 2.1
-Cflags: -I${includedir}

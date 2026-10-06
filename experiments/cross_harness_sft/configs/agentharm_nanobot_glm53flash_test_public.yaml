@@ -1,0 +1,34 @@
+experiment_id: agentharm_nanobot_glm53flash_test_public_v1
+collection_only: true
+output_jsonl: experiments/cross_harness_sft/outputs/agentharm_nanobot_glm53flash_native/test_public_v1.jsonl
+episode_workdir: experiments/cross_harness_sft/runs/agentharm_nanobot_glm53flash_test_public
+model_family: qwen35
+seeds: [0]
+max_tool_calls: 8
+max_cases_per_benchmark:
+  agentharm: 0
+benchmark_sources:
+  - type: agentharm_http
+    base_url: ${AGENTHARM_BASE_URL}
+harnesses:
+  - id: nanobot
+    type: nanobot
+    binary: /data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-nanobot/bin/nanobot
+    model: bigmodel/glm-5.3-flash
+    provider: shengsuanyun
+    base_url: https://router.shengsuanyun.com/api/v1
+    api_key_env: SHENGSUANYUN_API_KEY
+    env:
+      SHENGSUANYUN_API_KEY: ${SHENGSUANYUN_API_KEY}
+    max_tool_iterations: 8
+    timeout_seconds: 600
+    mcp_tool_timeout_seconds: 120
+    # NanoBot renders streaming reasoning tokens to stdout. Keep the terminal
+    # audit concise; collect_native still stores the complete native stdout.
+    stream_logs: false
+safety_modules: [static_prompt]
+pretool_guard:
+  deny_tools: []
+safety:
+  inject_harness_context: true
+  static_prompt_path: experiments/cross_harness_sft/configs/static_safety_prompt.txt

@@ -1,0 +1,279 @@
+diff --git a/verl/models/transformers/monkey_patch.py b/verl/models/transformers/monkey_patch.py
+index 27e18842..e70ca6ba 100644
+--- a/verl/models/transformers/monkey_patch.py
++++ b/verl/models/transformers/monkey_patch.py
+@@ -353,13 +353,19 @@ def apply_monkey_patch(
+         try:
+             from trl.experimental.ppo import AutoModelForCausalLMWithValueHead  # type: ignore
+         except ImportError:
+-            from trl import AutoModelForCausalLMWithValueHead  # type: ignore
+-
+-        def state_dict(self, *args, **kwargs):
+-            return torch.nn.Module.state_dict(self, *args, **kwargs)
+-
+-        AutoModelForCausalLMWithValueHead.state_dict = state_dict
+-        print("Monkey patch state_dict in AutoModelForCausalLMWithValueHead. ")
++            try:
++                from trl import AutoModelForCausalLMWithValueHead  # type: ignore
++            except ImportError:
++                # This state_dict adjustment is only needed by the legacy TRL
++                # ValueHead wrapper. Standard CausalLM SFT does not use it.
++                AutoModelForCausalLMWithValueHead = None  # type: ignore
++
++        if AutoModelForCausalLMWithValueHead is not None:
++            def state_dict(self, *args, **kwargs):
++                return torch.nn.Module.state_dict(self, *args, **kwargs)
++
++            AutoModelForCausalLMWithValueHead.state_dict = state_dict
++            print("Monkey patch state_dict in AutoModelForCausalLMWithValueHead. ")
+ 
+     # TODO: VLM models only, unify monkey patch to LLM models.
+     if model.config.model_type in ["qwen2_5_vl", "qwen2_vl"]:
+diff --git a/verl/trainer/sft_trainer.py b/verl/trainer/sft_trainer.py
+index 393a3f69..e83bceaf 100644
+--- a/verl/trainer/sft_trainer.py
++++ b/verl/trainer/sft_trainer.py
+@@ -14,6 +14,7 @@
+ 
+ 
+ import os
++from collections import deque
+ from functools import partial
+ 
+ from tensordict.tensorclass import NonTensorData
+@@ -233,8 +234,14 @@ class SFTTrainer:
+         dp_rank = self.engine.get_data_parallel_rank()
+         dp_size = self.engine.get_data_parallel_size()
+ 
++        # A frozen, cell-stratified SFT view carries its own registered order.
++        # Keep the historical shuffled default for other datasets.
+         self.train_sampler = DistributedSampler(
+-            self.train_dataset, shuffle=True, num_replicas=dp_size, rank=dp_rank, drop_last=True
++            self.train_dataset,
++            shuffle=config.data.get("sampler_shuffle", True),
++            num_replicas=dp_size,
++            rank=dp_rank,
++            drop_last=True,
+         )
+ 
+         self.global_batch_size = config.data.train_batch_size
+@@ -353,6 +360,7 @@ class SFTTrainer:
+ 
+         train_time = 0
+         total_tokens = 0
++        recent_train_losses = deque(maxlen=32)
+         for epoch in range(start_epoch, self.config.trainer.total_epochs):
+             self.train_sampler.set_epoch(epoch=epoch)
+ 
+@@ -394,12 +402,15 @@ class SFTTrainer:
+                 if self.engine.is_mp_src_rank_with_outputs():
+                     metrics = tu.get(output, "metrics")
+ 
+-                    # TODO: we can actual accumulate metrics for N steps and perform aggregate metrics
+                     for k in ["loss", "grad_norm", "lr", "mfu"]:
+                         if k in metrics.keys():
+                             value = metrics.pop(k)
+                             metrics[f"train/{k}"] = value
+ 
++                    if "train/loss" in metrics:
++                        recent_train_losses.append(float(metrics["train/loss"]))
++                        metrics["train/loss_ma32"] = sum(recent_train_losses) / len(recent_train_losses)
++
+                     metrics["train/global_tokens"] = torch.sum(
+                         torch.tensor(batch_seqlens, device=self.device_name)
+                     ).item()
+diff --git a/verl/utils/torch_functional.py b/verl/utils/torch_functional.py
+index 490ffc1b..5281cf84 100644
+--- a/verl/utils/torch_functional.py
++++ b/verl/utils/torch_functional.py
+@@ -170,6 +170,53 @@ def logprobs_from_logits_naive(logits: torch.Tensor, labels: torch.Tensor) -> to
+     return logpy
+ 
+ 
++class _ChunkedSelectedLogProb(torch.autograd.Function):
++    """Selected log-probabilities without retaining a full float32 vocab tensor.
++
++    The ordinary bfloat16 fallback casts every token's vocabulary logits to
++    float32 for ``logsumexp``. Autograd then retains that cast until backward,
++    which can exhaust a 24 GiB card on long online-agent trajectories. Keep
++    only the original logits and recompute the softmax in small token chunks
++    during backward. The gradient is exactly one_hot(label) - softmax(logits).
++    """
++
++    @staticmethod
++    def forward(ctx, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
++        original_shape = labels.shape
++        vocab_size = logits.shape[-1]
++        flat_logits = logits.reshape(-1, vocab_size)
++        flat_labels = labels.reshape(-1)
++        chunk_size = 32
++        selected = []
++        for start in range(0, flat_logits.shape[0], chunk_size):
++            chunk = flat_logits[start : start + chunk_size].float()
++            targets = flat_labels[start : start + chunk_size].unsqueeze(-1)
++            selected.append(chunk.gather(-1, targets).squeeze(-1) - torch.logsumexp(chunk, dim=-1))
++        ctx.save_for_backward(logits, labels)
++        ctx.chunk_size = chunk_size
++        return torch.cat(selected).reshape(original_shape)
++
++    @staticmethod
++    def backward(ctx, grad_output: torch.Tensor) -> tuple[torch.Tensor, None]:
++        logits, labels = ctx.saved_tensors
++        vocab_size = logits.shape[-1]
++        flat_logits = logits.reshape(-1, vocab_size)
++        flat_labels = labels.reshape(-1)
++        flat_grad = grad_output.reshape(-1)
++        grad_logits = torch.empty_like(flat_logits)
++        for start in range(0, flat_logits.shape[0], ctx.chunk_size):
++            stop = start + ctx.chunk_size
++            grad = -torch.softmax(flat_logits[start:stop].float(), dim=-1)
++            grad.scatter_add_(
++                -1,
++                flat_labels[start:stop].unsqueeze(-1),
++                torch.ones_like(flat_grad[start:stop]).unsqueeze(-1),
++            )
++            grad.mul_(flat_grad[start:stop].unsqueeze(-1))
++            grad_logits[start:stop].copy_(grad)
++        return grad_logits.reshape(logits.shape), None
++
++
+ def logprobs_from_logits_v2(logits: torch.FloatTensor, labels: torch.Tensor) -> torch.Tensor:
+     """Memory-efficient log-probability computation using row-wise processing.
+ 
+@@ -197,13 +244,9 @@ def logprobs_from_logits_v2(logits: torch.FloatTensor, labels: torch.Tensor) ->
+         logsumexp_values = torch.stack([torch.logsumexp(logit, dim=-1) for logit in logits])
+         logprobs_labels = logits_labels - logsumexp_values  # log_softmax(x_i) = x_i - logsumexp(x)
+     else:
+-        # logsumexp approach is unstable with bfloat16, fall back to slightly less efficent approach
+-        logprobs_labels = []
+-        for row_logits, row_labels in zip(logits, labels, strict=True):  # loop to reduce peak mem consumption
+-            row_logprobs = F.log_softmax(row_logits, dim=-1)
+-            row_logprobs_labels = row_logprobs.gather(dim=-1, index=row_labels.unsqueeze(-1)).squeeze(-1)
+-            logprobs_labels.append(row_logprobs_labels)
+-        logprobs_labels = torch.stack(logprobs_labels)
++        # Recompute softmax in bounded token chunks during backward. This
++        # avoids retaining one float32 [tokens, vocab] cast per training step.
++        logprobs_labels = _ChunkedSelectedLogProb.apply(logits, labels)
+     return logprobs_labels
+ 
+ 
+diff --git a/verl/workers/config/model.py b/verl/workers/config/model.py
+index 545ec468..132554b6 100644
+--- a/verl/workers/config/model.py
++++ b/verl/workers/config/model.py
+@@ -173,8 +173,7 @@ class HFModelConfig(BaseConfig):
+         if self.custom_chat_template is not None:
+             if self.processor is not None:
+                 self.processor.chat_template = self.custom_chat_template
+-            else:
+-                self.tokenizer.chat_template = self.custom_chat_template
++            self.tokenizer.chat_template = self.custom_chat_template
+ 
+         self.local_hf_config_path = copy_to_local(self.hf_config_path, use_shm=self.use_shm)
+         self.generation_config = get_generation_config(
+diff --git a/verl/workers/engine/base.py b/verl/workers/engine/base.py
+index 161faed0..48a42680 100644
+--- a/verl/workers/engine/base.py
++++ b/verl/workers/engine/base.py
+@@ -320,10 +320,13 @@ class BaseEngineCtx:
+         if self.mode == "eval":
+             self.engine.to(device=device, model=self.engine.is_param_offload_enabled, optimizer=False, grad=False)
+         elif self.mode == "train":
++            # Project-local patch: with jit_optimizer_states the optimizer
++            # moments are loaded inside optimizer_step, not at context entry.
++            jit_optimizer = getattr(self.engine, "jit_optimizer_states", False)
+             self.engine.to(
+                 device=device,
+                 model=self.engine.is_param_offload_enabled,
+-                optimizer=self.engine.is_optimizer_offload_enabled,
++                optimizer=self.engine.is_optimizer_offload_enabled and not jit_optimizer,
+                 grad=self.engine.is_param_offload_enabled,
+             )
+ 
+diff --git a/verl/workers/engine/fsdp/transformer_impl.py b/verl/workers/engine/fsdp/transformer_impl.py
+index c5cbc35d..8d75d58a 100644
+--- a/verl/workers/engine/fsdp/transformer_impl.py
++++ b/verl/workers/engine/fsdp/transformer_impl.py
+@@ -96,11 +96,14 @@ def _is_scalar_unit_temperature(temperature) -> bool:
+ 
+ 
+ def _scale_logits_by_temperature(logits, temperature, *, is_unit_temperature: bool):
+-    """Scale logits without copying the full vocabulary tensor for temperature 1."""
++    """Scale logits in place to avoid a second full vocabulary tensor."""
+ 
+     if is_unit_temperature:
+         return logits
+-    return logits / temperature.clamp(min=1e-8).to(logits.dtype)
++    # Logits are a fresh LM-head output, not a parameter or saved model input.
++    # Out-of-place scaling doubles the peak [tokens, vocab] allocation (about
++    # 2 GiB for a long Qwen3.5 agent trajectory) before selected log-probs.
++    return logits.div_(temperature.clamp(min=1e-8).to(logits.dtype))
+ 
+ 
+ class FSDPEngine(BaseEngine):
+@@ -159,6 +162,14 @@ class FSDPEngine(BaseEngine):
+         # set FSDP offload params
+         self._is_offload_param = self.engine_config.param_offload
+         self._is_offload_optimizer = self.engine_config.optimizer_offload
++        # Project-local patch (cross_harness_alignment): with optimizer_offload
++        # enabled, AdamW moments were kept GPU-resident for the whole
++        # train-mode context, so every backward pass paid ~9 GB for a 2.21B
++        # model on 24 GB cards and the second update OOMed. Keep the moments
++        # on CPU during forward/backward and load them only inside
++        # optimizer_step. Semantically neutral: the moved tensors are
++        # identical, only their device changes.
++        self.jit_optimizer_states = True
+         self._is_lora = self.model_config.lora_rank > 0
+         # Set in _build_fsdp_module when FSDP2 CPUOffloadPolicy is configured (see #5995).
+         self._uses_fsdp2_cpu_offload_policy = False
+@@ -598,6 +609,16 @@ class FSDPEngine(BaseEngine):
+         if self._is_lora:
+             module = self._build_lora_module(module)
+ 
++        require_full = os.environ.get("CHSFT_REQUIRE_FULL_TRAINABLE") == "1"
++        if require_full:
++            if self._is_lora:
++                raise RuntimeError("Full-SFT guard failed: LoRA is still enabled")
++            frozen = [name for name, param in module.named_parameters() if not param.requires_grad]
++            if frozen:
++                raise RuntimeError(f"Full-SFT guard failed: {len(frozen)} frozen parameters; first={frozen[0]}")
++            if self.rank == 0:
++                print(f"Full-SFT trainable parameters: {sum(p.numel() for p in module.parameters()):,}", flush=True)
++
+         # Apply QAT before FSDP wrapping (training only)
+         if self._qat_enabled and not self.engine_config.forward_only:
+             module = self._apply_qat(module)
+@@ -616,6 +637,11 @@ class FSDPEngine(BaseEngine):
+         if not self.engine_config.forward_only:
+             # Initialize optimizer with model parameters and config settings
+             optimizer = self._build_optimizer(module)
++            if require_full:
++                model_params = {id(p) for p in module.parameters()}
++                optimizer_params = {id(p) for group in optimizer.param_groups for p in group["params"]}
++                if model_params != optimizer_params:
++                    raise RuntimeError("Full-SFT guard failed: optimizer parameter set differs from FSDP model")
+             # Create learning rate scheduler with warmup and decay settings
+             lr_scheduler = self._build_lr_scheduler(optimizer)
+         else:
+@@ -794,6 +820,11 @@ class FSDPEngine(BaseEngine):
+         """
+         assert self.optimizer_config.clip_grad is not None
+ 
++        # Project-local patch: load the AdamW moments just-in-time for the
++        # step and offload them again afterwards (see jit_optimizer_states).
++        if getattr(self, "jit_optimizer_states", False) and self._is_offload_optimizer and self.optimizer is not None:
++            load_fsdp_optimizer(self.optimizer, get_device_name())
++
+         # getattr fallback: some subclasses (e.g. VeOmniEngine) bypass FSDPEngine.__init__.
+         scaler = getattr(self, "scaler", None)
+ 
+@@ -831,6 +862,9 @@ class FSDPEngine(BaseEngine):
+ 
+             invalidate_all_scales(self.module)
+ 
++        if getattr(self, "jit_optimizer_states", False) and self._is_offload_optimizer and self.optimizer is not None:
++            offload_fsdp_optimizer(self.optimizer)
++
+         return grad_norm.item()
+ 
+     def lr_scheduler_step(self):
