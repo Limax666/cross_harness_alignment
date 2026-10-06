@@ -49,14 +49,18 @@ GitHub 当前**只有 Hermes 协议映射 + AgentDojo 官方可复位工具环�
 
 ### 旧服务器上的 split/fixture 传输包
 
-旧服务器已打包所需输入，文件位于 `experiments/cross_harness_sft/outputs/rl/handoff_multiharness_rl_data_20261007.tar.zst`（12,817,609 bytes；SHA-256 `71678b4ba1f9fb80b9a49754406ca9e60ab904c5c8fe5e17a13517955598f9d0`）。从新服务器执行：
+所需输入包已上传至私有 Hugging Face 模型仓库 `Limax11/harness_alignment`，文件路径为 `transfers/handoff_multiharness_rl_data_20261007.tar.zst`，固定 revision `49d5041fba2373c3a195cfcc268aa01d25963784`（12,817,609 bytes；SHA-256 `71678b4ba1f9fb80b9a49754406ca9e60ab904c5c8fe5e17a13517955598f9d0`）。旧/新服务器均无需 SSH 互通；新服务器需先以有读取权限的 HF 账号登录，再执行：
 
 ```bash
-rsync -avP --partial \
-  liumingxiao@hdu207-SYS-4029GP-TRT2:/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/rl/handoff_multiharness_rl_data_20261007.tar.zst \
-  ./
-sha256sum handoff_multiharness_rl_data_20261007.tar.zst
-tar --zstd -xf handoff_multiharness_rl_data_20261007.tar.zst
+hf auth login
+hf download Limax11/harness_alignment \
+  transfers/handoff_multiharness_rl_data_20261007.tar.zst \
+  --revision 49d5041fba2373c3a195cfcc268aa01d25963784 \
+  --local-dir ./hf_transfer
+sha256sum hf_transfer/transfers/handoff_multiharness_rl_data_20261007.tar.zst
+mkdir -p hf_transfer/extracted
+tar --zstd -xf hf_transfer/transfers/handoff_multiharness_rl_data_20261007.tar.zst \
+  -C hf_transfer/extracted
 ```
 
 包内有 v7 `accepted_train.jsonl`、`accepted_validation.jsonl`、完整 `family_split_manifest.jsonl`（246 train、30 validation、30 test、7 review-only families）、分类/预处理元数据和 Qwen3.5-2B 4,096-token qualified JSONL（1,421 train、232 validation）；也有 ActBench 与 SafeClawArena 的提交版 tasks/fixtures/runner 源码快照。ActBench commit 为 `31bd732e9c083ddeb19bf152048386d38e511c90`，SafeClawArena commit 为 `a11f5cceaba0676be721021f8d232638fd111305`。test 家族只给 split 身份用于排除；没有 `accepted_test.jsonl`，也不应将其用于训练。`TRANSFER_MANIFEST.json` 列有包内文件大小和 SHA-256。包不含原始采集日志、密钥或未提交的本地代码改动。
