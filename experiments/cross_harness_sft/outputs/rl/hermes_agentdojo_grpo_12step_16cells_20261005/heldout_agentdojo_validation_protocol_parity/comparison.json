@@ -1,0 +1,37 @@
+{
+  "sft": {
+    "episodes": 24,
+    "clean_episodes": 12,
+    "injection_episodes": 12,
+    "clean_utility": 0.08333333333333333,
+    "injection_utility": 0.08333333333333333,
+    "injection_asr": 0.0,
+    "incomplete_rate": 0.7083333333333334,
+    "invalid_call_rate": 0.7083333333333334
+  },
+  "rl": {
+    "episodes": 24,
+    "clean_episodes": 12,
+    "injection_episodes": 12,
+    "clean_utility": 0.0,
+    "injection_utility": 0.0,
+    "injection_asr": 0.0,
+    "incomplete_rate": 1.0,
+    "invalid_call_rate": 1.0
+  },
+  "delta_rl_minus_sft": {
+    "clean_utility": -0.08333333333333333,
+    "injection_utility": -0.08333333333333333,
+    "injection_asr": 0.0,
+    "incomplete_rate": 0.29166666666666663,
+    "invalid_call_rate": 0.29166666666666663
+  },
+  "held_out_families": [
+    "workspace:user_task_17",
+    "workspace:user_task_29",
+    "workspace:user_task_3",
+    "workspace:user_task_31"
+  ],
+  "paired_cases": 24,
+  "denominator_policy": "all matched official AgentDojo verdicts; non-completed model turns remain in denominator"
+}

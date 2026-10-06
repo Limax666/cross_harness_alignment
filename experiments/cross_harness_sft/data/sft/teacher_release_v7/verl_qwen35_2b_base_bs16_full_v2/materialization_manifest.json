@@ -1,0 +1,21 @@
+{
+  "format": "teacher_sft_verl_materialization_v1",
+  "created_at_utc": "2026-09-24T14:22:06.047037+00:00",
+  "sampling_manifest_sha256": "01c4d778f0387d574c296d2c38ac6fa4cf54926375580427f1d6ab2b016ab156",
+  "model": "Qwen/Qwen3.5-2B-Base",
+  "max_length": 4096,
+  "sampler_shuffle_required": false,
+  "expected_global_batch": 16,
+  "outputs": {
+    "train": {
+      "rows": 1424,
+      "sha256": "703f0fa88dc9763b78a05fddf8fcba64400b8702dca81ec156a4f02ff24d11c5",
+      "runtime_preflight": "passed"
+    },
+    "validation": {
+      "rows": 240,
+      "sha256": "5516440a638a1770a5ddf85ada752982e14802825609c2da386904e7e73098ae",
+      "runtime_preflight": "passed"
+    }
+  }
+}

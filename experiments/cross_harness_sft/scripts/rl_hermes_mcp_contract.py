@@ -15,8 +15,8 @@ from pathlib import Path
 
 _NATIVE = re.compile(r"[A-Za-z0-9_-]+\Z")
 PREFIX = "mcp__benchmark__"
-HERMES_ROOT = Path("/data/home/liumingxiao/.hermes/hermes-agent")
-HERMES_PYTHON = HERMES_ROOT / "venv/bin/python"
+HERMES_ROOT = Path(os.environ.get("HERMES_AGENT_ROOT", Path.home() / ".hermes/hermes-agent")).expanduser()
+HERMES_PYTHON = Path(os.environ.get("HERMES_AGENT_PYTHON", HERMES_ROOT / "venv/bin/python")).expanduser()
 _CONVERT = (
     "import json,sys; from types import SimpleNamespace; "
     "from tools.mcp_tool_schema import _convert_mcp_schema; "

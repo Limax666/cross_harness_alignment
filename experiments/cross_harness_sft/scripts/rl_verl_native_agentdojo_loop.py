@@ -7,6 +7,7 @@ alone is not a training launcher. Unknown evidence aborts the entire rollout.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from uuid import uuid4
 
 from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopMetrics, AgentLoopOutput
@@ -26,7 +27,10 @@ class NativeAgentDojoVeRLLoop(AgentLoopBase):
         super().__init__(*args, **kwargs)
         if max_turns < 1:
             raise ValueError("max_turns must be positive")
-        self.worker_config = worker_config
+        config_path = Path(worker_config).expanduser()
+        if not config_path.is_absolute():
+            config_path = Path(__file__).resolve().parents[1] / config_path
+        self.worker_config = str(config_path.resolve())
         self.max_turns = max_turns
 
     async def run(self, sampling_params: dict, priority: int = 0, **kwargs) -> AgentLoopOutput:

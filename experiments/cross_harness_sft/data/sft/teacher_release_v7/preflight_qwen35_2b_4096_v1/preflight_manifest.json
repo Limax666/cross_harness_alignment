@@ -1,0 +1,273 @@
+{
+  "format": "qwen35_2b_complete_trajectory_preflight_v1",
+  "created_at_utc": "2026-09-24T13:02:22.667259+00:00",
+  "source_release_manifest_sha256": "2a65f8476abe11043ac3d65a2604e6c8c5527f3b4f48629d3520b291078bda73",
+  "accepted_train_sha256": "6e453cfa3893086e26dfe3bed6ae245b2097c2e4d9a007b4d0a91e8dbc7b45e9",
+  "accepted_validation_sha256": "941b7bdee8231048440c3574986cb9c24d662850d4cb40e0cea4c1a04776fd61",
+  "renderer_code_sha256": "6ba43c42daa8cfb984d16b8aba03aef194375d5be2d6211916fa67a756b8eee2",
+  "tokenizer": "Qwen/Qwen3.5-2B",
+  "tokenizer_commit": null,
+  "chat_template_sha256": "b20f36771e26d0616466fb1cb21b987272d750ecb7a7a99edb3f1182888b0268",
+  "max_length": 4096,
+  "truncation": "error",
+  "counts": {
+    "train/complete_trajectory_within_limit": 1421,
+    "train/over_length_unsegmentable_pending_review": 182,
+    "validation/complete_trajectory_within_limit": 232,
+    "validation/over_length_unsegmentable_pending_review": 14
+  },
+  "cells": {
+    "train/claude_code/agentdojo/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 34,
+      "families": 25,
+      "rendered_tokens": 41881,
+      "assistant_tokens": 11284,
+      "tool_calls": 77
+    },
+    "train/claude_code/agentdojo/prompt_injection_defense/verified_safe_attack_defense": {
+      "rows": 271,
+      "families": 16,
+      "rendered_tokens": 249306,
+      "assistant_tokens": 72330,
+      "tool_calls": 443
+    },
+    "train/claude_code/agentharm/harmful_request_refusal/verified_harmful_refusal": {
+      "rows": 134,
+      "families": 36,
+      "rendered_tokens": 87168,
+      "assistant_tokens": 36260,
+      "tool_calls": 0
+    },
+    "train/claudecode/actbench/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 18,
+      "families": 18,
+      "rendered_tokens": 61964,
+      "assistant_tokens": 23052,
+      "tool_calls": 190
+    },
+    "train/claudecode/actbench/prompt_injection_defense/verified_safe_attack_defense": {
+      "rows": 1,
+      "families": 1,
+      "rendered_tokens": 3663,
+      "assistant_tokens": 1471,
+      "tool_calls": 9
+    },
+    "train/codex/agentdojo/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 81,
+      "families": 46,
+      "rendered_tokens": 77488,
+      "assistant_tokens": 24737,
+      "tool_calls": 287
+    },
+    "train/codex/agentdojo/prompt_injection_defense/verified_safe_attack_defense": {
+      "rows": 244,
+      "families": 28,
+      "rendered_tokens": 181388,
+      "assistant_tokens": 67658,
+      "tool_calls": 967
+    },
+    "train/codex/agentharm/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 60,
+      "families": 22,
+      "rendered_tokens": 92465,
+      "assistant_tokens": 49840,
+      "tool_calls": 301
+    },
+    "train/codex/agentharm/harmful_request_refusal/verified_harmful_refusal": {
+      "rows": 115,
+      "families": 31,
+      "rendered_tokens": 53866,
+      "assistant_tokens": 10737,
+      "tool_calls": 1
+    },
+    "train/hermes/agentharm/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 43,
+      "families": 16,
+      "rendered_tokens": 71193,
+      "assistant_tokens": 40737,
+      "tool_calls": 184
+    },
+    "train/hermes/agentharm/harmful_request_refusal/verified_harmful_refusal": {
+      "rows": 132,
+      "families": 36,
+      "rendered_tokens": 83382,
+      "assistant_tokens": 33539,
+      "tool_calls": 2
+    },
+    "train/nanobot/agentharm/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 36,
+      "families": 14,
+      "rendered_tokens": 113190,
+      "assistant_tokens": 86482,
+      "tool_calls": 173
+    },
+    "train/nanobot/agentharm/harmful_request_refusal/verified_harmful_refusal": {
+      "rows": 132,
+      "families": 34,
+      "rendered_tokens": 172812,
+      "assistant_tokens": 122864,
+      "tool_calls": 0
+    },
+    "train/openclaw/actbench/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 11,
+      "families": 11,
+      "rendered_tokens": 35656,
+      "assistant_tokens": 14156,
+      "tool_calls": 80
+    },
+    "train/openclaw/safeclawarena/persistent_state_defense/verified_safe_attack_defense": {
+      "rows": 5,
+      "families": 3,
+      "rendered_tokens": 16743,
+      "assistant_tokens": 12638,
+      "tool_calls": 25
+    },
+    "train/openclaw/safeclawarena/prompt_injection_defense/verified_safe_attack_defense": {
+      "rows": 59,
+      "families": 5,
+      "rendered_tokens": 76987,
+      "assistant_tokens": 55467,
+      "tool_calls": 148
+    },
+    "train/openclaw/safeclawarena/sensitive_data_boundary/verified_safe_attack_defense": {
+      "rows": 10,
+      "families": 6,
+      "rendered_tokens": 34339,
+      "assistant_tokens": 25684,
+      "tool_calls": 39
+    },
+    "train/opencode/actbench/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 24,
+      "families": 24,
+      "rendered_tokens": 72092,
+      "assistant_tokens": 22291,
+      "tool_calls": 250
+    },
+    "train/opencode/actbench/prompt_injection_defense/verified_safe_attack_defense": {
+      "rows": 2,
+      "families": 2,
+      "rendered_tokens": 6743,
+      "assistant_tokens": 2258,
+      "tool_calls": 20
+    },
+    "train/qwenpaw/actbench/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 9,
+      "families": 9,
+      "rendered_tokens": 29131,
+      "assistant_tokens": 11540,
+      "tool_calls": 65
+    },
+    "validation/claude_code/agentdojo/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 5,
+      "families": 3,
+      "rendered_tokens": 4740,
+      "assistant_tokens": 1118,
+      "tool_calls": 6
+    },
+    "validation/claude_code/agentdojo/prompt_injection_defense/verified_safe_attack_defense": {
+      "rows": 62,
+      "families": 3,
+      "rendered_tokens": 72461,
+      "assistant_tokens": 17087,
+      "tool_calls": 89
+    },
+    "validation/claude_code/agentharm/harmful_request_refusal/verified_harmful_refusal": {
+      "rows": 15,
+      "families": 4,
+      "rendered_tokens": 9704,
+      "assistant_tokens": 4126,
+      "tool_calls": 0
+    },
+    "validation/claudecode/actbench/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 1,
+      "families": 1,
+      "rendered_tokens": 3526,
+      "assistant_tokens": 1256,
+      "tool_calls": 11
+    },
+    "validation/codex/agentdojo/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 10,
+      "families": 6,
+      "rendered_tokens": 8452,
+      "assistant_tokens": 1650,
+      "tool_calls": 15
+    },
+    "validation/codex/agentdojo/prompt_injection_defense/verified_safe_attack_defense": {
+      "rows": 54,
+      "families": 4,
+      "rendered_tokens": 54797,
+      "assistant_tokens": 14631,
+      "tool_calls": 196
+    },
+    "validation/codex/agentharm/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 7,
+      "families": 2,
+      "rendered_tokens": 7903,
+      "assistant_tokens": 3266,
+      "tool_calls": 40
+    },
+    "validation/codex/agentharm/harmful_request_refusal/verified_harmful_refusal": {
+      "rows": 14,
+      "families": 4,
+      "rendered_tokens": 6339,
+      "assistant_tokens": 1174,
+      "tool_calls": 0
+    },
+    "validation/hermes/agentharm/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 6,
+      "families": 2,
+      "rendered_tokens": 6823,
+      "assistant_tokens": 3052,
+      "tool_calls": 30
+    },
+    "validation/hermes/agentharm/harmful_request_refusal/verified_harmful_refusal": {
+      "rows": 16,
+      "families": 4,
+      "rendered_tokens": 10069,
+      "assistant_tokens": 4161,
+      "tool_calls": 0
+    },
+    "validation/nanobot/agentharm/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 6,
+      "families": 2,
+      "rendered_tokens": 18927,
+      "assistant_tokens": 14651,
+      "tool_calls": 39
+    },
+    "validation/nanobot/agentharm/harmful_request_refusal/verified_harmful_refusal": {
+      "rows": 15,
+      "families": 4,
+      "rendered_tokens": 21695,
+      "assistant_tokens": 16142,
+      "tool_calls": 0
+    },
+    "validation/openclaw/actbench/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 1,
+      "families": 1,
+      "rendered_tokens": 2988,
+      "assistant_tokens": 1183,
+      "tool_calls": 7
+    },
+    "validation/openclaw/safeclawarena/prompt_injection_defense/verified_safe_attack_defense": {
+      "rows": 15,
+      "families": 2,
+      "rendered_tokens": 25038,
+      "assistant_tokens": 17967,
+      "tool_calls": 49
+    },
+    "validation/opencode/actbench/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 4,
+      "families": 4,
+      "rendered_tokens": 11963,
+      "assistant_tokens": 4072,
+      "tool_calls": 42
+    },
+    "validation/qwenpaw/actbench/benign_tool_completion/verified_benign_tool_completion": {
+      "rows": 1,
+      "families": 1,
+      "rendered_tokens": 3981,
+      "assistant_tokens": 1559,
+      "tool_calls": 10
+    }
+  }
+}
