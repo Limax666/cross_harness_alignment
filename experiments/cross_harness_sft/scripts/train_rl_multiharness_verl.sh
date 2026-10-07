@@ -21,6 +21,11 @@ SFT="$ROOT/checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_2
 DATA="${RL_DATA:-$ROOT/outputs/rl/multiharness_agentdojo_agentharm_pool_v5.parquet}"
 RL_TRAIN_BATCH_SIZE="${RL_TRAIN_BATCH_SIZE:-32}"
 LOOP="$ROOT/configs/rl_multiharness_agent_loop.yaml"
+# AgentHarm semantic judge credentials live in a gitignored env file; never
+# commit keys. A relaunch without this would kill the run at first judging.
+if [[ -z "${AGENTHARM_JUDGE_API_KEY:-}" && -f "$ROOT/.env.rl_judge" ]]; then
+  source "$ROOT/.env.rl_judge"
+fi
 export HERMES_AGENT_ROOT="${HERMES_AGENT_ROOT:-$ROOT/vendor/hermes-agent}"
 export HERMES_AGENT_PYTHON="${HERMES_AGENT_PYTHON:-$VENV/bin/python}"
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1}"
