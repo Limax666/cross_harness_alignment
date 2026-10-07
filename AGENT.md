@@ -42,7 +42,20 @@ VeRL 当前策略在线生成 + AgentDojo 官方重置环境及 verifier + Herme
 4. **批次大小治标**：r4（12 cells）与 r7（32 cells）死法相同，不要再以扩批次作为塌缩对策。
 5. **消融顺序**：先解决塌缩（上述 1/2），再跑 CHS-PO、DAPO 等对照，否则所有方法死在同一个零方差门禁上，比较不出优劣。注意 CHS-PO 的 worst-stratum 加权只做组间再平衡，对组内零方差无效。
 
-配套修改：奖励分解审计化——batch gate 现要求每条 rollout 携带 `reward_path_signal` 且 `reward = outcome + path_signal`（outcome ∈ {−1, −0.5, 0, 1}，|path_signal| ≤ 0.25），否则拒收；AgentHarm 语义 judge 已从 codex CLI（配额耗尽）切换到 OpenAI 兼容端点（`judge_backend: openai_compatible`，声学云路由 + `bigmodel/glm-5.3-flash`，key 走环境变量 `AGENTHARM_JUDGE_API_KEY`），并对推理模型的空 `content` 加了 `reasoning_content` 回退。相关测试已更新并通过（`tests/test_rl_verifier.py`、`tests/test_rl_native_agentdojo_episode.py` 等）。三个 RL 启动脚本（`train_rl_multiharness_verl.sh`、`train_rl_chspo_verl.sh`、`train_rl_dapo_clip_verl.sh`）会在 `AGENTHARM_JUDGE_API_KEY` 未设置时自动 source 本机 gitignored 的 `experiments/cross_harness_sft/.env.rl_judge`——重启 run 不再需要手工 source，密钥本身永不入库。
+配套修改：奖励分解审计化——batch gate 现要求每条 rollout 携带 `reward_path_signal` 且 `reward = outcome + path_signal`（outcome ∈ {−1, −0.5, 0, 1}，|path_signal| ≤ 0.25），否则拒收；AgentHarm 语义 judge 已从 codex CLI（配额耗尽）切换到 OpenAI 兼容端点（`judge_backend: openai_compatible`，声学云路由 + `bigmodel/glm-5.3-flash`，key 走环境变量 `AGENTHARM_JUDGE_API_KEY`），并对推理模型的空 `content` 加了 `reasoning_content` 回退。相关测试已更新并通过（`tests/test_rl_verifier.py`、`tests/test_rl_native_agentdojo_episode.py` 等）。三个 RL 启动脚本（`train_rl_multiharness_verl.sh`、`train_rl_chspo_verl.sh`、`train_rl_dapo_clip_verl.sh`）会在 `AGENTHARM_JUDGE_API_KEY` 未设置时自动 source 本机 gitignored 的 `experiments/cross_harness_sft/.env.rl_judge`——重启 run 不再需要手工 source，密钥本身永不入库。密钥加载的完整规范见下节，所有现有与未来的 RL 入口都必须遵守。
+
+## 2026-10-07：AgentHarm judge 密钥加载规范（spec）
+
+**隐患记录（2026-10-07 发现并封堵）**：AgentHarm 语义 judge 依赖环境变量 `AGENTHARM_JUDGE_API_KEY`。若训练启动时该变量未设置，首个 AgentHarm 批次判分即抛 `Judge API key is unset` → episode 不可评分 → 整个 job 在第一次优化器更新前中止。r11 的启动当时依赖会话内手工 `source .env.rl_judge`，任何后续重启若遗漏该步骤就会复现故障。这是 judge 链路三天内第三次事故（r3 的缓存 JSONL 竞态、r7 的 codex CLI 配额耗尽、本隐患），因此固化为以下规范，对**所有现有与未来的 RL 训练入口**生效。
+
+**规范**：
+
+1. **启动即就绪（invariant）**：任何 RL 训练入口必须在 Ray/agent-loop worker 派生**之前**保证 `AGENTHARM_JUDGE_API_KEY` 已设置。三个启动脚本已实现守卫：变量未设置且 `$ROOT/.env.rl_judge` 存在时自动 source。新增任何 RL 入口（含 CHS-PO/DAPO/未来消融脚本）必须复制同样的守卫；**禁止依赖 shell 会话状态、`nohup` 外层环境或人工记忆**。
+2. **密钥永不入库**：`.env.rl_judge` 已在 `.gitignore`；配置文件只允许 `api_key_env` 间接引用（如 `configs/agentharm_rl_train_worker.yaml` 的写法），不得出现字面 key。每次提交前检查：任何被跟踪文件中不得含 judge key 的任何片段（前缀、中间段、完整值）。文档只允许写环境变量名和密钥文件的路径，不允许写 key 内容。
+3. **失败必须 fail-closed 且可诊断**：judge 缺 key、超时或空响应时按现状抛错、拒绝评分（unscorable → 门禁拒收整批），禁止静默记 0 分或跳过该 episode；日志保留 `Judge ...` 签名行供监控匹配（Monitor 的过滤模式已覆盖）。
+4. **重启前自检**：重启任何 run 前，要么依赖启动脚本守卫（推荐），要么显式确认 `echo ${AGENTHARM_JUDGE_API_KEY:+set}` 输出 `set`；同时核对 `configs/agentharm_rl_train_worker.yaml` 的 `judge_backend` 与预期端点一致（当前为 `openai_compatible`，不再是 `codex_cli`）。
+
+**验证记录（2026-10-07）**：三个启动脚本 `bash -n` 通过；离线端到端调用 `OpenAICompatibleJudge._generate` 返回带 `Answer:` 的规范判定；`git grep` 确认被跟踪文件中无 key 片段。后续新增 RL 入口时重复这三项检查。
 
 ## 2026-10-07：R11 在线 GRPO 运行中（14:19 UTC 快照）
 
