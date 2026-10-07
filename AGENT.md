@@ -63,7 +63,9 @@ VeRL 当前策略在线生成 + AgentDojo 官方重置环境及 verifier + Herme
 
 截至 14:19 UTC，R11 已真实完成 step 1–4，各步 32 groups/128 sampled/128 scored/0 unscorable，零方差组率分别为 0.375、0.3125、0.4375、0.40625；训练进程仍存活，尚无 step-10 checkpoint。该数字只证明训练机制在工作，**没有 held-out 效果结论**。可公开的聚合曲线快照见 `reports/r11_online_grpo_steps1_to4_20261007.{csv,png}`；本机完整 metrics、日志与未来 checkpoint 在 `outputs/rl/multiharness_grpo_pool107_20261007_r11_300steps/` 和同名 `.log`。新服务器不得把本机 R11 状态当成可恢复的远端 checkpoint；至少等 step 10 保存并单独转移权重。
 
-R9 在首步之前被奖励分解门禁拒绝；R10 真实完成 2 步，第 3 步因 float32 `rm_scores` 与连续奖励的精确相等比较被错误拒绝。`rl_multiharness_update_guard.py` 已改用 `math.isclose`（绝对容差 `1e-6`），R11 使用修复后的代码。R8 完成 5 步但没有可用 checkpoint；不要把 R8–R10 的局部步数拼成 R11 的连续训练。R11 的本机监控由 cron 每分钟调用 `scripts/wake_codex_on_rl_fault.py`：正常时仅写状态，失败或 30 分钟无优化步才启动独立 Codex 诊断修复会话，最多重试 3 次；新服务器的 cron 不会随 Git 自动迁移，需按新 run-id 重新安装。脚本与 `scripts/check_rl_training_status.py` 已入仓。
+R9 在首步之前被奖励分解门禁拒绝；R10 真实完成 2 步，第 3 步因 float32 `rm_scores` 与连续奖励的精确相等比较被错误拒绝。`rl_multiharness_update_guard.py` 已改用 `math.isclose`（绝对容差 `1e-6`），R11 使用修复后的代码。R8 完成 5 步但没有可用 checkpoint；不要把 R8–R10 的局部步数拼成 R11 的连续训练。
+
+**16:23 UTC 交接更新：**R11 已完成 step 20 并保存 checkpoint。用户授权 Claude Code 停训、合并 step-20 权重并运行 `evaluate_rl_sft_pair.sh` 的家族隔离配对验证；此时权重合并正在运行。为免 Codex 将有意停训误判为故障而重启训练，R11 的自动修复 cron 已改为每分钟只调用 `scripts/check_rl_training_status.py` 记录状态。另一个 cron 每分钟调用 `scripts/wake_codex_on_rl_validation.py`：只有 `heldout_agentdojo_validation*/comparison.json` 及 SFT/RL 各 24 条逐条验证结果、step-20 FSDP checkpoint 均完整且稳定后，才启动一次独立 Codex 会话核查结果，决定是否能从 step-20 正确恢复训练，或先调整奖励/采样/更新策略。决策应记录在 R11 run 目录的 `step20_codex_decision.md`，不能把 24 个 AgentDojo episode 当作全 harness 结论。两个 cron 均是本机状态，不会随 Git 迁移；新服务器须按新 run-id 另行安装。
 
 ## 正式多 harness 在线 RL 尚未交付
 
