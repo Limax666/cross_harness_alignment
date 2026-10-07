@@ -1,0 +1,6 @@
+- name: native_multiharness_v1
+  _target_: rl_verl_multiharness_loop.NativeMultiharnessVeRLLoop
+  dojo_config: configs/agentdojo_worker.yaml
+  harm_config: configs/agentharm_rl_train_worker.yaml
+  dataset_path: outputs/rl/multiharness_agentdojo_agentharm_pool_v5.parquet
+  max_turns: 6

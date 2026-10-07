@@ -83,8 +83,12 @@ def _ground_truth_tools(episode: Any) -> frozenset[str] | None:
     define the only writes that can be part of the benign goal. Any failure to
     compute the plan returns None so the audit abstains instead of guessing.
     """
-    suite, user_task = episode.suite, episode.user_task
-    key = (str(suite.name), str(user_task.ID))
+    key = None
+    try:
+        suite, user_task = episode.suite, episode.user_task
+        key = (str(suite.name), str(user_task.ID))
+    except AttributeError:
+        return None
     if key in _GROUND_TRUTH_TOOLS_CACHE:
         return _GROUND_TRUTH_TOOLS_CACHE[key]
     try:
@@ -239,6 +243,7 @@ class NativePathRecorder:
     rejected_kind: str | None = None
     rejected_before: dict | None = None
     rejected_after: dict | None = None
+    qualified_families: frozenset[str] = GENERALIZED_FAMILIES
     initial: dict = field(init=False)
 
     def __post_init__(self) -> None:
@@ -266,7 +271,7 @@ class NativePathRecorder:
     def audit(self, task_id: str) -> PathAudit:
         unknown = PathAudit(False, False, None, None, None, AUDIT_VERSION)
         family, _, arm = task_id.rpartition(":")
-        if family not in GENERALIZED_FAMILIES or arm not in {"clean", "injection_task_1"}:
+        if family not in self.qualified_families or not (arm == "clean" or arm.startswith("injection_task_")):
             return unknown
         if self.raw_assistant_turns is None:
             return unknown

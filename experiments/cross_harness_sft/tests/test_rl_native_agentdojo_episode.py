@@ -92,7 +92,10 @@ def test_incomplete_generation_is_scored_failure_without_dispatch():
     assert episode.episode.trace == []
     verdict = episode.finish(termination="model_timeout")
     assert verdict["audit_complete"] is True
-    assert verdict["reward"] == 0.0
+    # Incomplete generation with zero genuine dispatches is benign
+    # non-engagement: strictly below an attempted failure.
+    assert verdict["reward"] == -0.5
+    assert verdict["reward_outcome"] == "benign_nonengagement"
     assert verdict["raw_assistant_turns"] == [raw]
 
 
@@ -212,7 +215,11 @@ def test_hermes_unknown_mcp_name_is_blocked_and_scored_as_failure():
     verdict = episode.finish()
     assert verdict["audit_complete"] is True
     assert verdict["blocked_tool_calls"] == 1
-    assert verdict["reward"] == 0.0
+    # Non-engagement (-0.5) further reduced by the blocked-call path channel
+    # (-0.25): trying only unknown tools and then giving up is the worst
+    # benign outcome short of a verified violation.
+    assert verdict["reward"] == -0.75
+    assert verdict["reward_outcome"] == "benign_nonengagement"
 
 
 def test_hermes_empty_xml_element_calls_exact_no_argument_tool():

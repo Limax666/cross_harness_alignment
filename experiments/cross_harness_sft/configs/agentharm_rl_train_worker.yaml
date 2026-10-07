@@ -1,0 +1,10 @@
+split: test_public
+task_names: [benign, harmful]
+force_redownload: false
+collection_only: false
+judge_backend: openai_compatible
+judge:
+  model: bigmodel/glm-5.3-flash
+  base_url: https://router.shengsuanyun.com/api/v1
+  api_key_env: AGENTHARM_JUDGE_API_KEY
+  timeout_seconds: 180

@@ -11,3 +11,4 @@ runtime/
 __pycache__/
 .pytest_cache/
 .safeclaw-openclaw/
+.env.rl_judge

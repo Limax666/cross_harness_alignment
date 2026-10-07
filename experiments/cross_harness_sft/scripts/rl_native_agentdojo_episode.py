@@ -11,11 +11,12 @@ from dataclasses import dataclass, field
 from types import SimpleNamespace
 from typing import Any
 
-from rl_agentdojo_path_audit import NativePathRecorder
+from rl_agentdojo_path_audit import NativePathRecorder, _ground_truth_tools
 from rl_native_evidence import agentdojo_evidence
 from rl_online_batch_gate import CELLS
 from rl_tool_attempt_audit import attest_native_calls, parse_strict_tool_turn
 from rl_hermes_mcp_contract import hermes_mcp_tools
+from rl_mcp_benchmark_contract import mcp_benchmark_tools
 from rl_verifier import TaskKind, score_episode
 
 
@@ -30,6 +31,10 @@ class NativeAgentDojoEpisode:
     task_id: str
     seed: int
     hermes_mcp: bool = False
+    mcp_benchmark: bool = False
+    harness: str = "hermes"
+    path_weight: float = 0.25
+    allowed_cells: frozenset[str] = CELLS
     episode: Any = field(init=False)
     tools: list[dict] = field(init=False)
     recorder: NativePathRecorder = field(init=False)
@@ -41,17 +46,23 @@ class NativeAgentDojoEpisode:
     wire_to_native: dict[str, str] = field(init=False)
 
     def __post_init__(self):
-        if self.task_id not in CELLS or type(self.seed) is not int or self.seed < 0:
+        if self.task_id not in self.allowed_cells or type(self.seed) is not int or self.seed < 0:
             raise ValueError("pilot requires one registered train task cell and a nonnegative seed")
+        if self.hermes_mcp and self.mcp_benchmark:
+            raise ValueError("choose exactly one MCP wire adapter")
         started = self.driver.start(self.task_id, self.seed)
         self.episode = started["episode"]
         if self.hermes_mcp:
             self.tools, self.wire_to_native = hermes_mcp_tools(started["tools"])
+        elif self.mcp_benchmark:
+            self.tools, self.wire_to_native = mcp_benchmark_tools(started["tools"])
         else:
             self.tools = started["tools"]
             self.wire_to_native = {tool["function"]["name"]: tool["function"]["name"] for tool in self.tools}
         self.initial_state_sha256 = _digest(self.episode.environment)
-        self.recorder = NativePathRecorder(self.driver, self.episode, tool_schemas=self.tools)
+        qualified_families = frozenset(cell.rpartition(":")[0] for cell in self.allowed_cells)
+        self.recorder = NativePathRecorder(self.driver, self.episode, tool_schemas=self.tools,
+                                           qualified_families=qualified_families)
 
     def turn(self, raw_assistant: str, parsed_calls: list[dict], *, final_content: str | None = None) -> list[dict]:
         """Check all attempted calls against generated text before dispatch."""
@@ -77,9 +88,9 @@ class NativeAgentDojoEpisode:
             if blocked_reason is not None:
                 observations.append(self.recorder.blocked_tool(call.name, call.arguments, blocked_reason))
                 continue
-            native_name = self.wire_to_native.get(call.name) if self.hermes_mcp else call.name
+            native_name = self.wire_to_native.get(call.name) if (self.hermes_mcp or self.mcp_benchmark) else call.name
             if native_name is None:
-                raise ValueError(f"unregistered Hermes tool name: {call.name}")
+                raise ValueError(f"unregistered MCP tool name: {call.name}")
             result = self.recorder.tool(call.name, call.arguments, native_name=native_name)
             observations.append(result)
         return observations
@@ -143,12 +154,19 @@ class NativeAgentDojoEpisode:
         audit = self.recorder.audit(self.task_id)
         family_id = self.task_id.rpartition(":")[0]
         kind = TaskKind.BENIGN if self.task_id.endswith(":clean") else TaskKind.INJECTION
+        valid_dispatches = [r.native_name for r in self.recorder.records
+                            if r.blocked_reason is None and r.native_name]
+        ground_truth_tools = _ground_truth_tools(self.episode)
+        subgoal_fraction = (len(set(valid_dispatches) & ground_truth_tools) / len(ground_truth_tools)
+                            if ground_truth_tools else 0.0)
         evidence = agentdojo_evidence(
-            harness="hermes", family_id=family_id, task_kind=kind,
+            harness=self.harness, family_id=family_id, task_kind=kind,
             official_result=official, path_audit=audit, termination=termination,
             blocked_invalid_calls=sum(r.blocked_reason is not None for r in self.recorder.records),
+            valid_tool_dispatches=len(valid_dispatches),
+            verified_safe_subgoal_fraction=subgoal_fraction,
         )
-        verdict = score_episode(evidence)
+        verdict = score_episode(evidence, path_weight=self.path_weight)
         second = self.driver.start(self.task_id, self.seed + 1)["episode"]
         reset_verified = _digest(second.environment) == self.initial_state_sha256
         return {
@@ -165,7 +183,8 @@ class NativeAgentDojoEpisode:
             "invalid_tool_dispatched": audit.invalid_tool_dispatched,
             "termination": termination,
             "reward": verdict.score, "reward_outcome": verdict.outcome,
-            "reward_reason": verdict.reason,
+            "reward_reason": verdict.reason, "reward_path_signal": verdict.path_signal,
+            "verified_safe_subgoal_fraction": subgoal_fraction,
             "raw_assistant_turns": list(self.raw_assistant_turns),
             "tool_calls": len(self.recorder.records),
             "blocked_tool_calls": sum(r.blocked_reason is not None for r in self.recorder.records),

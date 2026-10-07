@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import anyio
+import fcntl
 import httpx
 import importlib.metadata
 import inspect
@@ -130,12 +131,21 @@ class OpenAICompatibleJudge:
         )
         response.raise_for_status()
         try:
-            completion = response.json()["choices"][0]["message"]["content"]
+            message = response.json()["choices"][0]["message"]
         except (KeyError, IndexError, TypeError, ValueError) as exc:
             raise RuntimeError("Judge returned an invalid OpenAI-compatible response") from exc
-        if not str(completion).strip():
+        completion = str(message.get("content") or "")
+        if not completion.strip():
+            # Reasoning models may leave `content` empty on short answers while
+            # the graded verdict sits in the reasoning channel; an unscorable
+            # episode aborts the whole optimizer job, so fall back once.
+            fallback = str(message.get("reasoning_content") or "")
+            if fallback.strip():
+                print("AGENTHARM_JUDGE_EMPTY_CONTENT_USING_REASONING", flush=True)
+                completion = fallback
+        if not completion.strip():
             raise RuntimeError("Judge emitted an empty completion")
-        return SimpleNamespace(completion=str(completion))
+        return SimpleNamespace(completion=completion)
 
     async def generate(self, messages: list[Any], config: Any = None) -> Any:
         prompt = "\n\n".join(self._content(message) for message in messages if self._content(message).strip())
@@ -146,6 +156,7 @@ class AgentHarmDriver:
     """Executes AgentHarm's shipped tools and shipped grading functions."""
     def __init__(self, config_path: str):
         from inspect_ai.tool import ToolDef
+        from inspect_evals.constants import INSPECT_EVALS_CACHE_PATH
         from inspect_evals.agentharm.utils import load_dataset
         config = yaml.safe_load(Path(config_path).read_text(encoding="utf-8"))
         self.split = str(config.get("split", "test_public")); self.force_redownload = bool(config.get("force_redownload", False))
@@ -156,9 +167,17 @@ class AgentHarmDriver:
         self.judge_backend = str(config.get("judge_backend", "inspect_model"))
         self.judge_config = dict(config.get("judge") or config.get("codex_judge") or {})
         self.samples: dict[str, tuple[str, Any]] = {}
-        for task_name in self.task_names:
-            for sample in load_dataset(task_name, self.split, self.force_redownload):
-                self.samples[f"{task_name}:{sample.id}"] = (task_name, sample)
+        # Inspect Evals rewrites its shared JSONL cache on every load. VeRL
+        # launches multiple agent-loop processes, so serialize cache conversion
+        # across workers to prevent readers from seeing a partial JSONL file.
+        lock_path = INSPECT_EVALS_CACHE_PATH / "agentharm_dataset" / "AgentHarm" / ".online_rl_load.lock"
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with lock_path.open("a+") as lock_file:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            for task_name in self.task_names:
+                for sample in load_dataset(task_name, self.split, self.force_redownload):
+                    self.samples[f"{task_name}:{sample.id}"] = (task_name, sample)
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
         self.version = f"inspect-evals/{importlib.metadata.version('inspect-evals')} agentharm/{self.split}"
         self.ToolDef = ToolDef
 

@@ -25,13 +25,12 @@ from rl_tool_attempt_audit import parse_strict_tool_turn
 from rl_verl_chat_template import HERMES_RL_CHAT_TEMPLATE, HERMES_RL_SYSTEM_CONTEXT
 
 
-def selected_cases(path: Path, families: list[str], driver: AgentDojoDriver):
+def selected_cases(path: Path, train_path: Path, families: list[str], driver: AgentDojoDriver):
     allowed = {f"agentdojo:workspace:user_task_{n}" for n in families}
     if not families or len(allowed) != len(families):
         raise ValueError("provide distinct workspace validation user task numbers")
     rows = [json.loads(line) for line in path.open(encoding="utf-8") if line.strip()]
-    train = ROOT / "data/sft/teacher_release_v7/accepted_train.jsonl"
-    seen_train = {json.loads(line).get("source_family_id") for line in train.open(encoding="utf-8") if line.strip()}
+    seen_train = {json.loads(line).get("source_family_id") for line in train_path.open(encoding="utf-8") if line.strip()}
     if allowed & seen_train:
         raise ValueError("validation families overlap accepted train release")
     valid = {row["source_family_id"] for row in rows if row.get("benchmark") == "agentdojo" and row.get("split") == "validation"}
@@ -137,7 +136,11 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--checkpoint", default=str(ROOT / "checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_267"))
     parser.add_argument("--base-model", default="Qwen/Qwen3.5-2B-Base")
-    parser.add_argument("--validation", type=Path, default=ROOT / "data/sft/teacher_release_v7/accepted_validation.jsonl")
+    default_release = ROOT / "data/sft/teacher_release_v7_transfer_20261007"
+    if not default_release.is_dir():
+        default_release = ROOT / "data/sft/teacher_release_v7"
+    parser.add_argument("--train", type=Path, default=default_release / "accepted_train.jsonl")
+    parser.add_argument("--validation", type=Path, default=default_release / "accepted_validation.jsonl")
     parser.add_argument("--worker-config", default=str(ROOT / "configs/agentdojo_worker.yaml"))
     parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     parser.add_argument("--max-turns", type=int, default=6)
@@ -148,7 +151,7 @@ def main():
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
     driver = AgentDojoDriver(args.worker_config)
-    cases = selected_cases(args.validation, args.families, driver)
+    cases = selected_cases(args.validation, args.train, args.families, driver)
     source = args.base_model if args.role == "base" else args.checkpoint
     tokenizer = AutoTokenizer.from_pretrained(source, local_files_only=True)
     tokenizer.chat_template = HERMES_RL_CHAT_TEMPLATE

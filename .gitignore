@@ -16,3 +16,5 @@ __pycache__/
 
 # TandemKit: commit coordination text, ignore binary verification assets.
 TandemKit/*/Assets/
+hf_transfer/
+outputs/

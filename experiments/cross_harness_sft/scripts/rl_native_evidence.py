@@ -27,6 +27,8 @@ def agentdojo_evidence(
     official_result: dict[str, Any], path_audit: PathAudit | None,
     termination: str = "completed", appropriate_refusal: bool | None = None,
     blocked_invalid_calls: int = 0,
+    valid_tool_dispatches: int = 0,
+    verified_safe_subgoal_fraction: float = 0.0,
 ) -> EpisodeEvidence:
     """Preserve unknown safety fields as None so `score_episode` abstains."""
     if task_kind not in (TaskKind.BENIGN, TaskKind.INJECTION):
@@ -51,4 +53,6 @@ def agentdojo_evidence(
         invalid_tool_dispatched=path_audit.invalid_tool_dispatched if path_valid else None,
         appropriate_refusal=appropriate_refusal,
         blocked_invalid_calls=blocked_invalid_calls,
+        verified_safe_subgoal_fraction=verified_safe_subgoal_fraction,
+        valid_tool_dispatches=valid_tool_dispatches,
     )

@@ -4,9 +4,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$(cd "$ROOT/../.." && pwd)"
 VENV="$ROOT/.venv-rl-pilot"
-RUN="${RL_RUN_DIR:-$ROOT/outputs/rl/native_pilot_online_20260930}"
-RL_STEPS="${RL_STEPS:-1}"
-RL_SAVE_FREQ="${RL_SAVE_FREQ:-1}"
+RUN="${RL_RUN_DIR:-$ROOT/outputs/rl/multiharness_online_20261007}"
+RL_STEPS="${RL_STEPS:-300}"
+RL_SAVE_FREQ="${RL_SAVE_FREQ:-10}"
 RL_PROMPT_LENGTH="${RL_PROMPT_LENGTH:-6144}"
 RL_RESPONSE_LENGTH="${RL_RESPONSE_LENGTH:-2048}"
 RL_ACTOR_SP_SIZE="${RL_ACTOR_SP_SIZE:-1}"
@@ -18,9 +18,9 @@ RL_MAX_MODEL_LEN="${RL_MAX_MODEL_LEN:-8192}"
 RL_N_GPUS="${RL_N_GPUS:-2}"
 RL_GPU_MAX_PREEXISTING_MIB="${RL_GPU_MAX_PREEXISTING_MIB:-256}"
 SFT="$ROOT/checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_267"
-DATA="${RL_DATA:-$ROOT/outputs/rl/native_pilot_train_20261005_hermes_mcp_16cells.parquet}"
-RL_TRAIN_BATCH_SIZE="${RL_TRAIN_BATCH_SIZE:-16}"
-LOOP="$ROOT/configs/rl_native_pilot_agent_loop.yaml"
+DATA="${RL_DATA:-$ROOT/outputs/rl/multiharness_agentdojo_agentharm_pool_v5.parquet}"
+RL_TRAIN_BATCH_SIZE="${RL_TRAIN_BATCH_SIZE:-32}"
+LOOP="$ROOT/configs/rl_multiharness_agent_loop.yaml"
 export HERMES_AGENT_ROOT="${HERMES_AGENT_ROOT:-$ROOT/vendor/hermes-agent}"
 export HERMES_AGENT_PYTHON="${HERMES_AGENT_PYTHON:-$VENV/bin/python}"
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1}"
@@ -64,7 +64,7 @@ export PYTHONPATH="$ROOT/vendor/verl:$ROOT/scripts:$ROOT/src${PYTHONPATH:+:$PYTH
 export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
 export RAY_DISABLE_DOCKER_CPU_WARNING=1
-exec "$VENV/bin/python" "$ROOT/scripts/train_rl_native_pilot_verl.py" \
+exec "$VENV/bin/python" "$ROOT/scripts/train_rl_multiharness_verl.py" \
   "actor_rollout_ref.model.path=$SFT" \
   "+actor_rollout_ref.model.override_config.attn_implementation=sdpa" \
   "actor_rollout_ref.model.lora_rank=0" \
@@ -95,7 +95,7 @@ exec "$VENV/bin/python" "$ROOT/scripts/train_rl_native_pilot_verl.py" \
   "actor_rollout_ref.rollout.enforce_eager=true" \
   "actor_rollout_ref.rollout.calculate_log_probs=true" \
   "actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=1" \
-  "actor_rollout_ref.rollout.agent.default_agent_loop=native_agentdojo_pilot" \
+  "actor_rollout_ref.rollout.agent.default_agent_loop=native_multiharness_v1" \
   "actor_rollout_ref.rollout.agent.agent_loop_config_path=$LOOP" \
   "data.train_files=$DATA" \
   "data.val_files=$DATA" \
