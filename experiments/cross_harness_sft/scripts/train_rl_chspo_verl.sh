@@ -4,30 +4,42 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$(cd "$ROOT/../.." && pwd)"
 VENV="$ROOT/.venv-rl-pilot"
-RUN="${RL_RUN_DIR:-$ROOT/outputs/rl/multiharness_chspo_online_20261007}"
+RUN="${RL_RUN_DIR:-$ROOT/outputs/rl/multiharness_chspo_r20_ramfix_gpu12_20261010}"
 RL_STEPS="${RL_STEPS:-300}"
-RL_SAVE_FREQ="${RL_SAVE_FREQ:-25}"
+RL_SAVE_FREQ="${RL_SAVE_FREQ:-10}"
 RL_PROMPT_LENGTH="${RL_PROMPT_LENGTH:-6144}"
-RL_RESPONSE_LENGTH="${RL_RESPONSE_LENGTH:-2048}"
+RL_RESPONSE_LENGTH="${RL_RESPONSE_LENGTH:-1024}"
+RL_AGENT_NUM_WORKERS="${RL_AGENT_NUM_WORKERS:-4}"
+RL_REWARD_NUM_WORKERS="${RL_REWARD_NUM_WORKERS:-2}"
 RL_ACTOR_SP_SIZE="${RL_ACTOR_SP_SIZE:-1}"
 RL_ACTOR_PARAM_OFFLOAD="${RL_ACTOR_PARAM_OFFLOAD:-true}"
 RL_FUSED_KERNELS="${RL_FUSED_KERNELS:-false}"
-RL_GPU_UTIL="${RL_GPU_UTIL:-0.90}"
-RL_MAX_NUM_SEQS="${RL_MAX_NUM_SEQS:-8}"
+RL_GPU_UTIL="${RL_GPU_UTIL:-0.45}"
+RL_MAX_NUM_SEQS="${RL_MAX_NUM_SEQS:-2}"
 RL_MAX_MODEL_LEN="${RL_MAX_MODEL_LEN:-8192}"
 RL_N_GPUS="${RL_N_GPUS:-2}"
 RL_GPU_MAX_PREEXISTING_MIB="${RL_GPU_MAX_PREEXISTING_MIB:-256}"
 SFT="$ROOT/checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_267"
-DATA="${RL_DATA:-$ROOT/outputs/rl/multiharness_agentdojo_agentharm_12cells_v2.parquet}"
-RL_TRAIN_BATCH_SIZE="${RL_TRAIN_BATCH_SIZE:-12}"
+DATA="${RL_DATA:-$ROOT/outputs/rl/multiharness_agentdojo_agentharm_pool_v5.parquet}"
+RL_TRAIN_BATCH_SIZE="${RL_TRAIN_BATCH_SIZE:-32}"
 LOOP="$ROOT/configs/rl_multiharness_agent_loop.yaml"
 # AgentHarm semantic judge credentials live in a gitignored env file; never
 # commit keys. A relaunch without this would kill the run at first judging.
 if [[ -z "${AGENTHARM_JUDGE_API_KEY:-}" && -f "$ROOT/.env.rl_judge" ]]; then
   source "$ROOT/.env.rl_judge"
 fi
-export HERMES_AGENT_ROOT="${HERMES_AGENT_ROOT:-$ROOT/vendor/hermes-agent}"
-export HERMES_AGENT_PYTHON="${HERMES_AGENT_PYTHON:-$VENV/bin/python}"
+[[ -n "${AGENTHARM_JUDGE_API_KEY:-}" ]] || { echo 'Missing AGENTHARM_JUDGE_API_KEY; aborting before Ray startup.' >&2; exit 2; }
+if [[ -d "$ROOT/vendor/hermes-agent" ]]; then
+  default_hermes_root="$ROOT/vendor/hermes-agent"
+else
+  default_hermes_root="$HOME/.hermes/hermes-agent"
+fi
+export HERMES_AGENT_ROOT="${HERMES_AGENT_ROOT:-$default_hermes_root}"
+export HERMES_AGENT_PYTHON="${HERMES_AGENT_PYTHON:-$HERMES_AGENT_ROOT/venv/bin/python}"
+[[ -f "$HERMES_AGENT_ROOT/pyproject.toml" && -x "$HERMES_AGENT_PYTHON" ]] || {
+  echo "Hermes runtime is unavailable: $HERMES_AGENT_ROOT" >&2
+  exit 2
+}
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1}"
 # The allocator's reserved blocks fragment across optimizer offload/onload
 # cycles; the second update's backward OOMs on these 24 GB cards without
@@ -101,6 +113,7 @@ exec "$VENV/bin/python" "$ROOT/scripts/train_rl_chspo_verl.py" \
   "actor_rollout_ref.rollout.calculate_log_probs=true" \
   "actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=1" \
   "actor_rollout_ref.rollout.agent.default_agent_loop=native_multiharness_v1" \
+  "actor_rollout_ref.rollout.agent.num_workers=$RL_AGENT_NUM_WORKERS" \
   "actor_rollout_ref.rollout.agent.agent_loop_config_path=$LOOP" \
   "data.train_files=$DATA" \
   "data.val_files=$DATA" \
@@ -126,10 +139,11 @@ exec "$VENV/bin/python" "$ROOT/scripts/train_rl_chspo_verl.py" \
   "trainer.project_name=cross_harness_rl" \
   "trainer.experiment_name=$(basename "$RUN")" \
   "trainer.default_local_dir=$RUN/checkpoints" \
-  "+trainer.rl_algorithm=CHS-PO-worst-stratum-v1" \
+  "+trainer.rl_algorithm=CHS-PO-harness-safety-dual-v2" \
   "+trainer.pilot_policy_snapshot=step:0" \
   "+trainer.pilot_metrics_path=$RUN/metrics.jsonl" \
   "reward.reward_model.enable=false" \
+  "reward.num_workers=$RL_REWARD_NUM_WORKERS" \
   "algorithm.use_kl_in_reward=false" \
   '+ray_kwargs.ray_init.runtime_env.env_vars.PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"' \
   '+ray_kwargs.ray_init.runtime_env.env_vars.NCCL_IB_DISABLE="1"' \

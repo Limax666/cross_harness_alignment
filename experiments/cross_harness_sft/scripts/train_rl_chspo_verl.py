@@ -22,10 +22,8 @@ from rl_native_chspo_task_runner import NativeMultiharnessTaskRunner
 from rl_multiharness_chat_template import BENCHMARK_MCP_CHAT_TEMPLATE
 
 ROOT = Path(__file__).resolve().parents[1]
-# Versioned pilot datasets only: the original four-cell pool and the expanded
-# sixteen-cell pool (2026-10-05). Cell membership is still enforced per batch
-# by NativePilotTaskRunner against rl_online_batch_gate.CELLS.
-DATASET = ROOT / "outputs/rl/multiharness_agentdojo_agentharm_12cells_v2.parquet"
+# Frozen train-family pool; admission checks every sampled cell before update.
+DATASET = ROOT / "outputs/rl/multiharness_agentdojo_agentharm_pool_v5.parquet"
 AGENT_CONFIG = ROOT / "configs/rl_multiharness_agent_loop.yaml"
 SFT = ROOT / "checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_267"
 

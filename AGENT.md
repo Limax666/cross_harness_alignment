@@ -1,5 +1,33 @@
 # 跨 Harness 安全对齐：新服务器接手说明
 
+## 2026-10-10 接手优先读：R11 结果、CHS-PO 实现与停机状态
+
+**当前没有在线 RL 任务运行，四张 GPU 上没有本项目进程。** 此文件后面标注“运行中”的段落是当时的历史快照，不代表现在的进程状态。A6000-2 上不要按旧的 `chspo_current_run.json` 或旧 run-id 续跑。R18/R19/R20 各只完成一次在线 actor 更新，均在第一次更新后的权重同步阶段因当前服务器的**宿主 RAM**达到 Ray 95% 限值而失败，未保存 step-10 checkpoint；三次 step-1 指标不可拼成连续训练曲线。R19/R20 的失败已在当前服务器确认，分别见 `outputs/rl/multiharness_chspo_r19_ramfix_gpu12_20261009_2310.log` 和 `outputs/rl/multiharness_chspo_r20_ramfix_gpu12_20261010.log`（原始日志未上传 GitHub）。R20 将响应预算降至 1024、AgentLoop/reward worker 减至 4/2，仍在同步点 OOM；试验性 optimizer-state parking 报告 `parked ... bytes=0`，**未证明有效**。不要关闭 Ray 内存保护或把此故障误判为 GPU 显存不足。新机器须重新测量首次 actor 更新、权重同步、第二步采样的峰值，再考虑长跑。
+
+### R11 标准在线 GRPO：已验证的能力变化及失败模式
+
+起点是 Qwen3.5-2B 全参数 SFT step 267；R11 在 AgentDojo/Codex、AgentDojo/Claude Code、AgentHarm/Codex、AgentHarm/Hermes 四层的 107 个 train-family cell 池中，每步均衡采 32 组、每组 G=4 次**当前策略在线 rollout**，完成 20 次全参数 GRPO 更新并保存 `global_step_20`；它没有覆盖 v7 SFT 的全部 harness。R11 已启用 `path_weight=0.25` 和 2048-token 响应预算，下一轮不能把这两项误写成新增创新。训练后期零方差组率从前四步平均 38.3% 增至后四步 81.3%，说明组内相对优势逐渐消失；还需防止通过“不行动”获得表面安全分。AgentDojo 四个隔离 validation 家族的 24 个配对 episode 中，RL 相比 SFT 的回合未正常结束从 19/24 降到 6/24，但 clean Utility 仍是 0/12→0/12、injection Utility 1/12→0/12、ASR 0/12→0/12，不能凭正常结束率称为安全提升。完整证据见 `experiments/cross_harness_sft/reports/r11_step20_online_rl_summary_20261008.md`。
+
+HarnessRisk 独立测试使用同一 `openai/gpt-5.4-nano` judge：每个 harness 在 SFT step 267 与 RL step 20 上各评 128 case × 3 轮（384 条/模型）。下表是同口径内部对照，百分数为三轮均值；ASR/Persistence 越低越好，Utility/Detection 越高越好。
+
+| Harness | Utility SFT→RL | ASR SFT→RL | Persistence SFT→RL | Detection SFT→RL |
+|---|---:|---:|---:|---:|
+| Hermes | 4/384 (1.0%)→20/384 (5.2%) | 6/384 (1.6%)→13/384 (3.4%) | 3/384 (0.8%)→5/384 (1.3%) | 16/384 (4.2%)→14/384 (3.6%) |
+| NanoBot | 30/384 (7.8%)→79/384 (20.6%) | 12/384 (3.1%)→35/384 (9.1%) | 50/384 (13.0%)→112/384 (29.2%) | 4/384 (1.0%)→6/384 (1.6%) |
+| OpenClaw | 0/384→44/384 (11.5%) | 0/384→16/384 (4.2%) | 88/384 (22.9%)→118/384 (30.7%) | 2/384 (0.5%)→4/384 (1.0%) |
+
+**结论是 Utility 与 ASR 三个 harness 同涨，而非净安全提升。** OpenClaw Persistence 两臂都受初始化文件误判污染，这一列只能按当前 judge 口径报告；不能据 +7.8 pp 断言真实攻击性持久化增加。NanoBot/OpenClaw 并未直接进入 R11 的在线训练层，是跨 harness 迁移测试。论文 GPT-5.4 judge 与本实验 nano judge 不同，不能严格横向排名。评测细节、逐轮稳定性、any@3、超时和评分 bug 修复见 `experiments/cross_harness_sft/reports/harnessrisk_sft_vs_rl_step20.md` 与 `experiments/cross_harness_sft/reports/r11_step20_online_rl_summary_20261008.md`；step-20 合并权重只用于推理，续训须完整 FSDP 模型、优化器和训练状态。
+
+### 当前 CHS-PO（harness-safety-dual-v2）：代码、约束与复现边界
+
+- **训练池与在线性**：`scripts/train_rl_chspo_verl.sh` → `train_rl_chspo_verl.py` → `rl_native_chspo_task_runner.py` → `rl_guarded_chspo_trainer.py`。从同一 SFT step 267 和 R11 的 107-cell train-family 池 `outputs/rl/multiharness_agentdojo_agentharm_pool_v5.parquet` 重新初始化；`rl_multiharness_stratified_sampler.py` 每步按四个 benchmark/harness 层各取 4 clean + 4 risk cell，即 32 组 × G=4 = 128 条独立 reset rollout。只接受官方 outcome、真实工具/副作用证据、token mask 和 old-policy log-prob 均完整的更新批次；未评分轨迹 fail-closed。训练池与 SFT 权重不在公开 Git，须从原迁移件和私有模型仓库取得，并核对 Parquet SHA-256 `f6f88bf4f73e982b95b741a2292bcb39464ea65a9b5c2a42186a40cd5c93db42`。
+- **奖励与更新**：`rl_guarded_chspo_trainer.py` 在 VeRL GRPO 相对优势上加入不居中的安全代价；dual 按 `(benchmark, harness)` 分层，attack/persistence/protocol 的初值为 0.25/0.50/0.10、训练预算为 0.05/0.05/0.10、步长 0.08、上限 1.0。仅真实违规 dispatch/协议终止计入 protocol 成本；解析器挡下的 `blocked_tool_calls` 单独观察，不进入 dual，以免压制“尝试但被阻止”的良性轨迹。verified unsafe 的正优势被截断再减代价；benign nonengagement 另受 0.30 的非中心化惩罚，避免安全靠不行动。`reward_outcome=-1` 的 verified violation 边界、`path_weight=0.25` 的有界真实路径证据、风险/良性配对和 batch 准入不应为追求 Utility 而放松。
+- **硬门禁与选模**：任一层 risk 臂 attack 或禁止持久化率连续 3 步超过 `max(0.15, SFT 同池初始率 + 0.10)` 即在下一次更新前停机。这个初始率来自 R11 step 1 的训练池快照，是工程阈值，不是验证集安全标准。每 10 步 checkpoint；正式放行须在**家族隔离的 validation** 上以相同 task/seed 与 SFT 配对，要求每个可评层 Utility 不低于 SFT 且 ASR、禁止持久化均不高于 SFT。HarnessRisk 是独立最终测试，不能用于训练 dual 或挑 checkpoint。目前启动器只保存 checkpoint，**未自动执行该 validation/选模门禁**。
+- **运行参数与可视化**：计划 300 step、全参数 `lora_rank=0`、FSDP BF16、AdamW optimizer/参数 CPU offload、actor micro-batch 1、mini-batch 4、KL loss 系数 0.001、rollout temperature 0.8/top-p 0.95、prompt 6144、模型上下文上限 8192、每 10 步保存。R18 原定 response 2048；R19/R20 为本机 RAM 故障临时改成 1024，不可混合比较曲线。run 内 `metrics.jsonl`、`chspo_safety.jsonl`、`chspo_duals.json` 和 `paper_figures/` 的单张 PNG/PDF/SVG 图分别记录 Utility、ASR、持久化、dual、zero-variance、回复长度、熵/概率及梯度等；绘图脚本 `scripts/plot_rl_paper_figures.py`。R18/R19/R20 的图都只有首步，不能用来宣称趋势或涨点。
+- **judge、依赖与迁移**：AgentHarm 语义 judge 是 `configs/agentharm_rl_train_worker.yaml` 指向的 OpenAI-compatible `bigmodel/glm-5.3-flash`；密钥只经 `AGENTHARM_JUDGE_API_KEY` 或 gitignored `.env.rl_judge` 载入，绝不提交。`bootstrap_rl_sources.sh` 固定 VeRL/AgentDojo commit 并应用项目 patch；非零编号 GPU 的 Ray/CUDA 映射修复见 `patches/verl_nonzero_cuda_visible_devices.patch`。R20 本地临时 `VERL_PARK_OPTIMIZER_STATES_FOR_SYNC=1` 未验证有效，新服务器不要据此假定 RAM 故障已解决。A6000-2 应以**新 run-id** 重建环境/密钥/训练池，先通过两步在线更新和权重同步，再谈 300 步正式实验。
+
+下文保留之前的 SFT、数据包和早期 RL 交接历史；涉及“当前运行中”“尚未交付多 harness loop”的时间性表述均以上述 2026-10-10 状态为准。
+
 更新：2026-10-06。先读 `experiments/cross_harness_sft/README.md`，尤其是 Phase 1 数据与全参数 SFT、Phase 3 在线 RL 和 Phase 4 评测协议。本文件记录已经实际完成的工作及下一步入口；不能把计划、启动成功或训练集奖励当作 held-out 能力提升。
 
 ## 已完成的全参数 SFT

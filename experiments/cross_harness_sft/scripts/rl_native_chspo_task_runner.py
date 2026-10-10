@@ -12,13 +12,14 @@ import socket
 import ray
 from omegaconf import OmegaConf
 from verl.trainer.main_ppo_v0 import BaseTaskRunner
-from verl.trainer.ppo.utils import create_rl_dataset, create_rl_sampler, need_critic, need_reference_policy
+from verl.trainer.ppo.utils import create_rl_dataset, need_critic, need_reference_policy
 from verl.utils.config import omega_conf_to_dataclass, validate_config
 from verl.workers.config import HFModelConfig
 from verl.utils.dataset.rl_dataset import collate_fn
 
 from rl_guarded_chspo_trainer import GuardedCHSPOTrainer
 from rl_multiharness_chat_template import BENCHMARK_MCP_CHAT_TEMPLATE
+from rl_multiharness_stratified_sampler import StratifiedTaskSampler, EXPECTED_STRATA, GROUPS_PER_STRATUM
 
 
 
@@ -27,8 +28,12 @@ class NativeMultiharnessTaskRunner(BaseTaskRunner):
     def run(self, config):
         if config.trainer.use_v1 or config.actor_rollout_ref.rollout.n != 4:
             raise ValueError("multi-harness requires legacy VeRL trainer with rollout.n=4")
-        if config.data.train_batch_size != 12 or not 1 <= config.trainer.total_training_steps <= 12:
-            raise ValueError("bounded multi-harness requires one batch of all registered cells and one to twelve online updates")
+        registered_cells = __import__("pandas").read_parquet(config.data.train_files)
+        cell_count = len(registered_cells)
+        if (config.data.train_batch_size != len(EXPECTED_STRATA) * GROUPS_PER_STRATUM or
+                cell_count < config.data.train_batch_size or
+                not 1 <= config.trainer.total_training_steps <= 300):
+            raise ValueError("multi-harness requires a balanced sampled batch and 1..300 online updates")
         if config.data.max_prompt_length < 4096 or config.actor_rollout_ref.rollout.prompt_length < 4096:
             raise ValueError("full workspace tool schemas require at least 4096 prompt tokens")
         if config.actor_rollout_ref.rollout.response_length < 1024 or config.trainer.save_freq <= 0:
@@ -45,7 +50,7 @@ class NativeMultiharnessTaskRunner(BaseTaskRunner):
             raise ValueError("multi-harness must initialize from the SFT policy snapshot")
         if (config.trainer.resume_mode != "disable" or
                 config.trainer.total_epochs != config.trainer.total_training_steps):
-            raise ValueError("bounded multi-harness must start from SFT with one four-cell batch per epoch")
+            raise ValueError("bounded multi-harness must start from SFT with one sampled batch per epoch")
         if config.trainer.critic_warmup != 0 or config.trainer.val_only:
             raise ValueError("multi-harness must execute the full-parameter actor update")
         if config.reward.reward_model.enable or config.algorithm.use_kl_in_reward:
@@ -70,12 +75,12 @@ class NativeMultiharnessTaskRunner(BaseTaskRunner):
         dataset = create_rl_dataset(config.data.train_files, config.data, tokenizer, processor, is_train=True,
                                     max_samples=config.data.get("train_max_samples", -1))
         import pandas as pd
-        registered = pd.read_parquet(config.data.train_files)
-        if len(dataset) != 12 or set(dataset.dataframe["cell_id"]) != set(registered["cell_id"]):
+        registered = registered_cells
+        if len(dataset) != cell_count or set(dataset.dataframe["cell_id"]) != set(registered["cell_id"]):
             raise ValueError("VeRL dataset differs from frozen train cells")
         if any(row.get("split") != "train" or row.get("policy_snapshot") != "step:0" for row in dataset.dataframe):
             raise ValueError("untrusted training dataset split/snapshot")
-        sampler = create_rl_sampler(config.data, dataset)
+        sampler = StratifiedTaskSampler(dataset.dataframe)
         trainer = GuardedCHSPOTrainer(
             config=config, tokenizer=tokenizer, processor=processor,
             role_worker_mapping=self.role_worker_mapping, resource_pool_manager=self.init_resource_pool_mgr(config),

@@ -1,0 +1,28 @@
+diff --git a/verl/single_controller/base/worker.py b/verl/single_controller/base/worker.py
+index afa3c4e4..efbe4716 100644
+--- a/verl/single_controller/base/worker.py
++++ b/verl/single_controller/base/worker.py
+@@ -276,9 +276,20 @@ class Worker(WorkerHelper):
+             # RAY_EXPERIMENTAL_NOSET_*_VISIBLE_DEVICES is set,
+             # so we need to set local rank when the flag is set.
+             device_name = get_resource_name()
+-            local_rank = ray.get_runtime_context().get_accelerator_ids()[device_name][0]
+-            os.environ["LOCAL_RANK"] = local_rank
+-            get_torch_device().set_device(int(local_rank))
++            accelerator_id = str(ray.get_runtime_context().get_accelerator_ids()[device_name][0])
++            # CUDA_VISIBLE_DEVICES remaps physical IDs to dense process-local
++            # ordinals. Ray still reports the physical ID with NOSET enabled;
++            # using it directly fails for a mask such as "1,2" (device 2 is
++            # not a valid local ordinal in a two-device process).
++            visible = [value.strip() for value in (cuda_val or "").split(",") if value.strip()]
++            if visible:
++                if accelerator_id not in visible:
++                    raise ValueError(f"Ray GPU {accelerator_id} is absent from CUDA_VISIBLE_DEVICES={cuda_val}")
++                local_rank = visible.index(accelerator_id)
++            else:
++                local_rank = int(accelerator_id)
++            os.environ["LOCAL_RANK"] = str(local_rank)
++            get_torch_device().set_device(local_rank)
+ 
+     def _configure_with_store(self, store: dict):
+         """
