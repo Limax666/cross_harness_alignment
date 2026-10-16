@@ -1,6 +1,59 @@
 # 跨 Harness 安全对齐：新服务器接手说明
 
-## 2026-10-10 接手优先读：R11 结果、CHS-PO 实现与停机状态
+## 2026-10-16 接手优先读：已完成实验、实际能力与大模型下一轮设计
+
+以下只汇总已落盘的训练与评测；下文保留了按日期记录的历史快照，其中“运行中”“当前无任务”等说法不能代替实时进程检查。实验规范见 `experiments/cross_harness_sft/README.md`；具体逐条结果见 `experiments/cross_harness_sft/reports/`。**当前没有证据证明 CHS-PO 已在所有 harness 上同时实现 Utility 提升与 ASR/Persistence 下降。**
+
+### 模型与训练进度
+
+| 阶段 | 已完成的配置与产物 | 关键限制 |
+|---|---|---|
+| 2B 全参数 SFT | 原始教师候选 4,162 条，经任务家族隔离、轨迹/工具/安全审计和独立 LLM judge 筛成 1,603 train、246 validation；Qwen3.5-2B-Base 的 4,096-token 完整轨迹预检保留 1,421/232。VeRL BF16/FSDP、`lora_rank=0`、两张 24 GiB GPU、全局 batch 16、每卡 micro-batch 1、AdamW、峰值 LR `1e-5`、10% warmup、cosine、3 epoch、267 更新；验证 loss 最低 0.893（step 144），最终约 0.900。评测与 RL 起点是 `hf_merged_step_267`。 | 训练覆盖 Codex、Claude Code、Hermes、NanoBot、OpenClaw、OpenCode、`claudecode`、QwenPaw；每个来源×harness 的可用条数不均，不能用 loss 收敛代替工具协议或安全能力证明。数据、曲线和入口见下文“已完成的全参数 SFT”。 |
+| 标准在线 GRPO R11 | 从同一 2B SFT 初始化 actor、冻结 SFT reference；AgentDojo/Codex、AgentDojo/Claude Code、AgentHarm/Codex、AgentHarm/Hermes 的 107 个 train-family cell；每步 32 组×`G=4` 独立 reset 当前策略 rollout（128 条），全参数更新 20 步，保存完整 `global_step_20`。有官方 outcome、真实工具/路径审计、`path_weight=0.25`、2048-token 响应预算。 | 后四步平均零方差组率 81.3%，组内奖励信息变窄；HarnessRisk 上 Utility 和 ASR 同涨，不能称为净安全收益。 |
+| CHS-PO v2→v3→v4 | 沿用 107-cell、32×4 在线闭环；按 `(benchmark, harness)` 分层 attack/persistence/protocol dual，保留良性不行动惩罚、安全硬门禁及每 10 步 checkpoint。v3 从 v2 step 70 续训，最后完整安全起点为 step 130；v4 从该完整 checkpoint 迁移奖励目标，加入有官方路径证据的成功轨迹效率细分和信息量采样。v4 完整 `global_step_150` 与 `hf_merged_step_150` 可用于续训和推理评测（用途分别核对）；**step 155 出现 128/128 超时、Utility 0 和 PPO KL 0.206，watchdog 已停机，不要使用其未保存权重**。 | v4 是跨目标函数的续训分支，非从 SFT 独立起跑的干净算法消融；持续高零方差与 step 138/155 突发输出退化仍未解决。日志、奖励版本、恢复账本和曲线见 `reports/chspo_v4_step140_signal_design_20261012.md` 与对应 run 目录。 |
+
+独立 4B/9B 全参数 SFT 规模对照记在 `reports/sft_4b_9b.md`：其单轮 1,081 题报告中，4B ASR 18.90%→5.70%，但正常任务完成 85.57%→68.04%；9B ASR 8.66%→1.48%，正常任务完成 92.78%→91.75%。这些是**另一套模型/任务口径的 SFT 结果**，不能直接与下表 2B HarnessRisk 或 CHS-PO 算法效果合并；它们说明放大模型值得做同口径复验，也提示必须同时约束良性效用。
+
+### 已完成的能力验证：相同 HarnessRisk case 和 judge
+
+2B Base/SFT、GRPO step 20、CHS-PO v4 step 150 都在 HarnessRisk 的 Hermes、NanoBot、OpenClaw 上各用 128 case×3 独立 rollout；本实验统一由 `openai/gpt-5.4-nano` 判分，表内依次为 **Utility↑ / ASR↓ / Persistence↓ / Detection↑**，每项分母 384。论文使用 GPT-5.4，不能将本表与其表格当作同 judge 的严格排名。完整计数与百分点差见 `reports/harnessrisk_sft_grpo20_chspo150_comparison.md`。
+
+| Harness | Base | SFT | GRPO step 20 | CHS-PO step 150 | CHS-PO 相对 GRPO 的关键变化 |
+|---|---|---|---|---|---|
+| Hermes | 1.8 / 0.3 / 0.0 / 4.4% | 1.0 / 1.6 / 0.8 / 4.2% | 5.2 / 3.4 / 1.3 / 3.6% | 13.3 / 1.6 / 1.0 / 3.1% | Utility +8.07 pp，ASR −1.82 pp |
+| NanoBot | 12.8 / 4.2 / 19.5 / 0.8% | 7.8 / 3.1 / 13.0 / 1.0% | 20.6 / 9.1 / 29.2 / 1.6% | 18.5 / 6.3 / 23.2 / 0.3% | Utility −2.08 pp，ASR −2.86 pp |
+| OpenClaw | 1.0 / 0.0 / 30.2 / 0.0% | 0.0 / 0.0 / 22.9 / 0.5% | 11.5 / 4.2 / 30.7 / 1.0% | 23.2 / 1.6 / 34.4 / 1.3% | Utility +11.72 pp，ASR −2.60 pp |
+
+**判读：**CHS-PO 相对 GRPO 三个 harness 的 ASR 都降低，但 NanoBot Utility 低 2.08 pp；相对 SFT，NanoBot/OpenClaw 的 ASR 仍分别高 3.12/1.56 pp。OpenClaw Persistence 含已知初始化文件评分污染，不能解释为真实攻击性持久化变化。模型能力比较也不是控制训练步数、响应预算和目标函数的严格 GRPO↔CHS-PO 消融。SFT 的 AgentDojo/Codex、Claude Code 官方 verifier 抽样评测见下文；超时/轮次上限与分母差异必须连同指标报告。
+
+### 当前跨 harness 泛化验证与下一台大服务器的首要实验约束
+
+SafeClawArena 使用 v7 **未入 SFT 的 PSE:2.4、SSI:1.2 共 30 个家族内 case**，NemoClaw/SecLaw 各 3 次；这是 SFT/RL 都未接触过的**运行 harness**，但数据集来源 SafeClawArena/OpenClaw 曾用于 SFT，因此是“新 harness + 已见数据集来源”，不是完全新 benchmark。当前修正后的评测目录是 `outputs/safeclawarena_chspo150_eval_schemafix_v3_20261016/`；先前版本因工具示例污染、工具名自动改写和 schema 截断而作废。2026-10-16 交接时 NemoClaw 两臂仍在断点续跑，SecLaw 尚未完成；只看最终相同 case/seed 的双方有效 verdict，协议错误、网关启动失败与未评分须分开统计。SafeClawArena 无良性任务，**不能用它单独证明 Utility 保留**。已观察到未见过的 53 工具/约 31.5K-token 提示下，2B 会把部分必填参数写成错误标签，或选错工具参数；先做协议归因，再谈模型容量瓶颈。
+
+**更大模型下一轮以“跨 harness 安全泛化”作为预注册的核心目标，而非只增加模型参数：**
+
+1. **先冻结三类 harness 暴露集合和任务家族切分。** `H_SFT` 用于多源良性+风险教师轨迹 SFT；`H_adapt` 整个 harness 从 SFT train/validation 轨迹中留出，先对 SFT 做零样本基线，再仅用该 harness 的**独立 train families** 建可复位在线工具环境和 verifier，加入 GRPO/CHS-PO RL；`H_final` 在 SFT、RL、奖励调参和 checkpoint 选择中均完全不出现，只供最终跨 harness 泛化测试。`H_adapt` 的 RL 后成绩是“对 SFT 未见 harness 的在线适应”，不能冒充全程未见泛化；真正的未见 harness 结论只由 `H_final` 给出。先核对原始轨迹、工具 schema、别名与近重复家族的实际暴露，再指定具体 harness；已经看过的 NemoClaw/SecLaw 结果不能无条件重当盲测集。
+2. **SFT 留出必须真实。** 新模型重建独立数据版本和不可变 exposure manifest；从训练、验证、上下文示例及蒸馏教师视图中排除 `H_adapt/H_final` 的实际运行协议，按原始任务家族隔离 benign/risk 配对与跨 harness 变体。保留足够的良性工具完成和风险防御轨迹，控制来源/长度比例，并核对训练格式与目标 harness 工具协议。更大模型的全参数 SFT 大小、序列长度、批量和 FSDP/优化器 offload 在新服务器做显存/RAM/吞吐预检后确定，不从 2B 参数机械放大。
+3. **RL 在 `H_adapt` 上补可验证能力，同时保留已见 harness。** 先对每个新增 harness 做真实工具 schema、权限、reset、最终副作用与路径审计的正反例门禁；使用同一 SFT checkpoint、训练池、token/rollout 预算分别跑标准 GRPO 与 CHS-PO，再逐项消融分层采样、良性/风险配对、路径奖励、安全 dual。`H_adapt` 的 train-family rollout 是当前策略在线生成；验证家族只选 checkpoint，不回灌；`H_final` 无任何 RL 更新。不能仅靠增加全局违规惩罚来宣称跨 harness 泛化。
+4. **以预注册的配对评测决定是否成功。** 在已见、`H_adapt` 和 `H_final` 上用相同 case/seed、原生 harness、同一模型路由与 judge/oracle、每题至少 3 次，分别报告 Utility、ASR、Persistence、Detection（仅在 benchmark 定义该指标时）、协议错误、超时及置信区间。模型选择应要求每个可评层的良性 Utility 不低于 SFT，ASR/禁止持久化不高于 SFT，并单报最差 harness；不要用 HarnessRisk 或新的最终盲测结果更新 reward、dual、采样权重或挑 checkpoint。若使用已检查过的 benchmark 家族调参，必须另留真正未见家族/基准做最后验证。
+
+## 2026-10-11 CHS-PO v3 step-70 续训（16:03 CST）
+
+R20g v2 的完整 `global_step_70` 已保存，AgentDojo/Hermes 家族隔离 24 条配对验证为 SFT→v2 step-70：clean Utility 1/12→3/12、injection Utility 1/12→3/12、ASR 0/12→0/12。样本窄，不能外推到 NanoBot/OpenClaw 或 HarnessRisk。v3 收紧 attack/persistence dual 与训练门禁。
+
+最初误启的 SFT 起点 v3 run 在首个更新前已中止，未产生指标/checkpoint。正式分支 `outputs/rl/multiharness_chspo_r20g_step70_v3_resume_20261011/` 从 v2 `global_step_70` 恢复后跑到 step126/300，共完成 56 次更新。step120 是最后完整 checkpoint；step121–126 指标虽已记录，但不可作为完整续训状态。step127 的 AgentHarm judge 调用 Shengsuanyun 返回 HTTP 402 Payment Required，进程退出，GPU1/2 已释放；当前需恢复 judge 额度/凭证后从 step120 checkpoint 续跑。不是 OOM，RAM 可用约189 GiB。
+
+训练池统计（step71–126）：每步128条已评分；零方差组率首10步均值0.813、末6步0.854，峰值0.969；896条风险臂中 AgentHarm/Codex 有4次官方攻击成功、AgentHarm/Hermes 2次，AgentDojo两层为0；AgentDojo/Codex有5次禁止持久化。step126安全 streak 全为0。只代表训练池，不是 HarnessRisk 评测结论。objective migration `v2→v3` 有 provenance 记录。详情见 `experiments/cross_harness_sft/reports/chspo_v3_safety_revision_20261011.md`。
+
+## 2026-10-11 CHS-PO 续训状态（13:08 CST 快照）
+
+R20f 从 step-20 续训，真实完成 step 67；下一个 32 组批次全部组内奖励恒定，原 GRPO 门禁在 `rl_guarded_chspo_trainer.py` 的更新入口停机。CHS-PO 有独立的可验证违规与良性不行动惩罚，零组内奖励差异并不必然意味着零策略优势。现已加入 CHS-PO 专属检查：完整批次仍须通过来源、token、奖励和审计门禁；调整后优势非零才更新；完全零信号批次写入 `chspo_skipped_batches.jsonl`，不计优化器步数，并在线抽取下一组平衡任务，连续 16 次零信号才停机诊断。标准 GRPO 的零差异门禁保持不变。VeRL 采样跳批 hook 位于 `patches/verl_chspo_zero_signal_resample.patch`，`bootstrap_rl_sources.sh` 会应用它；每个 checkpoint 的 sampler epoch 随安全日志和 resume provenance 保存，避免跳批后重复任务调度。针对性测试 12 项通过。
+
+新 run `outputs/rl/multiharness_chspo_r20g_zero_signal_resample_gpu12_20261011/` 已在 tmux `chspo_r20g` 用 GPU1/2 从 **R20f 的完整 `global_step_60`** 启动；rank 0/1 已加载模型、优化器和 RNG，13:08 CST 进度条 60/300，尚不能据此声称 step 61 更新已完成。启动脚本仍每 10 step 保存，训练池 SHA-256 仍是 `f6f88bf4f73e982b95b741a2292bcb39464ea65a9b5c2a42186a40cd5c93db42`。R20f 的 step 61–67 是被此次从 step 60 恢复替代的另一条训练分支，不可与新 run 拼接为连续曲线。后续只看新 run 的 `metrics.jsonl` 和 `chspo_safety.jsonl` 判断真实更新。
+
+## 2026-10-10 历史快照：R11 结果、CHS-PO 实现与当时的停机状态
+
+以下“当前”均指 2026-10-10 的记录；实际运行状态以上方更新和实时日志为准。
 
 **当前没有在线 RL 任务运行，四张 GPU 上没有本项目进程。** 此文件后面标注“运行中”的段落是当时的历史快照，不代表现在的进程状态。A6000-2 上不要按旧的 `chspo_current_run.json` 或旧 run-id 续跑。R18/R19/R20 各只完成一次在线 actor 更新，均在第一次更新后的权重同步阶段因当前服务器的**宿主 RAM**达到 Ray 95% 限值而失败，未保存 step-10 checkpoint；三次 step-1 指标不可拼成连续训练曲线。R19/R20 的失败已在当前服务器确认，分别见 `outputs/rl/multiharness_chspo_r19_ramfix_gpu12_20261009_2310.log` 和 `outputs/rl/multiharness_chspo_r20_ramfix_gpu12_20261010.log`（原始日志未上传 GitHub）。R20 将响应预算降至 1024、AgentLoop/reward worker 减至 4/2，仍在同步点 OOM；试验性 optimizer-state parking 报告 `parked ... bytes=0`，**未证明有效**。不要关闭 Ray 内存保护或把此故障误判为 GPU 显存不足。新机器须重新测量首次 actor 更新、权重同步、第二步采样的峰值，再考虑长跑。
 
