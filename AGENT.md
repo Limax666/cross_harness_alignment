@@ -183,11 +183,31 @@ tar --zstd -xf hf_transfer/transfers/handoff_multiharness_rl_data_20261007.tar.z
 
 包内有 v7 `accepted_train.jsonl`、`accepted_validation.jsonl`、完整 `family_split_manifest.jsonl`（246 train、30 validation、30 test、7 review-only families）、分类/预处理元数据和 Qwen3.5-2B 4,096-token qualified JSONL（1,421 train、232 validation）；也有 ActBench 与 SafeClawArena 的提交版 tasks/fixtures/runner 源码快照。ActBench commit 为 `31bd732e9c083ddeb19bf152048386d38e511c90`，SafeClawArena commit 为 `a11f5cceaba0676be721021f8d232638fd111305`。test 家族只给 split 身份用于排除；没有 `accepted_test.jsonl`，也不应将其用于训练。`TRANSFER_MANIFEST.json` 列有包内文件大小和 SHA-256。包不含原始采集日志、密钥或未提交的本地代码改动。
 
+### 在新服务器重新 SFT：已筛选 v7 数据包（2026-10-18）
+
+完整的 **v7 已接受 train/validation 数据**现已单独上传至私有 HF 模型仓库 `Limax11/harness_alignment`，路径 `transfers/sft_teacher_release_v7_filtered_20261018.tar.gz`，固定 revision `1b7ebbce840c42ae4b39e028ae15cfc7395049d6`，11,306,817 bytes，SHA-256 `8e5d533cb129506b3527ed5dd95092a2f6d9082b0be9c674cd48fbcaa2f549c7`。上传后已从该 revision 重新下载并校验哈希。包内 `teacher_release_v7/` 含 `accepted_train.jsonl`（1,603 条）、`accepted_validation.jsonl`（246 条）、完整 `family_split_manifest.jsonl`、分类与预处理元数据、Qwen3.5-2B-Base 的 4,096-token 预检及当次全量训练视图/VeRL Parquet；`TRANSFER_MANIFEST.json` 列出每个文件的字节数与 SHA-256。原始候选和被拒轨迹不在此包中。它比上述 RL handoff 包多了当次 SFT 的 full-view/batch-plan/Parquet，供精确复现；新模型则应从 `accepted_*.jsonl` 重新处理。
+
+在新服务器的 Git 仓库根目录运行（使用有私有仓库读取权限的 HF 账号；不要把令牌写进命令或 Git）：
+
+```bash
+hf auth login
+hf download Limax11/harness_alignment \
+  transfers/sft_teacher_release_v7_filtered_20261018.tar.gz \
+  --revision 1b7ebbce840c42ae4b39e028ae15cfc7395049d6 \
+  --local-dir ./hf_transfer
+echo '8e5d533cb129506b3527ed5dd95092a2f6d9082b0be9c674cd48fbcaa2f549c7  hf_transfer/transfers/sft_teacher_release_v7_filtered_20261018.tar.gz' | sha256sum -c -
+mkdir -p experiments/cross_harness_sft/data/sft
+tar -xzf hf_transfer/transfers/sft_teacher_release_v7_filtered_20261018.tar.gz \
+  -C experiments/cross_harness_sft/data/sft
+```
+
+**重新做更大模型的 SFT 时：**先确定 `H_SFT/H_adapt/H_final` 的 harness 留出方案，并检查 v7 `accepted_*.jsonl` 是否暴露计划留出的 harness；必要时按 exposure manifest 再过滤。保留现有家族隔离，严禁将 test/review 家族用于训练。换 tokenizer、上下文长度或模型后，从 accepted JSONL 重新做完整轨迹长度/assistant-mask 预检、批次平衡及 VeRL materialization；`preflight_qwen35_2b_base_4096_v1` 和 `verl_qwen35_2b_base_bs16_full_v2` 仅复现旧 2B 运行，不能直接当新模型数据。若要重新执行**全部原始轨迹的质量筛选**，本包不够，仍须另行转移旧机约 7.7 GB 的 `experiments/cross_harness_sft/data/` 原始库和所需源 benchmark。
+
 ## 新服务器复现与继续工作的顺序
 
 1. 克隆本仓库的 `handoff/rl-20261006` 分支（或其合并后的 `main`），确认读到本文件、实验 README 和 `experiments/cross_harness_sft/scripts/rl_*`。代码已移除被误纳入旧 Git 历史的虚拟环境；本分支也不包含 checkpoint、原始轨迹和 API key。
 2. 在兼容 CUDA 12.9 的服务器上建立 `experiments/cross_harness_sft/.venv-rl-pilot`。旧机实测核心版本：Torch 2.11.0+cu129、vLLM 0.23.0+cu129、Ray 2.58.0、Transformers 5.9.0、PEFT 0.21.1、Hydra 1.3.7。执行 `bash experiments/cross_harness_sft/scripts/bootstrap_rl_sources.sh`，它固定 VeRL `02a318c303a7b60871cb63e4ce2f779b522874d9`、AgentDojo `089ed468cf3ed0322acc66b0211f26d9d90dbf60`，并应用 `patches/verl_project_local_02a318c3.patch`（含 optimizer 状态按需回迁等本地修复）。安装两者到 RL 环境并确认 Hermes `5eb99eb2844b22ebb723711b8e6a0bbb80bb5f04` 的 Python 环境；按需设置 `HERMES_AGENT_ROOT` 和 `HERMES_AGENT_PYTHON`。`rl_native_pilot_agent_loop.yaml` 的 worker 路径已改为相对路径。
-3. 从私有 Hugging Face 模型仓库 `Limax11/harness_alignment` 下载 **step 267 的 4.2 GiB SFT 合并 checkpoint**，固定 revision `7b608bf7517bd8b2f08ec8eecedd6dea4bdbbe26`，放到仓库相对目录 `experiments/cross_harness_sft/checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_267`；新服务器先以有权限的 Hugging Face 账号运行 `hf auth login`，再运行 `hf download Limax11/harness_alignment --revision 7b608bf7517bd8b2f08ec8eecedd6dea4bdbbe26 --local-dir experiments/cross_harness_sft/checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_267`。GitHub 不托管该权重。16-cell 训练 Parquet 已随本分支上传到 `experiments/cross_harness_sft/outputs/rl/native_pilot_train_20261005_hermes_mcp_16cells.parquet`。若需要复现 SFT 数据构建，还须另行转移忽略的 `data/raw`、`teacher_release_v7` 完整数据和源 benchmark；不能用 Git 中 manifest 伪装成数据本身。
+3. 从私有 Hugging Face 模型仓库 `Limax11/harness_alignment` 下载 **step 267 的 4.2 GiB SFT 合并 checkpoint**，固定 revision `7b608bf7517bd8b2f08ec8eecedd6dea4bdbbe26`，放到仓库相对目录 `experiments/cross_harness_sft/checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_267`；新服务器先以有权限的 Hugging Face 账号运行 `hf auth login`，再运行 `hf download Limax11/harness_alignment --revision 7b608bf7517bd8b2f08ec8eecedd6dea4bdbbe26 --local-dir experiments/cross_harness_sft/checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_267`。GitHub 不托管该权重。16-cell 训练 Parquet 已随本分支上传到 `experiments/cross_harness_sft/outputs/rl/native_pilot_train_20261005_hermes_mcp_16cells.parquet`。复现**已筛选的** v7 SFT 可下载上面的独立数据包；重新从原始轨迹筛选则仍需另行转移忽略的 `data/raw` 和源 benchmark。不能用 Git 中 manifest 伪装成数据本身。
 4. 先核查 Hermes MCP 转换、AgentDojo 真工具执行及 reset/path audit；解决 `verified_safe_subgoals` 的真实证据来源，并以固定安全/不安全反例核对奖励边界。然后在两张空卡上用**新的** `RL_RUN_DIR` 做 2048-token、16-cell、G=4 的小批在线更新；入口是 `scripts/train_rl_native_pilot_verl.sh`，设 `CUDA_VISIBLE_DEVICES=<两卡>`、`RL_N_GPUS=2`、`RL_GPU_UTIL=0.45`、`RL_MAX_NUM_SEQS=2`、`RL_RESPONSE_LENGTH=2048`、`RL_TRAIN_BATCH_SIZE=16`、`RL_DATA=<上面的 Parquet>`。不得复用已有 run 目录；若批次无有效组内优势，保留门禁停机。
 5. 每次保存 checkpoint 后，用 `scripts/evaluate_rl_sft_pair.sh` 对同一家族隔离验证集配对比较 SFT/RL 的 Utility、ASR、invalid calls、超时及真实副作用；保存 JSONL、metrics 和曲线。只有验证同时守住安全边界与正常任务效用，才扩大任务池或开始 CHS-PO、Balance-GRPO、DAPO 等消融。不要把训练 reward 上升当作能力涨点。
 
