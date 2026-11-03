@@ -22,7 +22,6 @@ CALL_RE = re.compile(r"<tool_call>(.*?)</tool_call>", re.S)
 FUNC_RE = re.compile(r"<function=([^>\s]+)>(.*?)</function>", re.S)
 BARE_FUNC_RE = re.compile(r"<([A-Za-z_][A-Za-z0-9_]*)>(.*?)(?:</function>|</\1>)", re.S)
 PARAM_RE = re.compile(r"<parameter=([^>\s]+)>(.*?)</parameter>", re.S)
-TOOL_NAME_ALIASES = {"skill_search": "tool_search"}
 
 
 def _function_name_and_inline_args(raw_name):
@@ -74,11 +73,8 @@ def parse_tool_calls(text, tools=None):
         except ValueError as exc:
             errors.append(str(exc))
             continue
-        name = TOOL_NAME_ALIASES.get(name, name)
-        if name not in schemas:
-            qualified = [candidate for candidate in schemas if candidate.rsplit("__", 1)[-1] == name]
-            if len(qualified) == 1:
-                name = qualified[0]
+        # A harness may expose tools with similar names or namespace suffixes.
+        # Never repair the model's name into another callable tool.
         for key, value in PARAM_RE.findall(body):
             if key in args:
                 errors.append(f"{name}: duplicate argument {key}")
@@ -159,36 +155,78 @@ def build_server(args):
     return tokenizer, model
 
 
-def segment_prompt(messages, tools):
-    """Match the role-segment format used by the full-SFT data release."""
-    parts = []
-    if tools:
-        parts.append("<|im_start|>system\nAvailable tools (call only these functions):\n"
+def _segment_tool_header(tools):
+    if not tools:
+        return ""
+    return ("<|im_start|>system\nAvailable tools (call only these functions):\n"
                      + json.dumps(tools, ensure_ascii=False)
                      + "\nTool-call syntax: <tool_call><function=TOOL_NAME>"
                        "<parameter=ARG_NAME>JSON_VALUE</parameter></function></tool_call>. "
-                       "Keep TOOL_NAME separate from arguments; include every required argument "
-                       "listed in its schema. For example, skill_view requires "
-                       "<function=skill_view><parameter=name>\"hermes-agent\"</parameter></function>."
+                       "TOOL_NAME and ARG_NAME above are placeholders, not callable names. "
+                       "Use an exact function name from Available tools, never a tool from another "
+                       "environment. Keep the function name separate from its JSON arguments. "
+                       "Include every required argument listed in that function's schema."
                        "<|im_end|>\n")
-    for message in messages:
-        role = message.get("role", "user")
-        content = message.get("content") or ""
-        if role == "assistant" and message.get("tool_calls"):
-            blocks = []
-            for call in message["tool_calls"]:
-                function = call.get("function") or {}
-                name = function.get("name") or ""
-                arguments = function.get("arguments") or {}
-                if isinstance(arguments, str):
-                    arguments = json.loads(arguments)
-                params = "\n".join(f"<parameter={key}>\n{json.dumps(value, ensure_ascii=False)}\n</parameter>"
-                                   for key, value in arguments.items())
-                blocks.append(f"<tool_call>\n<function={name}>\n{params}\n</function>\n</tool_call>")
-            content = content.rstrip() + ("\n\n" if content.strip() else "") + "\n".join(blocks)
-        parts.append(f"<|im_start|>{role}\n{content}<|im_end|>\n")
+
+
+def _segment_message(message):
+    role = message.get("role", "user")
+    content = message.get("content") or ""
+    if role == "assistant" and message.get("tool_calls"):
+        blocks = []
+        for call in message["tool_calls"]:
+            function = call.get("function") or {}
+            name = function.get("name") or ""
+            arguments = function.get("arguments") or {}
+            if isinstance(arguments, str):
+                arguments = json.loads(arguments)
+            params = "\n".join(f"<parameter={key}>\n{json.dumps(value, ensure_ascii=False)}\n</parameter>"
+                               for key, value in arguments.items())
+            blocks.append(f"<tool_call>\n<function={name}>\n{params}\n</function>\n</tool_call>")
+        content = content.rstrip() + ("\n\n" if content.strip() else "") + "\n".join(blocks)
+    return f"<|im_start|>{role}\n{content}<|im_end|>\n"
+
+
+def segment_prompt(messages, tools):
+    """Match the role-segment format used by the full-SFT data release."""
+    parts = [_segment_tool_header(tools)]
+    parts.extend(_segment_message(message) for message in messages)
     parts.append("<|im_start|>assistant\n")
     return "".join(parts)
+
+
+def encode_segment_prompt(tokenizer, messages, tools, max_input_tokens):
+    """Trim old conversation turns while retaining complete tool and system schemas."""
+    encoded = tokenizer(segment_prompt(messages, tools), return_tensors="pt",
+                        add_special_tokens=False)
+    original_tokens = int(encoded["input_ids"].shape[-1])
+    if original_tokens <= max_input_tokens:
+        return encoded, None
+
+    prefix = _segment_tool_header(tools) + "".join(
+        _segment_message(message) for message in messages if message.get("role") == "system")
+    encode = lambda value: tokenizer(value, return_tensors="pt",
+                                     add_special_tokens=False)["input_ids"]
+    prefix_ids = encode(prefix)
+    suffix_ids = encode("<|im_start|>assistant\n")
+    if prefix_ids.shape[-1] + suffix_ids.shape[-1] >= max_input_tokens:
+        raise ValueError("Tool schemas and system instructions exceed max_input_tokens")
+    available = max_input_tokens - prefix_ids.shape[-1] - suffix_ids.shape[-1]
+    chunks = [encode(_segment_message(message)) for message in messages
+              if message.get("role") != "system"]
+    dropped = 0
+    while len(chunks) > 1 and sum(chunk.shape[-1] for chunk in chunks) > available:
+        chunks.pop(0)
+        dropped += 1
+    clipped = 0
+    if chunks and chunks[0].shape[-1] > available:
+        clipped = int(chunks[0].shape[-1] - available)
+        chunks[0] = chunks[0][:, -available:]
+    ids = torch.cat([prefix_ids, *chunks, suffix_ids], dim=-1)
+    return {"input_ids": ids, "attention_mask": torch.ones_like(ids)}, {
+        "original_tokens": original_tokens, "system_tool_tokens": int(prefix_ids.shape[-1]),
+        "dropped_messages": dropped, "clipped_history_tokens": clipped,
+    }
 
 
 def make_handler(tokenizer, model, model_id, max_new_tokens, max_input_tokens, prompt_format, temperature, max_requests_per_episode):
@@ -288,6 +326,25 @@ def make_handler(tokenizer, model, model_id, max_new_tokens, max_input_tokens, p
                       "messages=" + str(len(messages)), "tools=" + str(len(tools or [])), flush=True)
                 streaming = bool(body.get("stream"))
                 stopped = threading.Event()
+                if prompt_format == "segment":
+                    encoded, trim = encode_segment_prompt(tokenizer, messages, tools, max_input_tokens)
+                else:
+                    encoded = tokenizer.apply_chat_template(messages, tools=tools, tokenize=True,
+                        add_generation_prompt=True, return_tensors="pt")
+                    trim = None
+                if isinstance(encoded, Mapping):
+                    ids = encoded["input_ids"]; mask = encoded.get("attention_mask")
+                else: ids, mask = encoded, None
+                print("[prompt-tokens]", int(ids.shape[-1]), flush=True)
+                # A native tokenizer template needs its own schema-aware
+                # truncation implementation; never silently cut tool schemas.
+                if ids.shape[-1] > max_input_tokens:
+                    raise ValueError("Native prompt exceeds max_input_tokens; tool schemas cannot be safely truncated")
+                if trim is not None:
+                    print("[context-truncated]", json.dumps(trim), flush=True)
+                device = next(model.parameters()).device
+                inputs = {"input_ids": ids.to(device)}
+                if mask is not None: inputs["attention_mask"] = mask.to(device)
                 if streaming:
                     self.send_response(200)
                     self.send_header("Content-Type", "text/event-stream")
@@ -296,26 +353,6 @@ def make_handler(tokenizer, model, model_id, max_new_tokens, max_input_tokens, p
                     self.wfile.write(b": connected\n\n")
                     self.wfile.flush()
                     threading.Thread(target=self.heartbeat, args=(stopped,), daemon=True).start()
-                if prompt_format == "segment":
-                    encoded = tokenizer(segment_prompt(messages, tools), return_tensors="pt", add_special_tokens=False)
-                else:
-                    encoded = tokenizer.apply_chat_template(messages, tools=tools, tokenize=True,
-                        add_generation_prompt=True, return_tensors="pt")
-                if isinstance(encoded, Mapping):
-                    ids = encoded["input_ids"]; mask = encoded.get("attention_mask")
-                else: ids, mask = encoded, None
-                print("[prompt-tokens]", int(ids.shape[-1]), flush=True)
-                # HarnessRisk multi-turn transcripts can contain very large tool outputs.
-                # Keep the system prompt and the most recent context within the 4090 budget.
-                if ids.shape[-1] > max_input_tokens:
-                    keep = max_input_tokens
-                    ids = torch.cat([ids[:, : min(2048, keep // 2)], ids[:, -(keep - min(2048, keep // 2)):]], dim=-1)
-                    if mask is not None:
-                        mask = torch.ones_like(ids)
-                    print("[context-truncated]", "tokens=" + str(int(ids.shape[-1])), flush=True)
-                device = next(model.parameters()).device
-                inputs = {"input_ids": ids.to(device)}
-                if mask is not None: inputs["attention_mask"] = mask.to(device)
                 try:
                     with generation_lock, torch.inference_mode():
                         requested = body.get("max_completion_tokens") or body.get("max_tokens") or max_new_tokens
@@ -359,7 +396,7 @@ def make_handler(tokenizer, model, model_id, max_new_tokens, max_input_tokens, p
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--role", choices=("base", "sft"), required=True)
+    ap = argparse.ArgumentParser(); ap.add_argument("--role", choices=("base", "sft", "rl"), required=True)
     ap.add_argument("--base-model", default="Qwen/Qwen3.5-9B-Base"); ap.add_argument("--adapter")
     ap.add_argument("--model-id", default="qwen35-9b-local"); ap.add_argument("--host", default="127.0.0.1"); ap.add_argument("--port", type=int, default=9000); ap.add_argument("--max-new-tokens", type=int, default=384); ap.add_argument("--max-input-tokens", type=int, default=8192)
     ap.add_argument("--full-precision", action="store_true", help="Load BF16 weights without 4-bit quantization")

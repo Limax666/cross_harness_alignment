@@ -15,14 +15,15 @@ def _as_list(value):
     return value.tolist() if hasattr(value, "tolist") else list(value)
 
 
-def require_verl_update_batch(batch, *, policy_snapshot: str, cells: dict[str, dict]) -> dict:
+def require_verl_update_batch(batch, *, policy_snapshot: str, cells: dict[str, dict],
+                              allow_zero_reward_variance: bool = False, assignments: list[dict] | None = None) -> dict:
     tensors = batch.batch
     extras = batch.non_tensor_batch
     required = ("responses", "response_mask", "attention_mask", "rollout_log_probs", "old_log_probs", "rm_scores")
     if any(key not in tensors for key in required) or "multiharness_evidence" not in extras:
         raise MultiharnessAdmissionError("missing VeRL token fields or trusted pilot evidence")
     evidence = _as_list(extras["multiharness_evidence"])
-    expected_groups = len(EXPECTED_STRATA) * GROUPS_PER_STRATUM
+    expected_groups = len(assignments) if assignments is not None else len(EXPECTED_STRATA) * GROUPS_PER_STRATUM
     if len(evidence) != 4 * expected_groups:
         raise MultiharnessAdmissionError("expected exactly G=4 VeRL episodes per sampled cell")
     if "uid" not in extras:
@@ -80,4 +81,5 @@ def require_verl_update_batch(batch, *, policy_snapshot: str, cells: dict[str, d
             rollout_log_probs=sampled[:width], old_log_probs=old[:width],
         )
         rows.append(row)
-    return require_online_batch(rows, policy_snapshot=policy_snapshot, cells=cells)
+    return require_online_batch(rows, policy_snapshot=policy_snapshot, cells=cells,
+                                allow_zero_reward_variance=allow_zero_reward_variance,assignments=assignments)

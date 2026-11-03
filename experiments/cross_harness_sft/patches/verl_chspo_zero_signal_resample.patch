@@ -1,0 +1,19 @@
+diff --git a/verl/trainer/ppo/ray_trainer.py b/verl/trainer/ppo/ray_trainer.py
+index 9352bcfa..ae5cdc27 100644
+--- a/verl/trainer/ppo/ray_trainer.py
++++ b/verl/trainer/ppo/ray_trainer.py
+@@ -1673,6 +1673,14 @@ class RayPPOTrainer:
+                             norm_adv_by_std_in_grpo=norm_adv_by_std_in_grpo,
+                             config=self.config.algorithm,
+                         )
++                    # A project trainer may reject an otherwise valid online
++                    # batch with no policy signal. Resample from the next task
++                    # cells without counting an optimizer step or changing the
++                    # current policy. This hook is absent for normal VeRL runs.
++                    skip_hook = getattr(self, "_skip_uninformative_batch", None)
++                    if skip_hook is not None and skip_hook(batch):
++                        self.checkpoint_manager.wake_up_replicas()
++                        continue
+                     # update critic
+                     if self.use_critic:
+                         with marked_timer("update_critic", timing_raw, color="pink"):

@@ -8,6 +8,9 @@ from __future__ import annotations
 
 import os
 import socket
+import hashlib
+import json
+from pathlib import Path
 
 import ray
 from omegaconf import OmegaConf
@@ -17,15 +20,17 @@ from verl.utils.config import omega_conf_to_dataclass, validate_config
 from verl.workers.config import HFModelConfig
 from verl.utils.dataset.rl_dataset import collate_fn
 
-from rl_guarded_chspo_trainer import GuardedCHSPOTrainer
+from rl_guarded_chspo_trainer import GuardedCHSPOTrainer, require_objective_version
 from rl_multiharness_chat_template import BENCHMARK_MCP_CHAT_TEMPLATE
 from rl_multiharness_stratified_sampler import StratifiedTaskSampler, EXPECTED_STRATA, GROUPS_PER_STRATUM
+from rl_informative_sampler import InformativeTaskSampler
 
 
 
 @ray.remote
 class NativeMultiharnessTaskRunner(BaseTaskRunner):
     def run(self, config):
+        require_objective_version(config.trainer.get("rl_algorithm"))
         if config.trainer.use_v1 or config.actor_rollout_ref.rollout.n != 4:
             raise ValueError("multi-harness requires legacy VeRL trainer with rollout.n=4")
         registered_cells = __import__("pandas").read_parquet(config.data.train_files)
@@ -48,9 +53,39 @@ class NativeMultiharnessTaskRunner(BaseTaskRunner):
             raise ValueError("native multi-harness requires generation-time old-policy log probabilities")
         if config.algorithm.adv_estimator != "grpo" or config.trainer.get("pilot_policy_snapshot") != "step:0":
             raise ValueError("multi-harness must initialize from the SFT policy snapshot")
-        if (config.trainer.resume_mode != "disable" or
-                config.trainer.total_epochs != config.trainer.total_training_steps):
-            raise ValueError("bounded multi-harness must start from SFT with one sampled batch per epoch")
+        resume_step = 0
+        if config.trainer.resume_mode == "resume_path":
+            checkpoint = Path(str(config.trainer.resume_from_path)).resolve()
+            try:
+                resume_step = int(checkpoint.name.removeprefix("global_step_"))
+            except ValueError as exc:
+                raise ValueError("resume requires an explicit global_step checkpoint") from exc
+            if checkpoint.name != f"global_step_{resume_step}" or not 0 < resume_step < config.trainer.total_training_steps:
+                raise ValueError("resume checkpoint step is outside the scheduled training interval")
+            state_dir = Path(str(config.trainer.pilot_metrics_path)).resolve().parent
+            provenance = json.loads((state_dir / "chspo_resume_provenance.json").read_text())
+            data_sha = hashlib.sha256(Path(str(config.data.train_files)).read_bytes()).hexdigest()
+            if (provenance.get("checkpoint") != str(checkpoint) or
+                    provenance.get("step") != resume_step or
+                    provenance.get("train_sha256") != data_sha):
+                raise ValueError("CHS-PO resume state does not match checkpoint and frozen train pool")
+            require_objective_version(provenance.get("objective_version"))
+            if config.trainer.get("rl_algorithm") == "CHS-PO-harness-safety-dual-v4":
+                priority_path = state_dir / "chspo_priority_snapshot.json"
+                priority_bytes = priority_path.read_bytes()
+                if hashlib.sha256(priority_bytes).hexdigest() != provenance.get("priority_snapshot_sha256"):
+                    raise ValueError("v4 priority snapshot differs from checkpoint provenance")
+                priority = json.loads(priority_bytes)
+                if priority.get("last_step") != resume_step:
+                    raise ValueError("v4 priority snapshot does not match checkpoint step")
+            for name, key in (("chspo_duals.json", "duals"),
+                              ("chspo_safety_streaks.json", "safety_streaks")):
+                if json.loads((state_dir / name).read_text()) != provenance[key]:
+                    raise ValueError(f"checkpoint-matched {name} was modified")
+        elif config.trainer.resume_mode != "disable":
+            raise ValueError("CHS-PO supports a fresh SFT start or an explicit verified checkpoint")
+        if not (config.trainer.total_training_steps <= config.trainer.total_epochs <= 600):
+            raise ValueError("CHS-PO needs a bounded epoch budget for zero-signal resampling")
         if config.trainer.critic_warmup != 0 or config.trainer.val_only:
             raise ValueError("multi-harness must execute the full-parameter actor update")
         if config.reward.reward_model.enable or config.algorithm.use_kl_in_reward:
@@ -80,7 +115,16 @@ class NativeMultiharnessTaskRunner(BaseTaskRunner):
             raise ValueError("VeRL dataset differs from frozen train cells")
         if any(row.get("split") != "train" or row.get("policy_snapshot") != "step:0" for row in dataset.dataframe):
             raise ValueError("untrusted training dataset split/snapshot")
-        sampler = StratifiedTaskSampler(dataset.dataframe)
+        if config.trainer.get("rl_algorithm") == "CHS-PO-harness-safety-dual-v4":
+            if not resume_step:
+                raise ValueError("v4 is registered only as a checkpointed step-140 continuation")
+            sampler = InformativeTaskSampler(dataset.dataframe, priority)
+        else:
+            sampler = StratifiedTaskSampler(dataset.dataframe)
+        # One sampled batch is one epoch. VeRL skips restoring an exhausted
+        # data.pt at an epoch boundary; the custom sampler must be advanced
+        # explicitly so resumed step 11 does not repeat step 1's task cells.
+        sampler.epoch = int(provenance.get("sampler_epoch", resume_step)) if resume_step else 0
         trainer = GuardedCHSPOTrainer(
             config=config, tokenizer=tokenizer, processor=processor,
             role_worker_mapping=self.role_worker_mapping, resource_pool_manager=self.init_resource_pool_mgr(config),

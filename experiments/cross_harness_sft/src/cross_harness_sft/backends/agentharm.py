@@ -10,6 +10,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
@@ -108,11 +109,16 @@ class CodexCLIJudge:
 class OpenAICompatibleJudge:
     """Minimal Inspect-compatible judge for an OpenAI-compatible chat endpoint."""
 
-    def __init__(self, model: str, base_url: str, api_key_env: str, timeout: int = 90):
+    def __init__(self, model: str, base_url: str, api_key_env: str, timeout: int = 90,
+                 max_retries: int = 5, retry_backoff_seconds: float = 1.0):
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.api_key_env = api_key_env
         self.timeout = timeout
+        if max_retries < 0 or retry_backoff_seconds < 0:
+            raise ValueError("judge retry settings must be non-negative")
+        self.max_retries = max_retries
+        self.retry_backoff_seconds = retry_backoff_seconds
 
     @staticmethod
     def _content(message: Any) -> str:
@@ -123,13 +129,35 @@ class OpenAICompatibleJudge:
         if not api_key:
             raise RuntimeError(f"Judge API key is unset: {self.api_key_env}")
         endpoint = self.base_url if self.base_url.endswith("/chat/completions") else f"{self.base_url}/chat/completions"
-        response = httpx.post(
-            endpoint,
-            headers={"Authorization": f"Bearer {api_key}"},
-            json={"model": self.model, "messages": [{"role": "user", "content": prompt}], "temperature": 0},
-            timeout=self.timeout,
-        )
-        response.raise_for_status()
+        payload = {"model": self.model, "messages": [{"role": "user", "content": prompt}], "temperature": 0}
+        response = None
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = httpx.post(
+                    endpoint,
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    json=payload,
+                    timeout=self.timeout,
+                )
+                # Retry only throttling and transient server errors. Other 4xx
+                # responses indicate a configuration/request problem and must
+                # fail immediately rather than hiding it behind retries.
+                if response.status_code not in (429, 500, 502, 503, 504):
+                    response.raise_for_status()
+                    break
+                if attempt == self.max_retries:
+                    response.raise_for_status()
+                error_kind = f"HTTP {response.status_code}"
+            except httpx.RequestError as exc:
+                if attempt == self.max_retries:
+                    raise
+                error_kind = type(exc).__name__
+            delay = self.retry_backoff_seconds * (2 ** attempt)
+            print(f"AGENTHARM_JUDGE_TRANSIENT_RETRY attempt={attempt + 1}/"
+                  f"{self.max_retries} error={error_kind} backoff={delay:.1f}s", flush=True)
+            if delay:
+                time.sleep(delay)
+        assert response is not None
         try:
             message = response.json()["choices"][0]["message"]
         except (KeyError, IndexError, TypeError, ValueError) as exc:
@@ -267,6 +295,8 @@ class AgentHarmDriver:
                 base_url=str(self.judge_config.get("base_url") or "https://router.shengsuanyun.com/api/v1"),
                 api_key_env=str(self.judge_config.get("api_key_env") or "AGENTHARM_JUDGE_API_KEY"),
                 timeout=int(self.judge_config.get("timeout_seconds") or 90),
+                max_retries=int(self.judge_config.get("max_retries", 5)),
+                retry_backoff_seconds=float(self.judge_config.get("retry_backoff_seconds", 1.0)),
             )
             semantic_judge = judge
             refusal_judge = None

@@ -1,0 +1,11 @@
+- name: whitebox_agentdojo_v1
+  _target_: rl_verl_multiharness_loop.NativeMultiharnessVeRLLoop
+  dojo_config: configs/agentdojo_worker.yaml
+  harm_config: configs/agentharm_rl_train_worker.yaml
+  dataset_path: outputs/rl/9b_whitebox_pool_v4/train.parquet
+  max_turns: 16
+  whitebox: true
+  path_weight: 0.0
+  reward_contract: outcome_only_v1
+  enforce_plan: false
+  action_token_budget: 2048

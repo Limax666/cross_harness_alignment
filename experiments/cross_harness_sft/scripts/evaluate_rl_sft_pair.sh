@@ -10,8 +10,12 @@ EVAL_NAME="${EVAL_NAME:-heldout_agentdojo_validation}"
 [[ "$EVAL_NAME" =~ ^[A-Za-z0-9_-]+$ ]] || { echo 'invalid evaluation directory name' >&2; exit 2; }
 EVAL="$RUN/$EVAL_NAME"
 RL_PYTHON="$ROOT/.venv-rl-pilot/bin/python"
-export HERMES_AGENT_ROOT="${HERMES_AGENT_ROOT:-$ROOT/vendor/hermes-agent}"
-export HERMES_AGENT_PYTHON="${HERMES_AGENT_PYTHON:-$RL_PYTHON}"
+export HERMES_AGENT_ROOT="${HERMES_AGENT_ROOT:-$HOME/.hermes/hermes-agent}"
+export HERMES_AGENT_PYTHON="${HERMES_AGENT_PYTHON:-$HERMES_AGENT_ROOT/venv/bin/python}"
+[[ -f "$HERMES_AGENT_ROOT/tools/mcp_tool_schema.py" && -x "$HERMES_AGENT_PYTHON" ]] || {
+  echo 'Hermes MCP schema or Hermes Python is unavailable' >&2; exit 2;
+}
+PYTHONPATH="$HERMES_AGENT_ROOT" "$HERMES_AGENT_PYTHON" -c 'from tools.mcp_tool_schema import _convert_mcp_schema'
 export PYTHONPATH="$ROOT/vendor/verl:$ROOT/scripts:$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 export CUDA_VISIBLE_DEVICES="${EVAL_GPU:-0}"
 export OMP_NUM_THREADS=4

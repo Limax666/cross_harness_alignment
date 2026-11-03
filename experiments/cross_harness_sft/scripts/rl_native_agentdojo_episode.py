@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from dataclasses import dataclass, field
 from types import SimpleNamespace
 from typing import Any
@@ -18,6 +19,9 @@ from rl_tool_attempt_audit import attest_native_calls, parse_strict_tool_turn
 from rl_hermes_mcp_contract import hermes_mcp_tools
 from rl_mcp_benchmark_contract import mcp_benchmark_tools
 from rl_verifier import TaskKind, score_episode
+from rl_reward_v4 import score_agentdojo_v4
+from rl_reward_verified_progress import score_verified_progress
+from rl_progress_registry import DEFAULT as DEFAULT_PROGRESS_ORACLE_VERSION, resolve as resolve_progress_oracle
 
 
 def _digest(environment: Any) -> str:
@@ -34,7 +38,11 @@ class NativeAgentDojoEpisode:
     mcp_benchmark: bool = False
     harness: str = "hermes"
     path_weight: float = 0.25
+    reward_contract: str = "legacy"
+    reward_variant: str = "progress_protocol"
+    progress_oracle_version: str = DEFAULT_PROGRESS_ORACLE_VERSION
     allowed_cells: frozenset[str] = CELLS
+    wire_transform: Any = None
     episode: Any = field(init=False)
     tools: list[dict] = field(init=False)
     recorder: NativePathRecorder = field(init=False)
@@ -50,9 +58,23 @@ class NativeAgentDojoEpisode:
             raise ValueError("pilot requires one registered train task cell and a nonnegative seed")
         if self.hermes_mcp and self.mcp_benchmark:
             raise ValueError("choose exactly one MCP wire adapter")
+        self.progress_oracle = None
+        if self.reward_contract == "verified_progress_v1":
+            self.progress_oracle = resolve_progress_oracle(self.progress_oracle_version)
         started = self.driver.start(self.task_id, self.seed)
         self.episode = started["episode"]
-        if self.hermes_mcp:
+        if self.wire_transform is not None:
+            if self.hermes_mcp or self.mcp_benchmark:
+                raise ValueError("custom wire transform cannot be combined with MCP adapters")
+            self.tools, self.wire_to_native = self.wire_transform(started["tools"])
+            originals = {t["function"]["name"]: t["function"]["parameters"] for t in started["tools"]}
+            if set(self.wire_to_native.values()) != set(originals) or len(self.tools) != len(originals):
+                raise ValueError("custom wire mapping changed native tool coverage")
+            for tool in self.tools:
+                f = tool["function"]
+                if f["parameters"] != originals[self.wire_to_native[f["name"]]]:
+                    raise ValueError("custom wire transform changed parameter semantics")
+        elif self.hermes_mcp:
             self.tools, self.wire_to_native = hermes_mcp_tools(started["tools"])
         elif self.mcp_benchmark:
             self.tools, self.wire_to_native = mcp_benchmark_tools(started["tools"])
@@ -88,7 +110,7 @@ class NativeAgentDojoEpisode:
             if blocked_reason is not None:
                 observations.append(self.recorder.blocked_tool(call.name, call.arguments, blocked_reason))
                 continue
-            native_name = self.wire_to_native.get(call.name) if (self.hermes_mcp or self.mcp_benchmark) else call.name
+            native_name = self.wire_to_native.get(call.name) if (self.hermes_mcp or self.mcp_benchmark or self.wire_transform is not None) else call.name
             if native_name is None:
                 raise ValueError(f"unregistered MCP tool name: {call.name}")
             result = self.recorder.tool(call.name, call.arguments, native_name=native_name)
@@ -139,7 +161,7 @@ class NativeAgentDojoEpisode:
     def finish(self, *, termination: str = "completed") -> dict:
         if self.finished or not self.raw_assistant_turns:
             raise ValueError("episode already ended or no assistant generation")
-        if termination not in {"completed", "model_timeout", "protocol_error", "infrastructure_error"}:
+        if termination not in {"completed", "model_timeout", "protocol_error", "empty_final_answer", "infrastructure_error"}:
             raise ValueError("unsupported termination status")
         if self.protocol_rejected != (termination in {"protocol_error", "model_timeout"} and
                                       self.recorder.rejected_turn is not None):
@@ -157,6 +179,7 @@ class NativeAgentDojoEpisode:
         valid_dispatches = [r.native_name for r in self.recorder.records
                             if r.blocked_reason is None and r.native_name]
         ground_truth_tools = _ground_truth_tools(self.episode)
+        reference_tool_count = len(ground_truth_tools or ())
         subgoal_fraction = (len(set(valid_dispatches) & ground_truth_tools) / len(ground_truth_tools)
                             if ground_truth_tools else 0.0)
         evidence = agentdojo_evidence(
@@ -166,7 +189,49 @@ class NativeAgentDojoEpisode:
             valid_tool_dispatches=len(valid_dispatches),
             verified_safe_subgoal_fraction=subgoal_fraction,
         )
-        verdict = score_episode(evidence, path_weight=self.path_weight)
+        progress_evidence = None
+        protocol_error_verified = False
+        if self.reward_contract == "verified_progress_v1":
+            if self.path_weight != 0 or os.environ.get("CHSPO_REWARD_VERSION") == "v4":
+                raise ValueError("verified progress cannot be combined with legacy path rewards")
+            def replay_read(record):
+                from agentdojo.functions_runtime import FunctionsRuntime
+                from cross_harness_sft.backends.agentdojo import _jsonable
+                try:
+                    cloned = type(self.episode.environment).model_validate(record.before)
+                    result, error = FunctionsRuntime(self.episode.suite.tools).run_function(
+                        cloned, record.native_name, record.arguments)
+                    # Reproduce the entire recorded state transition. Most
+                    # progress steps are state-preserving reads; a narrowly
+                    # whitelisted browser-history append is checked by the
+                    # task oracle only after this exact replay succeeds.
+                    return (error is None and cloned.model_dump(mode="json") == record.after
+                            and _jsonable(result) == record.tool_result)
+                except Exception:
+                    return False
+            if evidence.final_state_verified and evidence.path_verified:
+                progress_evidence = self.progress_oracle.verify_task_progress(
+                    self.task_id, self.recorder.records, replay_read,
+                    bool(evidence.legitimate_goal_complete))
+            protocol_error_verified = termination == "protocol_error"
+            for raw in self.raw_assistant_turns:
+                try:
+                    _, parsed = parse_strict_tool_turn(raw, self.tools, allow_schema_errors=True)
+                except ValueError:
+                    continue
+                for call in parsed:
+                    reason = call.get("blocked_reason")
+                    if reason and any(r.name == call['name'] and r.arguments == call['arguments'] and
+                                      r.blocked_reason == reason for r in self.recorder.records):
+                        protocol_error_verified = True
+            verdict = score_verified_progress(evidence,
+                progress_evidence['fraction'] if progress_evidence is not None else None,
+                protocol_error_verified, variant=self.reward_variant)
+        elif os.environ.get("CHSPO_REWARD_VERSION") == "v4":
+            verdict = score_agentdojo_v4(evidence, required_tool_count=reference_tool_count,
+                                          path_weight=self.path_weight)
+        else:
+            verdict = score_episode(evidence, path_weight=self.path_weight, reward_contract=self.reward_contract)
         second = self.driver.start(self.task_id, self.seed + 1)["episode"]
         reset_verified = _digest(second.environment) == self.initial_state_sha256
         return {
@@ -174,6 +239,8 @@ class NativeAgentDojoEpisode:
             "initial_state_sha256": self.initial_state_sha256,
             "final_state_sha256": _digest(self.episode.environment),
             "reset_verified": reset_verified,
+            "final_state_verified": evidence.final_state_verified,
+            "path_verified": evidence.path_verified,
             "official_utility": official.get("utility_reward"),
             "official_attack_success": official.get("risk_success"),
             "audit_complete": evidence.final_state_verified and evidence.path_verified,
@@ -184,8 +251,23 @@ class NativeAgentDojoEpisode:
             "termination": termination,
             "reward": verdict.score, "reward_outcome": verdict.outcome,
             "reward_reason": verdict.reason, "reward_path_signal": verdict.path_signal,
+            "reward_contract": self.reward_contract, "reward_variant": self.reward_variant,
+            "progress_oracle_version": (self.progress_oracle.VERSION if self.progress_oracle is not None else None),
+            "progress_evidence": progress_evidence,
+            "protocol_error_verified": protocol_error_verified,
             "verified_safe_subgoal_fraction": subgoal_fraction,
+            "reference_tool_count": reference_tool_count,
+            "valid_tool_dispatches": len(valid_dispatches),
             "raw_assistant_turns": list(self.raw_assistant_turns),
             "tool_calls": len(self.recorder.records),
             "blocked_tool_calls": sum(r.blocked_reason is not None for r in self.recorder.records),
+            "audit_trace": ({
+                "abstention_reason": self.recorder.abstention_reason,
+                "calls": [{"wire": r.name, "native": r.native_name,
+                           "changed_state": r.before != r.after,
+                           "invalid": r.invalid_call, "blocked": r.blocked_reason is not None}
+                          for r in self.recorder.records],
+                "native_trace": [str(getattr(t, "function", "")) for t in self.episode.trace],
+                "rejected_kind": self.recorder.rejected_kind,
+            } if not evidence.path_verified else None),
         }

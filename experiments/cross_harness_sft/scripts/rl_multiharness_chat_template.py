@@ -1,5 +1,7 @@
 """Qwen tool-call rendering for the registered benchmark MCP contracts."""
 
+import os
+
 BENCHMARK_MCP_CHAT_TEMPLATE = r"""
 {%- if tools %}
 {{- '<|im_start|>system\nAvailable tools (call only these functions):\n' -}}
@@ -20,3 +22,14 @@ BENCHMARK_MCP_CHAT_TEMPLATE = r"""
 {%- endfor %}
 {%- if add_generation_prompt %}{{- '<|im_start|>assistant\n' -}}{%- endif %}
 """.strip()
+
+
+def benchmark_mcp_chat_template():
+    """Choose the explicit contract matching the active parser version."""
+    if os.environ.get("VERL_QWEN_SCHEMA_STRING_PARAMS") != "1":
+        return BENCHMARK_MCP_CHAT_TEMPLATE
+    return BENCHMARK_MCP_CHAT_TEMPLATE.replace(
+        "including every required parameter. Do not invent names or arguments.",
+        "including every required parameter. String parameters may be plain text or JSON-quoted; "
+        "other types must be valid JSON. Do not invent names or arguments.",
+    )

@@ -38,7 +38,7 @@ BATCH_ID="${BATCH_ID:-local-${ROLE}-$(date -u +%Y%m%dT%H%M%SZ)}"
 STATE="$OUT/state/${HARNESS}-${ROLE}-${BATCH_ID}"
 
 [[ "$HARNESS" == hermes || "$HARNESS" == nanobot || "$HARNESS" == openclaw ]] || { echo 'HARNESS must be hermes, nanobot, or openclaw' >&2; exit 2; }
-[[ "$ROLE" == base || "$ROLE" == sft ]] || { echo 'ROLE must be base or sft' >&2; exit 2; }
+[[ "$ROLE" == base || "$ROLE" == sft || "$ROLE" == rl ]] || { echo 'ROLE must be base, sft, or rl' >&2; exit 2; }
 [[ "$CASE_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]] || { echo 'CASE_TIMEOUT_SECONDS must be a positive integer' >&2; exit 2; }
 [[ "$NANOBOT_MAX_TOOL_ITERATIONS" =~ ^[1-9][0-9]*$ ]] || { echo 'NANOBOT_MAX_TOOL_ITERATIONS must be a positive integer' >&2; exit 2; }
 [[ -x "$MODEL_PY" && -d "$BENCH/data/HarnessRisk" ]] || { echo 'model environment or HarnessRisk data missing' >&2; exit 2; }

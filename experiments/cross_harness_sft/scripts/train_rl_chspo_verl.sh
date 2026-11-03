@@ -5,7 +5,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$(cd "$ROOT/../.." && pwd)"
 VENV="$ROOT/.venv-rl-pilot"
 RUN="${RL_RUN_DIR:-$ROOT/outputs/rl/multiharness_chspo_r20_ramfix_gpu12_20261010}"
+RL_RESUME_FROM="${RL_RESUME_FROM:-}"
 RL_STEPS="${RL_STEPS:-300}"
+RL_ALGORITHM_VERSION="${RL_ALGORITHM_VERSION:-v3}"
+RL_ATTEMPT_EPOCHS="${RL_ATTEMPT_EPOCHS:-450}"
 RL_SAVE_FREQ="${RL_SAVE_FREQ:-10}"
 RL_PROMPT_LENGTH="${RL_PROMPT_LENGTH:-6144}"
 RL_RESPONSE_LENGTH="${RL_RESPONSE_LENGTH:-1024}"
@@ -22,6 +25,20 @@ RL_GPU_MAX_PREEXISTING_MIB="${RL_GPU_MAX_PREEXISTING_MIB:-256}"
 SFT="$ROOT/checkpoints/qwen35-2b-base-teacher-v7-all1421-manual/hf_merged_step_267"
 DATA="${RL_DATA:-$ROOT/outputs/rl/multiharness_agentdojo_agentharm_pool_v5.parquet}"
 RL_TRAIN_BATCH_SIZE="${RL_TRAIN_BATCH_SIZE:-32}"
+case "$RL_ALGORITHM_VERSION" in
+  v3)
+    export CHSPO_OBJECTIVE_VERSION=CHS-PO-harness-safety-dual-v3
+    unset CHSPO_REWARD_VERSION || true
+    ;;
+  v4)
+    export CHSPO_OBJECTIVE_VERSION=CHS-PO-harness-safety-dual-v4
+    export CHSPO_REWARD_VERSION=v4
+    [[ -f "$RUN/chspo_priority_snapshot.json" ]] || {
+      echo "Missing v4 train-only priority snapshot in $RUN" >&2; exit 2;
+    }
+    ;;
+  *) echo "Unknown RL_ALGORITHM_VERSION=$RL_ALGORITHM_VERSION" >&2; exit 2 ;;
+esac
 LOOP="$ROOT/configs/rl_multiharness_agent_loop.yaml"
 # AgentHarm semantic judge credentials live in a gitignored env file; never
 # commit keys. A relaunch without this would kill the run at first judging.
@@ -45,6 +62,10 @@ export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1}"
 # cycles; the second update's backward OOMs on these 24 GB cards without
 # expandable segments.
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+# Enable the project-local CPU Adam-state parking path during colocated
+# optimizer/vLLM weight synchronization. Without this opt-in, the helper in
+# engine_workers.py is present but silently remains inactive.
+export VERL_PARK_OPTIMIZER_STATES_FOR_SYNC=1
 # This host's default NCCL network path segfaults even for a one-rank
 # broadcast; the socket path passes the same minimal collective.
 export NCCL_IB_DISABLE=1
@@ -67,6 +88,12 @@ for gpu in "${gpu_list[@]}"; do
   fi
 done
 ray_visible_device_overrides=()
+if [[ "$RL_ALGORITHM_VERSION" == v4 ]]; then
+  ray_visible_device_overrides+=(
+    '+ray_kwargs.ray_init.runtime_env.env_vars.CHSPO_OBJECTIVE_VERSION="CHS-PO-harness-safety-dual-v4"'
+    '+ray_kwargs.ray_init.runtime_env.env_vars.CHSPO_REWARD_VERSION="v4"'
+  )
+fi
 if (( RL_N_GPUS > 1 )); then
   # This host's two-GPU NCCL setup requires Ray to leave the shared device
   # visibility mask intact. With one visible GPU, let Ray remap its physical
@@ -77,6 +104,17 @@ else
   unset RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES
 fi
 [[ -e "$RUN/metrics.jsonl" ]] && { echo "Refusing to overwrite $RUN/metrics.jsonl" >&2; exit 2; }
+resume_overrides=("trainer.resume_mode=disable")
+if [[ -n "$RL_RESUME_FROM" ]]; then
+  [[ -d "$RL_RESUME_FROM/actor" && -f "$RL_RESUME_FROM/data.pt" ]] || {
+    echo "Incomplete RL checkpoint: $RL_RESUME_FROM" >&2; exit 2;
+  }
+  [[ -f "$RUN/chspo_resume_provenance.json" && -f "$RUN/chspo_duals.json" &&
+     -f "$RUN/chspo_safety_streaks.json" ]] || {
+    echo "Missing checkpoint-matched CHS-PO resume state in $RUN" >&2; exit 2;
+  }
+  resume_overrides=("trainer.resume_mode=resume_path" "trainer.resume_from_path=$RL_RESUME_FROM")
+fi
 export PYTHONPATH="$ROOT/vendor/verl:$ROOT/scripts:$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
@@ -127,19 +165,20 @@ exec "$VENV/bin/python" "$ROOT/scripts/train_rl_chspo_verl.py" \
   "trainer.n_gpus_per_node=$RL_N_GPUS" \
   "trainer.nnodes=1" \
   "trainer.use_v1=false" \
-  "trainer.total_epochs=$RL_STEPS" \
+  "trainer.total_epochs=$RL_ATTEMPT_EPOCHS" \
   "trainer.total_training_steps=$RL_STEPS" \
-  "trainer.resume_mode=disable" \
+  "${resume_overrides[@]}" \
   "trainer.val_before_train=false" \
   "trainer.test_freq=-1" \
   "trainer.critic_warmup=0" \
   "trainer.balance_batch=false" \
   "trainer.save_freq=$RL_SAVE_FREQ" \
+  "trainer.max_actor_ckpt_to_keep=2" \
   "trainer.logger=[console]" \
   "trainer.project_name=cross_harness_rl" \
   "trainer.experiment_name=$(basename "$RUN")" \
   "trainer.default_local_dir=$RUN/checkpoints" \
-  "+trainer.rl_algorithm=CHS-PO-harness-safety-dual-v2" \
+  "+trainer.rl_algorithm=$CHSPO_OBJECTIVE_VERSION" \
   "+trainer.pilot_policy_snapshot=step:0" \
   "+trainer.pilot_metrics_path=$RUN/metrics.jsonl" \
   "reward.reward_model.enable=false" \

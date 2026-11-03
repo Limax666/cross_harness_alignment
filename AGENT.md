@@ -1,5 +1,117 @@
 # 跨 Harness 安全对齐：新服务器接手说明
 
+## 2026-11-03：9B Harness Scaling 迁移入口
+
+- 9B 全参数 SFT 合并权重的上传目标是 Hugging Face `Limax11/harness_alignment` 中的 `qwen35-9b-sft-step291/`，下载前先确认该目录已上传完成。该目录用于从权重新初始化在线 RL，不能恢复 SFT 优化器。
+- 实验设计参见 `experiments/cross_harness_sft/docs/9b_cross_harness_rl_design_20261027.md`、`2b_harness_scaling_rl_redesign_20261030.md` 和 `verified_progress_reward_20261030.md`。同任务分配不同 harness 配置，并为测试保留 RL 未见配置和真实 harness；白盒配置不能当作原生 CLI。
+- 入口为 `experiments/cross_harness_sft/scripts/train_rl_9b_whitebox.sh`。数据集、assignment ledger、v7 family split 和 AgentDojo fixtures 不在普通 Git 提交中，必须在新机器准备并校验；不可将测试家族用于在线更新。实际 9B SFT 暴露清单仍需核实。
+- VeRL 基线 revision `02a318c303a7b60871cb63e4ce2f779b522874d9`，本机未提交修改保存在 `experiments/cross_harness_sft/patches/verl_harness_scaling_20261103.patch`。先在干净的该 revision 上用 `git apply --check` 检查补丁；请勿和旧补丁盲目重复应用。
+- 本机 9B 在线更新多次触发宿主 RAM 保护，不能认为该配置已经完成过稳定更新；新机器需验证真实 rollout、首次 optimizer 更新与权重同步。2B v4 的单批历史轨迹重放中可变奖励组从 outcome-only 3/24 增至 progress+protocol 7/24，不能外推为 9B 训练或安全泛化结果。
+
+## 2026-10-28 11:44 CST：Qwen 字符串协议修复与 r11 重启
+
+用户要求停 r10 修复协议后重启；r10 在首批 reference log-prob 阶段手动停止，无完整更新或 checkpoint。r11 从 9B SFT step-291 新起，使用 GPU0/3、固定 ledger 和相同 online RL objective；tmux `rl9b-whitebox-chspo-v11`，run `experiments/cross_harness_sft/outputs/rl/9b_whitebox_chspo_20261028_r11_schema_gpu03/`。
+
+新协议版本 `qwen_schema_strings_v1` 仅对精确已注册工具、schema明确声明 `type=string` 的参数接受未加引号的 Qwen XML 文本；JSON字符串仍支持，非字符串类型仍需合法JSON。未知工具或参数、空值、损坏标签、重复参数/JSON键、非有限数和嵌入标签不被自动修复。生成、工具调用归因和路径审计使用同一解析逻辑，原始输出和状态审计保留；解析器版本写入rollout/metrics并禁止批次混用。提示词显式说明两种字符串格式，重新计算540个cell，最长3772 tokens，小于4096。
+
+对 r10 中55条含完整工具块的拒绝日志按实际cell的schema重放：旧解析55条拒绝，新解析40条可解析且与路径归因一致，15条仍拒绝；未重算执行结果或reward。摘要 `outputs/rl/9b_preparation_20261028/qwen_parser_r10_replay.json`。62项相关测试通过，含真实AgentDojo别名dispatch与审计。r11 11:44已启动，仍在初始化，未有真实更新；旧actor梯度view修复及两卡reference内存仍待首步验证。watcher逐分钟记录RAM/GPU和主机I/O压力。
+
+## 2026-10-28 11:09 CST：两卡 GPU0/3 r10 启动
+
+按用户要求改为 GPU0/3，两卡 FSDP2 actor、vLLM TP2 与 BF16 frozen reference 共卡；参考模型继续指向 SFT step-291，actor 仍为全参数 FP32 master/Adam。r9 的 actor 错误来自对 activation-offload custom Function 返回视图原地缩放，r10 使用 opt-in 的分块温度缩放、selected log-prob 和 entropy，不修改原 logits；小规模 FP32 梯度/BF16数值检查与相关布局检查共15项通过。新实现只支持当前非蒸馏、无 sum_pi_squared 的 packed 路径，其他情况明确拒绝。
+
+tmux `rl9b-whitebox-chspo-v10`、run `experiments/cross_harness_sft/outputs/rl/9b_whitebox_chspo_20261028_r10_gpu03/`。11:09放行启动时 available RAM约159 GiB，临时守卫为153 GiB，余量有限；监视主机RAM、两卡显存和 I/O。r10 刚启动，尚无 rollout 或完整 optimizer 更新；共卡 reference 的实际显存峰值、长序列 backward 和首个 Adam 更新尚未经过验证，不能宣称训练已跑通。GPU1/2存在其他用户任务。
+
+## 2026-10-28 11:05 CST：r9 在首次 actor 更新中退出
+
+r9 的 reference 分块 log-prob 已通过长序列阶段；首批 24 组、96 条 rollout 准入，14 组有奖励差异，日志打印 `optimizer_called=True` 表示准备调用更新，并不证明 optimizer step 已完成。随后 actor 在 `_scale_logits_by_temperature` 对 activation offload 自定义 autograd 输出的 view 原地 `div_`，触发 PyTorch RuntimeError，21:58退出；无完整 iteration metrics 或 checkpoint，不能宣称完成一次更新或确认是否存在部分内部 optimizer step。
+
+需要在不破坏 custom Function backward、同时控制长序列 logits 显存的条件下修复原地缩放，并验证梯度及实际三卡更新。当前 GPU1 是其他用户约14 GiB的任务；GPU2也出现其他用户四个活跃进程，重启前需重新核对资源，勿结束他人进程。GPU0/3空闲。
+
+## 2026-10-27 21:35 CST：r9 reference 分块 log-prob 重启
+
+r9 从同一个9B SFT step-291重新开始（三卡 actor/vLLM 0/2、reference 3，r8没有完成更新）。独立 Qwen3.5 reference 使用 VeRL torch fused 输出头、128 token 分块，reference world-size 1 时使用本地 DTensor 视图，降低长序列全词表 logits 的峰值；actor 继续使用原 non-fused 路径和全参数 FP32 master/Adam。数值检查覆盖常规/分块 log-prob 和梯度、BF16、temperature=0.8、world-size 1 DTensor；真实 HFModelConfig 克隆确认 actor non-fused、reference torch fused。测试通过不能代替 9B GPU 全批结果。
+
+tmux `rl9b-whitebox-chspo-v9`、run `experiments/cross_harness_sft/outputs/rl/9b_whitebox_chspo_20261027_r9_3gpu_refchunk128/`；关注 `REFERENCE_CHUNKED_LOGPROBS`、`WHITEBOX_GPU_ASSIGNMENT`、首次 `WHITEBOX_ADMITTED` 与 `metrics.jsonl`，只有后者包含实际 optimizer 调用才算已完成在线更新。首步仍需检查reference和actor显存/RAM、协议解析拒绝；I/O压力及每10步 checkpoint要继续监控。
+
+## 2026-10-27 21:30 CST：三卡 r8 首批采样后 reference OOM
+
+r8 的三卡资源池实际分配为 actor/vLLM GPU0/2、reference GPU3；首次权重同步已完成。首批在线采样后进入 reference log-prob 计算，21:30 在 Qwen3.5 `lm_head(hidden_states)` 分配 3.68 GiB logits 时，GPU3（进程可见的 logical GPU2）只剩 2.92 GiB，CUDA OOM 退出。`exit_code=1`、无 `metrics.jsonl`、无在线优化器更新；GPU0/2/3 已释放。日志有60条解析拒绝和1条未完成输出，日志条数不是失败轨迹数。
+
+下一步需针对 reference 和 actor 的长序列 logits 内存做处理并验证 log-prob 与梯度语义；VeRL 的 Qwen3.5 torch fused backend 提供分块计算，是候选方案，尚未验证，不可宣称修复或启动正式更新。三卡布局解决了同步期的共卡压力，但尚未证明首个完整更新可以在本机资源内完成。
+
+## 2026-10-27 21:04 CST：三卡 r8 初始化
+
+按用户要求停止 r7；其当时尚在初始化，未产生 rollout 或更新。r8 的 GPU mask 为 `0,2,3`：Ray 给 actor/vLLM 保留两个 GPU（FSDP2 world-size 2、vLLM TP2），单独给冻结 BF16 reference 保留一个 GPU；各池实际设备由 `gpu_assignment.json` 核对，不假定 Ray 的分配顺序。全参数 FP32 actor master/Adam、KL reference 和在线 GRPO/CHS-PO 目标不变。同步仍采用 CPU 上先转 BF16、256 MiB 通信桶。
+
+启动脚本 `scripts/train_rl_9b_whitebox.sh`，资源池实现 `scripts/rl_9b_resource_layout.py`，run 目录 `experiments/cross_harness_sft/outputs/rl/9b_whitebox_chspo_20261027_r8_3gpu/`，tmux `rl9b-whitebox-chspo-v8`。13 项资源布局、转换及相关目标检查通过；启动配置显示 reference 独立池启用。r8 21:03 已启动：已观察到 GPU3 承载约19 GiB reference 权重，GPU0/2 的 actor 权重加载和 CPU offload 已开始，vLLM 正在启动；`gpu_assignment.json` 和 `metrics.jsonl` 尚未出现，程序内资源分配检查、首次同步和首次在线更新尚待确认。
+
+## 2026-10-27 20:58 CST：r6 同步 OOM，r7 启动
+
+r6 在首次同步时已成功先在 CPU 把 FP32 分片转成 BF16，但在 GPU 聚合 1.89 GiB 张量时仅余 1.49 GiB，20:54 CUDA OOM 退出；没有 rollout、metrics 或参数更新。同步通信桶此前采用 VeRL 默认 2048 MiB。r7 保留 CPU 先转 BF16 的路径，将通信桶设为 256 MiB；大张量仍走现有 CUDA IPC 直传，实际首次同步和训练内存峰值均尚未验证。
+
+新 tmux `rl9b-whitebox-chspo-v7`、监控 `rl9b-whitebox-watch`，run 目录 `experiments/cross_harness_sft/outputs/rl/9b_whitebox_chspo_20261027_r7_bucket256_gpu02/`，GPU0/2。20:57 启动；仅当出现有效 rollout、准入与 optimizer 更新记录才能称在线 RL 已跑通。当前服务器 I/O 压力偏高，初始化可能较慢；监控 RAM 和 GPU，勿把 tmux 存活视为训练成功。
+
+## 2026-10-27 20:45 CST：9B 在线 RL 当前启动状态
+
+当前 tmux `rl9b-whitebox-chspo-v6` 正在初始化，run 目录为 `experiments/cross_harness_sft/outputs/rl/9b_whitebox_chspo_20261027_r6_bf16_cpu_cast_gpu02/`；绑定 GPU0/2。两次早期启动失败均在 rollout/update 前：r4 在 FP32 全量 DTensor 聚合时请求 3.79 GiB、可用 659 MiB；r5 在把已搬到 GPU 的 FP32 分片转 BF16 时请求 970 MiB、可用 659 MiB。二者均无 metrics、无完成更新，不能算训练步。
+
+r6 修正为在 CPU 本地分片上先转 BF16，再搬到 GPU 聚合；FP32 actor master/Adam 与训练计算配置未改。`test_rl_weight_sync_cast.py` 3项、reference placement 2项通过。此转换仅显式 `VERL_SYNC_WEIGHT_DTYPE=bf16` 开启，源参数不变。r6 于20:36启动，最近检查仍在 FSDP/模型初始化，尚无 `metrics.jsonl`；因此在线 RL 参数更新仍未开始。初始化监控见 run 下 `resource_status.json`、`resource_history.jsonl`、`launch.log`。最近主机可用 RAM约49 GiB，持续看 RAM，勿将进程存活或模型加载当作首次更新成功。
+
+旧 r4/r5 配置说明如下为启动时历史记录；GPU reference 的放置本身未解决权重同步峰值。后续以 r6 实际配置、source snapshot及运行状态为准。
+
+
+## 2026-10-27 新启动：r4 GPU0/2 + GPU常驻reference
+
+用户确认 GPU0/2/3 空闲后，r3资源等待已取消。新运行目录 `experiments/cross_harness_sft/outputs/rl/9b_whitebox_chspo_20261027_r4_gpu02_gpured/`，tmux `rl9b-whitebox-chspo-v4` 使用 **GPU0/2**，GPU3留空。启动守卫已放行并写入 `launch.started`；首次 rollout/update 仍需日志证据，不能用该标志称为已完成更新。
+
+本次资源修复：明确 opt-in `VERL_REFERENCE_KEEP_ON_GPU=1`，仅在未显式请求offload的reference上关闭默认强制CPU放置；actor仍FSDP2 CPUOffloadPolicy=true，FP32 trainable master/Adam、BF16 forward。reference BF16、offload_policy/param_offload/optimizer_offload均false，冻结权重不变；vLLM TP2 GPUutil=.43给reference留空间。默认未设环境变量的旧实验行为不变，两个放置回归测试通过，独立代码复核无确定放置矛盾。
+
+safetensors头实测文本参数8,953,803,264、视觉参数456,010,480。本轮只有文本输入，视觉参数不会生成梯度或Adam状态；所有训练参数标志仍保持全参数。FP32全模型master+文本grad+Adam状态估算CPU约135GiB；GPU驻留reference省去约17.5GiB host权重。临时采用 available RAM>153GiB 启动首次更新内存预检，**不是峰值已通过保证**；Ray原95%保护保留。若实测失败必须报告并停机，不转LoRA。`VERL_PARK_OPTIMIZER_STATES_FOR_SYNC=0`，避免同步时每轮写盘停放约67GiB Adam状态引起I/O压力；因为其余配置没有改变奖励/分组，算法对照必须使用相同资源放置。
+
+18配置/540cells、固定ledger、24×G4、LR5e-7、path_weight0、KL.001、每10轮checkpoint保持原设计。新run存完整source snapshot/hash。当前状态看该run的launch.log、metrics.jsonl和resource_status.json；r1/r2/r3都未更新，不得拼接它们成连续训练曲线。
+
+## 2026-10-27 GPU0/2 调度更新
+
+用户指定 GPU0/2 后，已将 r3 等待器固定 `RL_GPU_IDS=0,2`。完整 Hydra 配置复核通过（`config_validation_r3.log` 有 `VALIDATED 2 fp32 bf16`）；先前失败是读取尚未写完的空配置文件，失败日志保存在 `config_validation_r3_failed_empty_config.log`，已用完成后的结果原子替换，避免永远卡在旧失败标记。
+
+本次实查 GPU2 空闲；GPU0 约2.3GiB来自用户zhz的6个进程，不是本项目残留，未结束。可用RAM约135GiB，I/O压力正常。CPUOffloadPolicy 的 FP32参数+梯度+Adam两状态理论约140GiB，BF16 reference另约17.5GiB，尚有worker/同步/pinned buffer开销，因此不能只因两卡显存空闲就忽略RAM。r3仍处资源等待，无9B RL rollout/update。实时状态看 `experiments/cross_harness_sft/outputs/rl/9b_whitebox_chspo_20261027_r3_cpuoffload/queue_status.json`。
+
+## 2026-10-27 13:50 执行状态更新：9B 尚无在线参数更新
+
+当前有效目录为 `experiments/cross_harness_sft/outputs/rl/9b_whitebox_chspo_20261027_r3_cpuoffload/`，tmux `rl9b-whitebox-chspo-v3`。此前 r1 被 GPU 占用守卫拒绝；r2 两卡启动到加载模型，发现默认 FP32 master+grad 的常驻预算估算错误后由操作者主动停止，未开始 rollout/update，日志及 `operator_stop.json` 保留。**没有把这两次启动算作训练步数。**
+
+最终配置明确为 **两卡 FSDP2 + CPUOffloadPolicy + vLLM TP2**，actor FP32 master/Adam、BF16 mixed-precision forward，reference BF16冻结，非LoRA。原 `optimizer_offload=true` 的手动 offload 会在 step 把全部 moments 搬回 GPU；不能将它当 CPU optimizer 执行。FSDP2 `offload_policy=true` 才走CPU policy，后续需实际首步验证。
+
+为避免重演宿主OOM，等待器要求两张空卡（<256MiB）且 available RAM>190GiB；此阈值是从9.41B FP32参数/梯度约70GiB、Adam两份约70GiB、BF16 reference约17.5GiB，加worker和Ray保护余量推导的保守预检门槛，**不是测得的实际峰值或9B算法的固有要求**。当前 available RAM约135GiB，门禁未放行；不会结束其他用户进程或降低精度/改LoRA绕过。每10秒轻量检查，24小时无资源则退出等待并记状态。以 `queue_status.json` 为实时事实；若首步通过，再依据测量优化资源，而非无证据降低阈值。
+
+首轮仍为20采样轮工程验收、每10轮checkpoint；正式300轮和GRPO对照/外推验证尚未启动。`rl9b-whitebox-watch` 监测新目录，实际指标到达后才输出独立图。下方旧“四卡队列”的记录是被本次配置复核替代的历史状态。
+
+## 2026-10-27 执行补充：用户确认先做受控白盒 9B RL
+
+本节覆盖上方旧“真实三产品先训练”的启动顺序。用户选择：**先按论文做受控白盒 harness 配置 RL，用已审计 AgentDojo 家族启动；真实 CLI 留作外推验证**。
+
+- 9B SFT step-291 已由 VeRL 官方 merger 合并到同目录 `hf_merged_step_291/`；760 张量的名称/形状匹配、BF16 GPU 加载及短生成通过。新 RL 不加载 SFT optimizer。检查产物：`outputs/rl/9b_preparation_20261027/`。这不等于 9B RL 更新已完成。
+- 活动任务池：`outputs/rl/9b_whitebox_pool_v4/train.parquet`，SHA256 `dbe7ed2ce19b4aaa451d84364e7964c9ef057c8fbdd9719dc60ffed732bbe56d`。15 个已审计 AgentDojo train family × clean/injection × 18 配置 = 540 cells；最长完整提示 3,754 tokens。仅用既有 v7 train allowlist，9B r7 实际 SFT 视图仍 unknown，不宣称已证明 9B SFT 家族隔离。v1–v3 是准备过程作废版本，禁止训练。
+- 配置是 system framing / reversible tool aliases / untrusted observation wrapper / workflow 四维变化；context 固定完整历史（C=0），不是论文完整五维复现，也不是真实 Codex/Claude/Hermes 产品。18 个投影配置有两两均衡覆盖；不把“18配置”称为“18产品”。CLI 产品不参与本轮更新，可用于后续外推；SFT exposure 仍需核对。
+- 冻结 `assignment_ledger.json` 共 300 采样轮次；每两轮同 12 family × 两臂锁定 task、payload、初始状态和 fixture seed，anchor→最近配置，按当前策略独立 reset 生成。每轮 24 groups × G4 = 96 trajectories；不重采零方差/不利轨迹，审计证据不足直接阻断。首个运行只做 20 轮工程验收，不能代替 300 轮正式比较或独立能力验证。
+- 两算法共用 outcome-only reward（path_weight=0）：验证越界 −1，安全完成 +1，良性不行动 −0.5，其余已审计未完成 0；具体优先级由 `score_episode` 决定。CHS-PO 在 GRPO advantage 上按 benchmark×白盒配置施加 attack/persistence/protocol dual；blocked attempts 不单独进成本，良性不行动另减0.30。新 dual 初值 .25/.50/.10，步长 .08、上限1，预算0/0/.10是预注册保守目标，**不是9B SFT实测基线**；三次观测层风险率 >.15 停机。不能承诺 held-out ASR 不涨。
+- 参数：全参数9B、FSDP四卡、vLLM TP2、参考模型冻结同一 SFT291，LR5e-7，KL系数.001，clip默认.2，温度.8/top-p.95，16turn、4,096助手token预算，完整轨迹窗口4,096+8,192。CPU参数/优化器offload，activation checkpoint/offload，worker2；这些是首轮待测资源配置，不是已证明内存通过。每10轮保存完整checkpoint及 `whitebox_state.json`（assignment cursor/dual/streak/数据哈希），实际actor调用、KL-only/no-op单报。
+- 启动：`scripts/train_rl_9b_whitebox.sh`；入口/训练器 `train_rl_9b_whitebox.py`、`rl_whitebox_task_runner.py`、`rl_whitebox_trainer.py`。独立复查发现并修复了 pandas局部遮蔽、准备/运行JSON哈希不一致、numpy配置值、白盒审计重采以及KL-only误计数。49项相关测试通过，另5项objective/sampler测试通过；CPU测试不代替首次GPU更新验证。
+- 当前运行目录 `outputs/rl/9b_whitebox_chspo_20261027_r1/`。首启被 GPU3 占用守卫拒绝，**未更新参数**；现 tmux `rl9b-whitebox-chspo-v1` 等待四卡 <256MiB 且 RAM available>150GiB 连续3次检查后自动启动。不得杀其他同学任务。实时看 `queue_status.json`、`launch.log`、`exit_code`，不要用本段静态时间推断运行状态。
+- tmux `rl9b-whitebox-watch` 每分钟少量记录 RAM/GPU，`metrics.jsonl` 新记录落盘才生成 `paper_figures/reward.{png,pdf}`、`entropy.{png,pdf}` 等独立曲线；未更新时没有虚构step0曲线。完整批次证据和token/mask/log-prob按轮压缩为 `rollouts/*.jsonl.gz`。生成耗时的480s目前是轮间检查，非强制取消中的生成请求；硬deadline留待接线。
+
+## 2026-10-27：下一阶段改为 9B 显式跨 harness 在线 RL
+
+用户要求参考 Harness Scaling 的 Reinforcement Learning across Harnesses，重点验证 **同任务执行 harness 变化 + RL 未见运行器安全外推**。已更新 `experiments/cross_harness_sft/README.md` 的活动假设及 Phase 2–3；详细方案是 `experiments/cross_harness_sft/docs/9b_cross_harness_rl_design_20261027.md`，旧 2B 设计归档为 `docs/rl_2b_design_snapshot_20261027.md`。下文 2B 的“下一步”“仅有 pilot”等按日期的历史条目，不覆盖本次 9B 计划。
+
+- **候选 SFT 起点**：`experiments/cross_harness_sft/checkpoints/qwen35-9b-base-v7-a6000_20261018_r7/global_step_291/`。两份 `model_world_size_2_rank_{0,1}.pt` 各 9,410,256,507 bytes 与 BF16 Qwen3.5 配置存在，尚未合并/加载验证；`huggingface/` 没有模型 safetensors。当前只见非标准文件名的 optimizer rank-0、未见 rank-1，因此不称 SFT 全状态完整；**新 RL 从模型初始化新 optimizer/step-0，不需要该 SFT optimizer**。9B 实际 SFT view、harness exposure、family split 和该 checkpoint 的训练链仍需补齐，2B 的 1,421 条不能代替它。
+- **默认训练候选**：Codex、Claude Code、Hermes。AgentDojo 和 AgentHarm 的同 family 两臂要形成跨三运行器的可执行交集，防止旧四个来源×harness 组合的来源混淆。每两轮保留同一批 12 个 family×两臂，并锁定具体 task/攻击变体/payload/初始状态，step A 在 anchor、step B 在另一 harness 用更新后的策略重新 reset/采样；每步 24 groups×G4=96 rollout。真实产品用均衡配对，不虚构汉明邻近；18 个五维白盒组件配置另作受控消融。
+- **严格留出**：NanoBot/OpenClaw 不用于 9B RL 更新、奖励调参或选 checkpoint，若已见于 SFT 只叫 RL-unseen。Goose 作为项目后训练未见运行器的优先候选、NemoClaw/SeClaw 补充，需审计 9B SFT 暴露且验证真实运行器；未知就记 unknown。所有任务变体按原始 family 隔离；外推测试不能回灌。历史 2B 评测开发暴露如实记录。
+- **公平算法对比**：同一个 9B SFT 上，标准 GRPO 和 CHS-PO 共用 task assignments、reward、预算、KL/clip；CHS-PO 的增量是按 source×harness 的安全优势约束。新9B不复用2B dual/priority/优化器。主实验 path_weight=0；路径细分、信息量采样单独消融。候选固定同一ledger的300采样轮次、3训练seed，先20轮工程验收，每10轮checkpoint/20轮validation；零优势不动态换任务，实际optimizer更新和KL-only/no-op分别计数；只在训练harness的validation families选模型，再统一测试每case三次。全参数资源参数待测，不自动回退LoRA。
+- **接线未完成**：现有 sampler 没有同任务 K 步绑定，公共 MCP 模板并不等同原生 harness；需要补 adapter fidelity、同源工具/状态等价、assignment 恢复和持久化评分污染修复。当前只改了文档，**未启动9B训练、未合并权重、未占GPU**。新算法的安全效果仍须 Utility/ASR/Persistence 配对外推结果验证。
+
+
 ## 2026-10-16 接手优先读：已完成实验、实际能力与大模型下一轮设计
 
 以下只汇总已落盘的训练与评测；下文保留了按日期记录的历史快照，其中“运行中”“当前无任务”等说法不能代替实时进程检查。实验规范见 `experiments/cross_harness_sft/README.md`；具体逐条结果见 `experiments/cross_harness_sft/reports/`。**当前没有证据证明 CHS-PO 已在所有 harness 上同时实现 Utility 提升与 ASR/Persistence 下降。**
@@ -212,3 +324,7 @@ tar -xzf hf_transfer/transfers/sft_teacher_release_v7_filtered_20261018.tar.gz \
 5. 每次保存 checkpoint 后，用 `scripts/evaluate_rl_sft_pair.sh` 对同一家族隔离验证集配对比较 SFT/RL 的 Utility、ASR、invalid calls、超时及真实副作用；保存 JSONL、metrics 和曲线。只有验证同时守住安全边界与正常任务效用，才扩大任务池或开始 CHS-PO、Balance-GRPO、DAPO 等消融。不要把训练 reward 上升当作能力涨点。
 
 旧机 SFT 和 RL checkpoint 均未上传 GitHub；**只有 SFT step 267** 已上传至上述私有 Hugging Face 仓库，RL checkpoint 尚未上传。若从旧机迁移其他权重，可用 `rsync --partial`；先检查目标磁盘、模型文件大小和新服务器 GPU 驱动，再运行全参数在线更新。所有外部服务密钥应通过新服务器环境变量配置。
+
+执行守卫补充：r3还须通过完整Hydra配置校验（`config_validation_r3.log` 含 VALIDATED），并等待 `/proc/pressure/io` 的 full avg60 <15%，避免高I/O压力时开始模型加载。阈值为保守资源控制，不属于算法定义。
+
+R4启动实况（15:33 CST）：两rank的After FSDP/Total steps:20已出现在Ray worker日志，reference GPU分片约8.76GiB/rank已加载；rollout后端初始化中。主日志暂未出现WHITEBOX_ADMITTED或metrics更新，已完成在线更新为0。初始化期间available RAM最低监测到约33GiB，随后恢复约90GiB；额外共享内存占用/初始化临时副本及首个Adam更新峰值仍需监测，不能据启动放行推断长期资源稳定。

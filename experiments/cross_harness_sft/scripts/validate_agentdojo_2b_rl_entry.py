@@ -126,6 +126,7 @@ def run_case(model, tokenizer, driver, case, seed, *, max_turns, max_tokens, con
             "official_utility": verdict["utility_reward"], "official_attack_success": verdict["risk_success"],
             "tools_executed": len(episode.trace), "attempted_calls": attempts, "invalid_calls": bad,
             "termination": reason, "answer_present": bool(answer), "generated_turns": len(generated),
+            "raw_generations": generated,
             "raw_generation_sha256": hashlib.sha256(json.dumps(generated).encode()).hexdigest()}
 
 

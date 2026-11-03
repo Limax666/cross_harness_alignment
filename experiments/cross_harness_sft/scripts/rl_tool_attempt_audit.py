@@ -7,6 +7,8 @@ caller must prove those turns are complete before relying on its verdict.
 from __future__ import annotations
 
 import json
+import math
+import os
 import re
 from collections.abc import Sequence
 from typing import Any
@@ -18,14 +20,14 @@ _EMPTY_ELEMENT_BLOCK = re.compile(
 _NAMED_ELEMENT_BLOCK = re.compile(
     r"<tool_call>\s*<([a-zA-Z_][\w.-]*)>\s*(.*?)\s*</\1>\s*</tool_call>", re.S
 )
-_PARAM = re.compile(r"<parameter=([a-zA-Z_][\w.-]*)>\s*(.*?)\s*</parameter>", re.S)
+_PARAM = re.compile(r"<parameter=([a-zA-Z_][\w.-]*)>(.*?)</parameter>", re.S)
 _UNCLOSED_FUNCTION_BLOCK = re.compile(
     r"<tool_call>\s*<function=([a-zA-Z_][\w.-]*)>\s*</tool_call>", re.S
 )
 _MARKER = re.compile(r"</?tool_call>|</?function\b|<function=|</?parameter\b|<parameter=")
 
 
-def _json_object_no_duplicates(source: str) -> dict:
+def _json_value_no_duplicates(source: str):
     def pairs(items):
         result = {}
         for key, value in items:
@@ -34,13 +36,26 @@ def _json_object_no_duplicates(source: str) -> dict:
             result[key] = value
         return result
 
-    result = json.loads(source, object_pairs_hook=pairs)
+    def finite_float(value):
+        result = float(value)
+        if not math.isfinite(result):
+            raise ValueError("non-finite JSON number")
+        return result
+
+    def reject_constant(value):
+        raise ValueError(f"invalid JSON constant: {value}")
+
+    return json.loads(source, object_pairs_hook=pairs, parse_float=finite_float, parse_constant=reject_constant)
+
+
+def _json_object_no_duplicates(source: str) -> dict:
+    result = _json_value_no_duplicates(source)
     if not isinstance(result, dict):
         raise ValueError("tool arguments must be a JSON object")
     return result
 
 
-def _parse_body_arguments(body: str) -> dict:
+def _parse_body_arguments(body: str, schema: dict | None = None) -> dict:
     residue = _PARAM.sub("", body).strip()
     if residue:
         if _PARAM.search(body):
@@ -54,10 +69,29 @@ def _parse_body_arguments(body: str) -> dict:
         key = param.group(1)
         if key in arguments:
             raise ValueError(f"duplicate tool argument: {key}")
+        raw_value = param.group(2)
         try:
-            arguments[key] = json.loads(param.group(2))
+            arguments[key] = _json_value_no_duplicates(raw_value)
         except json.JSONDecodeError as exc:
-            raise ValueError(f"argument {key} is not a JSON value") from exc
+            # Qwen's XML parser treats at most one surrounding newline as
+            # envelope formatting, while preserving meaningful spaces.
+            plain_value = raw_value[1:] if raw_value.startswith("\n") else raw_value
+            plain_value = plain_value[:-1] if plain_value.endswith("\n") else plain_value
+            leading = plain_value.lstrip()
+            properties = schema.get("properties", {}) if isinstance(schema, dict) else {}
+            spec = properties.get(key, {}) if isinstance(properties, dict) else {}
+            # Qwen XML convention: a schema-declared string may be written as
+            # plain text. Never infer types for unknown tools/parameters, never
+            # repair truncated JSON, and reject markup that could hide a tag.
+            plain_string = (
+                os.environ.get("VERL_QWEN_SCHEMA_STRING_PARAMS") == "1"
+                and isinstance(spec, dict) and spec.get("type") == "string"
+                and bool(leading) and leading[0] not in ('"', "'", "{", "[")
+                and "<" not in plain_value and ">" not in plain_value and "\x00" not in plain_value
+            )
+            if not plain_string:
+                raise ValueError(f"argument {key} is not a JSON value") from exc
+            arguments[key] = plain_value
     return arguments
 
 
@@ -86,14 +120,14 @@ def _canonicalize_named_element_calls(raw: str, schemas: Sequence[dict]) -> str:
     This translates an alternate *unambiguous* envelope only. It never repairs
     names, guesses parameter values, or changes the retained raw assistant text.
     """
-    declared = {item["function"]["name"] for item in schemas}
+    declared = {item["function"]["name"]: item["function"]["parameters"] for item in schemas}
 
     def replace(match: re.Match) -> str:
         name, body = match.groups()
         if name not in declared or not body.strip():
             return match.group(0)
         try:
-            _parse_body_arguments(body)
+            _parse_body_arguments(body, declared[name])
         except ValueError:
             return match.group(0)
         return f"<tool_call><function={name}>{body}</function></tool_call>"
@@ -144,7 +178,7 @@ def parse_strict_tool_turn(raw_assistant: str, schemas: Sequence[dict], *,
         name, body = match.groups()
         if name not in declared and not allow_schema_errors:
             raise ValueError(f"unknown tool: {name}")
-        arguments = _parse_body_arguments(body)
+        arguments = _parse_body_arguments(body, declared.get(name))
         if name not in declared:
             calls.append({"name": name, "arguments": arguments,
                           "blocked_reason": f"Unknown tool '{name}'. Use an exact available tool name."})
@@ -198,6 +232,8 @@ def attest_native_calls(raw_assistant_turns: Sequence[str], native_calls: Sequen
     """
     if not raw_assistant_turns or any(not isinstance(t, str) for t in raw_assistant_turns):
         return False
+    declared = ({item["function"]["name"]: item["function"]["parameters"] for item in schemas}
+                if schemas is not None else {})
     parsed: list[tuple[str, dict]] = []
     for text in raw_assistant_turns:
         if schemas is not None:
@@ -208,7 +244,7 @@ def attest_native_calls(raw_assistant_turns: Sequence[str], native_calls: Sequen
         for match in _BLOCK.finditer(text):
             name, body = match.groups()
             try:
-                params = _parse_body_arguments(body)
+                params = _parse_body_arguments(body, declared.get(name))
             except ValueError:
                 return False
             parsed.append((name, params))

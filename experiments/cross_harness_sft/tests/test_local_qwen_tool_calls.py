@@ -2,6 +2,7 @@
 
 import importlib.util
 from pathlib import Path
+import torch
 
 
 SERVER = Path(__file__).resolve().parents[1] / "scripts/local_qwen_openai_server.py"
@@ -55,15 +56,70 @@ def test_hermes_tool_call_with_missing_function_equals_prefix():
     assert calls == [("tool_search", {"queries": ["mockctl"], "limit": 10})]
 
 
-def test_skill_search_alias_requires_matching_tool_schema():
+def test_foreign_harness_tool_alias_is_rejected():
     schemas = [{"type": "function", "function": {
         "name": "tool_search", "parameters": {"type": "object", "properties": {
             "queries": {"type": "array"}}, "required": ["queries"]}}}]
     raw = "<tool_call><function=skill_search><parameter=queries>[\"mockctl\"]" \
           "</parameter></function></tool_call>"
     calls, errors = server.parse_tool_calls(raw, schemas)
+    assert calls == []
+    assert errors == ["unknown tool 'skill_search'; available tools: tool_search"]
+
+
+def test_real_skill_search_is_not_rewritten_to_other_harness_tool():
+    schemas = [{"type": "function", "function": {"name": name, "parameters": {
+        "type": "object", "properties": {"queries": {"type": "array"}}, "required": ["queries"]}}}
+        for name in ("skill_search", "tool_search")]
+    raw = '<tool_call><function=skill_search><parameter=queries>["mockctl"]' \
+          '</parameter></function></tool_call>'
+    calls, errors = server.parse_tool_calls(raw, schemas)
     assert errors == []
-    assert calls == [("tool_search", {"queries": ["mockctl"]})]
+    assert calls == [("skill_search", {"queries": ["mockctl"]})]
+
+
+def test_namespaced_tool_suffix_is_not_automatically_repaired():
+    schemas = [{"type": "function", "function": {
+        "name": "mcp__benchmark__get_current_day", "parameters": {"type": "object"}}}]
+    calls, errors = server.parse_tool_calls(
+        "<tool_call><function=get_current_day></function></tool_call>", schemas)
+    assert calls == []
+    assert errors == ["unknown tool 'get_current_day'; available tools: mcp__benchmark__get_current_day"]
+
+
+def test_segment_prompt_does_not_advertise_a_foreign_harness_tool():
+    schemas = [{"type": "function", "function": {"name": "dir_list", "parameters": {
+        "type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}}}]
+    prompt = server.segment_prompt([{"role": "user", "content": "List the workspace."}], schemas)
+    assert "skill_view" not in prompt
+    assert "hermes-agent" not in prompt
+    assert "dir_list" in prompt
+    assert "Include every required argument" in prompt
+
+
+def test_long_segment_prompt_preserves_complete_tools_and_system_context():
+    class CharacterTokenizer:
+        def __call__(self, value, **kwargs):
+            return {"input_ids": torch.tensor([[ord(char) for char in value]])}
+
+    schemas = [{"type": "function", "function": {"name": "dir_list", "parameters": {
+        "type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}}}]
+    messages = [
+        {"role": "system", "content": "NEMOCLAW_SYSTEM_SENTINEL"},
+        {"role": "user", "content": "old " * 500},
+        {"role": "tool", "content": "old tool result " * 300},
+        {"role": "user", "content": "NEW_USER_SENTINEL"},
+    ]
+    ids, trim = server.encode_segment_prompt(CharacterTokenizer(), messages, schemas, 900)
+    rendered = "".join(map(chr, ids["input_ids"][0].tolist()))
+    assert trim is not None and trim["dropped_messages"] >= 1
+    assert len(rendered) <= 900
+    assert "dir_list" in rendered and '"required": ["path"]' in rendered
+    assert "NEMOCLAW_SYSTEM_SENTINEL" in rendered
+    assert "NEW_USER_SENTINEL" in rendered
+    assert rendered.endswith("<|im_start|>assistant\n")
+
+
 def test_visible_strips_qwen_turn_end_and_serialized_following_turn():
     raw = "Task complete.<|im_end|>\\n<|im_start|>user\\nnext prompt"
     assert server.visible(raw) == "Task complete."

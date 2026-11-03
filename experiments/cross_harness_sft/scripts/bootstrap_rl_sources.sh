@@ -6,6 +6,7 @@ VERL_REF=02a318c303a7b60871cb63e4ce2f779b522874d9
 AGENTDOJO_REF=089ed468cf3ed0322acc66b0211f26d9d90dbf60
 PATCH="$ROOT/patches/verl_project_local_02a318c3.patch"
 CUDA_PATCH="$ROOT/patches/verl_nonzero_cuda_visible_devices.patch"
+CHSPO_PATCH="$ROOT/patches/verl_chspo_zero_signal_resample.patch"
 mkdir -p "$ROOT/vendor"
 
 if [[ ! -d "$ROOT/vendor/verl/.git" ]]; then
@@ -28,6 +29,12 @@ if git -C "$ROOT/vendor/verl" apply --reverse --check "$CUDA_PATCH" 2>/dev/null;
 else
   git -C "$ROOT/vendor/verl" apply --check "$CUDA_PATCH"
   git -C "$ROOT/vendor/verl" apply "$CUDA_PATCH"
+fi
+if git -C "$ROOT/vendor/verl" apply --reverse --check "$CHSPO_PATCH" 2>/dev/null; then
+  echo "VeRL CHS-PO zero-signal resampling patch already applied"
+else
+  git -C "$ROOT/vendor/verl" apply --check "$CHSPO_PATCH"
+  git -C "$ROOT/vendor/verl" apply "$CHSPO_PATCH"
 fi
 
 git -C "$ROOT/vendor/agentdojo" fetch origin "$AGENTDOJO_REF"

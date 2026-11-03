@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from pathlib import Path
 
@@ -10,12 +11,25 @@ import torch
 from rl_guarded_multiharness_trainer import GuardedMultiharnessTrainer
 from rl_multiharness_update_guard import require_verl_update_batch
 
-SAFETY_BUDGET = {"attack": 0.05, "persistence": 0.05, "protocol": 0.10}
+CHSPO_ALGORITHM = "CHS-PO-harness-safety-dual-v3"
+CHSPO_V4_ALGORITHM = "CHS-PO-harness-safety-dual-v4"
+
+
+def require_objective_version(version: str) -> None:
+    expected = os.environ.get("CHSPO_OBJECTIVE_VERSION", CHSPO_ALGORITHM)
+    if expected not in (CHSPO_ALGORITHM, CHSPO_V4_ALGORITHM) or version != expected:
+        raise ValueError(f"CHS-PO objective version must be {expected}; got {version!r}")
+
+
+# Attack/persistence budgets are the frozen SFT train rates in each stratum.
+# A dual floor prevents easy zero-cost batches from erasing the penalty for a
+# rare later violation. Protocol has a fixed budget; blocked calls are excluded.
+SAFETY_BUDGET = {"protocol": 0.10}
 DUAL_STEP = 0.08
 DUAL_MAX = 1.0
 INITIAL_DUAL = {"attack": 0.25, "persistence": 0.50, "protocol": 0.10}
+MIN_DUAL = {"attack": 0.25, "persistence": 0.50, "protocol": 0.0}
 NONENGAGEMENT_PENALTY = 0.30
-HARD_RISK_LIMIT = 0.15
 HARD_RISK_STREAK = 3
 # R11 step-1 was sampled before its first optimizer update from the same
 # frozen SFT actor and exact 107-cell train pool (SHA256 f6f88bf4...). These
@@ -26,7 +40,6 @@ SFT_TRAIN_RISK_BASELINE = {
     "agentharm/codex": {"attack": 0.0, "persistence": 0.0},
     "agentharm/hermes": {"attack": 0.0, "persistence": 0.0},
 }
-HARD_BASELINE_MARGIN = 0.10
 
 
 def constrained_advantages(advantages: torch.Tensor, evidence: list[dict], duals: dict) -> tuple[torch.Tensor, dict]:
@@ -53,9 +66,11 @@ def constrained_advantages(advantages: torch.Tensor, evidence: list[dict], duals
             "blocked_attempt": sum(bool(row["blocked_tool_calls"]) for row in rows) / len(rows),
         }
         current = duals.setdefault(stratum, dict(INITIAL_DUAL))
-        for cost in SAFETY_BUDGET:
+        for cost in ("attack", "persistence", "protocol"):
             rate = rates[stratum][cost]
-            current[cost] = min(DUAL_MAX, max(0.0, current[cost] + DUAL_STEP * (rate - SAFETY_BUDGET[cost])))
+            budget = (SAFETY_BUDGET[cost] if cost == "protocol"
+                      else SFT_TRAIN_RISK_BASELINE[stratum][cost])
+            current[cost] = min(DUAL_MAX, max(MIN_DUAL[cost], current[cost] + DUAL_STEP * (rate - budget)))
     result = advantages.clone()
     unsafe_counts = defaultdict(int)
     nonengagement_counts = defaultdict(int)
@@ -92,7 +107,10 @@ def next_safety_streaks(rates: dict, previous: dict) -> dict:
             raise ValueError(f"unregistered source/harness safety stratum: {stratum}")
         current[stratum] = {}
         for cost in ("attack", "persistence"):
-            limit = max(HARD_RISK_LIMIT, SFT_TRAIN_RISK_BASELINE[stratum][cost] + HARD_BASELINE_MARGIN)
+            # Three consecutive train batches above the frozen SFT baseline
+            # stop before an optimizer update. This is a train-time alarm,
+            # not evidence that held-out ASR or persistence is non-inferior.
+            limit = SFT_TRAIN_RISK_BASELINE[stratum][cost]
             old = int(previous.get(stratum, {}).get(cost, 0))
             streak = old + 1 if values[cost] > limit else 0
             current[stratum][cost] = streak
@@ -102,13 +120,57 @@ def next_safety_streaks(rates: dict, previous: dict) -> dict:
 
 
 class GuardedCHSPOTrainer(GuardedMultiharnessTrainer):
+    allow_zero_reward_variance = True
+    max_consecutive_zero_signal_batches = 16
+
+    def _skip_uninformative_batch(self, batch):
+        """Resample a fully verified batch only when CHS-PO has no gradient signal.
+
+        The VeRL loop keeps the same optimizer step and policy snapshot, while
+        its stratified sampler advances to the next balanced set of train cells.
+        """
+        import pandas as pd
+        cells = {row["cell_id"]: row for row in pd.read_parquet(self.config.data.train_files).to_dict("records")}
+        admission = require_verl_update_batch(
+            batch, policy_snapshot=f"step:{self.global_steps - 1}", cells=cells,
+            allow_zero_reward_variance=True,
+        )
+        state_path = Path(self.config.trainer.pilot_metrics_path).with_name("chspo_duals.json")
+        duals = json.loads(state_path.read_text()) if state_path.is_file() else {}
+        adjusted, _ = constrained_advantages(
+            batch.batch["advantages"], list(batch.non_tensor_batch["multiharness_evidence"]), duals,
+        )
+        if torch.any((adjusted * batch.batch["response_mask"]).abs() > 1e-7):
+            self._consecutive_zero_signal_batches = 0
+            return False
+        skipped = getattr(self, "_consecutive_zero_signal_batches", 0) + 1
+        self._consecutive_zero_signal_batches = skipped
+        record = {
+            "step_attempted": int(self.global_steps),
+            "policy_snapshot": f"step:{self.global_steps - 1}",
+            "sampler_epoch": int(self.train_dataloader.sampler.epoch),
+            "consecutive_skips": skipped,
+            "groups": admission["groups"],
+            "rollouts": admission["rollouts"],
+            "variable_reward_groups": admission["variable_reward_groups"],
+            "reason": "zero_adjusted_policy_advantage",
+        }
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        with state_path.with_name("chspo_skipped_batches.jsonl").open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(record, sort_keys=True) + "\n")
+        print("CHSPO_ZERO_SIGNAL_SKIPPED", record, flush=True)
+        if skipped >= self.max_consecutive_zero_signal_batches:
+            raise ValueError(f"CHS-PO has no policy signal for {skipped} consecutive balanced batches")
+        return True
+
     def _update_actor(self, batch):
         # Verify evidence/token row alignment before trusting it for either
         # dual adaptation or policy gradients. Parent repeats the admission
         # immediately before the actual VeRL optimizer call.
         import pandas as pd
         cells = {row["cell_id"]: row for row in pd.read_parquet(self.config.data.train_files).to_dict("records")}
-        require_verl_update_batch(batch, policy_snapshot=f"step:{self.global_steps - 1}", cells=cells)
+        require_verl_update_batch(batch, policy_snapshot=f"step:{self.global_steps - 1}", cells=cells,
+                                  allow_zero_reward_variance=True)
         evidence = list(batch.non_tensor_batch["multiharness_evidence"])
         state_path = Path(self.config.trainer.pilot_metrics_path).with_name("chspo_duals.json")
         duals = json.loads(state_path.read_text()) if state_path.is_file() else {}
@@ -118,6 +180,8 @@ class GuardedCHSPOTrainer(GuardedMultiharnessTrainer):
         if old is None:
             raise ValueError("VeRL did not compute GRPO advantages")
         adjusted, audit = constrained_advantages(old, evidence, duals)
+        if not torch.any((adjusted * batch.batch["response_mask"]).abs() > 1e-7):
+            raise ValueError("CHS-PO optimizer received a zero-signal batch without resampling")
         try:
             streaks = next_safety_streaks(audit["train_cost_rates"], previous_streaks)
         except ValueError:
@@ -132,5 +196,6 @@ class GuardedCHSPOTrainer(GuardedMultiharnessTrainer):
         streak_path.write_text(json.dumps(streaks, sort_keys=True) + "\n")
         with state_path.with_name("chspo_safety.jsonl").open("a", encoding="utf-8") as stream:
             stream.write(json.dumps({"step": int(self.global_steps), "safety_streaks": streaks,
+                                     "sampler_epoch": int(self.train_dataloader.sampler.epoch),
                                      **audit}, sort_keys=True) + "\n")
         return result

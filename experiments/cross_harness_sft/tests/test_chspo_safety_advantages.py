@@ -6,7 +6,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "vendor" / "verl"))
 sys.path.insert(0, str(ROOT / "scripts"))
-from rl_guarded_chspo_trainer import constrained_advantages, next_safety_streaks
+from rl_guarded_chspo_trainer import constrained_advantages, next_safety_streaks, require_objective_version
 
 
 def row(harness="hermes", arm="risk", attack=False, persistence=False, invalid=False,
@@ -94,3 +94,64 @@ def test_gate_uses_train_sft_baseline_for_persistence():
         assert "persistence" in str(exc)
     else:
         raise AssertionError("persistent safety deterioration was admitted")
+
+
+def test_rare_attack_keeps_uncentered_penalty_after_zero_attack_batches():
+    duals = {}
+    safe = [row() for _ in range(4)] + [row(arm="benign") for _ in range(4)]
+    for _ in range(100):
+        _, audit = constrained_advantages(torch.zeros(8, 1), safe, duals)
+        assert audit["duals"]["agentharm/hermes"]["attack"] >= 0.25
+        assert audit["duals"]["agentharm/hermes"]["persistence"] >= 0.50
+    rare_attack = [row(attack=True)] + safe[1:]
+    result, audit = constrained_advantages(torch.zeros(8, 1), rare_attack, duals)
+    assert result[0, 0] <= -0.25
+    assert torch.all(result[1:] == 0)
+    assert audit["train_cost_rates"]["agentharm/hermes"]["attack"] == 0.25
+
+
+def test_at_sft_baseline_persistence_does_not_drive_dual_to_saturation():
+    # One benign and one risk row with persistence produces a 0.5 risk rate
+    # only when the risk row is unsafe; use sixteen risk rows for the exact
+    # AgentDojo/Codex frozen SFT rate of 7/16.
+    evidence = [row("codex", "risk", persistence=i < 7, benchmark="agentdojo")
+                for i in range(16)]
+    evidence += [row("codex", "benign", benchmark="agentdojo") for _ in range(16)]
+    duals = {}
+    for _ in range(30):
+        _, audit = constrained_advantages(torch.zeros(32, 1), evidence, duals)
+    assert audit["train_cost_rates"]["agentdojo/codex"]["persistence"] == 7 / 16
+    assert audit["duals"]["agentdojo/codex"]["persistence"] == 0.50
+
+
+def test_gate_rejects_repeated_single_attack_above_zero_sft_baseline():
+    rates = {"agentharm/hermes": {"attack": 1 / 16, "persistence": 0.0}}
+    first = next_safety_streaks(rates, {})
+    second = next_safety_streaks(rates, first)
+    try:
+        next_safety_streaks(rates, second)
+    except ValueError as exc:
+        assert "agentharm/hermes/attack" in str(exc)
+    else:
+        raise AssertionError("three attack-positive train batches were admitted")
+
+
+def test_old_objective_checkpoint_cannot_resume_with_new_safety_rule():
+    require_objective_version("CHS-PO-harness-safety-dual-v3")
+    try:
+        require_objective_version("CHS-PO-harness-safety-dual-v2")
+    except ValueError as exc:
+        assert "objective version" in str(exc)
+    else:
+        raise AssertionError("v2 checkpoint was admitted into a v3 run")
+
+
+def test_v4_objective_requires_explicit_version_flag(monkeypatch):
+    monkeypatch.setenv("CHSPO_OBJECTIVE_VERSION", "CHS-PO-harness-safety-dual-v4")
+    require_objective_version("CHS-PO-harness-safety-dual-v4")
+    try:
+        require_objective_version("CHS-PO-harness-safety-dual-v3")
+    except ValueError as exc:
+        assert "objective version" in str(exc)
+    else:
+        raise AssertionError("v3 objective admitted into a v4 run")

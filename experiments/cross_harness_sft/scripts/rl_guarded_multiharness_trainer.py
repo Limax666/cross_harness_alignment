@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import os
 from pathlib import Path
 from statistics import mean
 
@@ -32,6 +33,8 @@ def admitted_batch_counts(admission: dict, evidence_count: int) -> dict:
 
 
 class GuardedMultiharnessTrainer(RayPPOTrainer):
+    allow_zero_reward_variance = False
+
     def _update_actor(self, batch):
         snapshot = f"step:{self.global_steps - 1}"
         if self.global_steps < 1 or self.config.trainer.get("pilot_policy_snapshot") != "step:0":
@@ -39,7 +42,10 @@ class GuardedMultiharnessTrainer(RayPPOTrainer):
         import pandas as pd
         rows = pd.read_parquet(self.config.data.train_files).to_dict("records")
         cells = {row["cell_id"]: row for row in rows}
-        admission = require_verl_update_batch(batch, policy_snapshot=snapshot, cells=cells)
+        admission = require_verl_update_batch(
+            batch, policy_snapshot=snapshot, cells=cells,
+            allow_zero_reward_variance=self.allow_zero_reward_variance,
+        )
         if admission.get("admitted") is not True:
             raise ValueError("multi-harness batch not admitted")
         path = Path(self.config.trainer.pilot_metrics_path)
@@ -96,11 +102,15 @@ class GuardedMultiharnessTrainer(RayPPOTrainer):
             "grad_norm": metrics["actor/grad_norm"],
         })
         train_file = Path(self.config.data.train_files)
-        sft = str(self.config.actor_rollout_ref.model.path)
+        reference_checkpoint = str(self.config.actor_rollout_ref.model.path)
+        resume_path = self.config.trainer.get("resume_from_path")
+        actor_checkpoint = str(resume_path) if resume_path else reference_checkpoint
         journal = RLMetricsJournal(path, {
             "run_id": str(self.config.trainer.experiment_name), "algorithm": str(self.config.trainer.get("rl_algorithm", "GRPO")),
-            "rollout_mode": "online_current_policy", "model_checkpoint": sft,
-            "reference_checkpoint": sft, "reward_version": "native_outcome_first",
+            "rollout_mode": "online_current_policy", "model_checkpoint": actor_checkpoint,
+            "reference_checkpoint": reference_checkpoint,
+            "reward_version": ("native_outcome_path_efficiency_v4" if os.environ.get("CHSPO_REWARD_VERSION") == "v4"
+                               else "native_outcome_first"),
             "verifier_version": "multi-native-outcome-v1",
             "harnesses": sorted(by_harness), "train_split_hash": hashlib.sha256(train_file.read_bytes()).hexdigest(),
         })

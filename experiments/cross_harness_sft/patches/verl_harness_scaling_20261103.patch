@@ -1,0 +1,1005 @@
+diff --git a/verl/models/transformers/monkey_patch.py b/verl/models/transformers/monkey_patch.py
+index 27e18842..e70ca6ba 100644
+--- a/verl/models/transformers/monkey_patch.py
++++ b/verl/models/transformers/monkey_patch.py
+@@ -353,13 +353,19 @@ def apply_monkey_patch(
+         try:
+             from trl.experimental.ppo import AutoModelForCausalLMWithValueHead  # type: ignore
+         except ImportError:
+-            from trl import AutoModelForCausalLMWithValueHead  # type: ignore
+-
+-        def state_dict(self, *args, **kwargs):
+-            return torch.nn.Module.state_dict(self, *args, **kwargs)
+-
+-        AutoModelForCausalLMWithValueHead.state_dict = state_dict
+-        print("Monkey patch state_dict in AutoModelForCausalLMWithValueHead. ")
++            try:
++                from trl import AutoModelForCausalLMWithValueHead  # type: ignore
++            except ImportError:
++                # This state_dict adjustment is only needed by the legacy TRL
++                # ValueHead wrapper. Standard CausalLM SFT does not use it.
++                AutoModelForCausalLMWithValueHead = None  # type: ignore
++
++        if AutoModelForCausalLMWithValueHead is not None:
++            def state_dict(self, *args, **kwargs):
++                return torch.nn.Module.state_dict(self, *args, **kwargs)
++
++            AutoModelForCausalLMWithValueHead.state_dict = state_dict
++            print("Monkey patch state_dict in AutoModelForCausalLMWithValueHead. ")
+ 
+     # TODO: VLM models only, unify monkey patch to LLM models.
+     if model.config.model_type in ["qwen2_5_vl", "qwen2_vl"]:
+diff --git a/verl/models/transformers/qwen3_5.py b/verl/models/transformers/qwen3_5.py
+index 0e2bb902..8dcb4658 100644
+--- a/verl/models/transformers/qwen3_5.py
++++ b/verl/models/transformers/qwen3_5.py
+@@ -583,10 +583,18 @@ def forward_with_torch_backend(
+     else:
+         raise RuntimeError("To use forward_with_torch_backend, either labels or input_ids must be provided.")
+ 
+-    fused_linear_for_ppo = FusedLinearForPPO(impl_backend=getattr(self, "_verl_fused_kernels_backend", "torch"))
++    from verl.utils.reference_chunked import reference_chunk_size
++
++    fused_linear_for_ppo = FusedLinearForPPO(
++        chunk_size=reference_chunk_size(), impl_backend=getattr(self, "_verl_fused_kernels_backend", "torch")
++    )
+     vocab_weights = self.lm_head.weight
+     if isinstance(vocab_weights, DTensor):
+-        vocab_weights = vocab_weights.full_tensor()
++        local_weight = vocab_weights.to_local()
++        if not torch.is_grad_enabled() and vocab_weights.device_mesh.size() == 1 and local_weight.shape == vocab_weights.shape:
++            vocab_weights = local_weight
++        else:
++            vocab_weights = vocab_weights.full_tensor()
+ 
+     ulysses_sequence_parallel_size = get_ulysses_sequence_parallel_world_size()
+     if shift_labels is None and ulysses_sequence_parallel_size > 1:
+diff --git a/verl/single_controller/base/worker.py b/verl/single_controller/base/worker.py
+index afa3c4e4..efbe4716 100644
+--- a/verl/single_controller/base/worker.py
++++ b/verl/single_controller/base/worker.py
+@@ -276,9 +276,20 @@ class Worker(WorkerHelper):
+             # RAY_EXPERIMENTAL_NOSET_*_VISIBLE_DEVICES is set,
+             # so we need to set local rank when the flag is set.
+             device_name = get_resource_name()
+-            local_rank = ray.get_runtime_context().get_accelerator_ids()[device_name][0]
+-            os.environ["LOCAL_RANK"] = local_rank
+-            get_torch_device().set_device(int(local_rank))
++            accelerator_id = str(ray.get_runtime_context().get_accelerator_ids()[device_name][0])
++            # CUDA_VISIBLE_DEVICES remaps physical IDs to dense process-local
++            # ordinals. Ray still reports the physical ID with NOSET enabled;
++            # using it directly fails for a mask such as "1,2" (device 2 is
++            # not a valid local ordinal in a two-device process).
++            visible = [value.strip() for value in (cuda_val or "").split(",") if value.strip()]
++            if visible:
++                if accelerator_id not in visible:
++                    raise ValueError(f"Ray GPU {accelerator_id} is absent from CUDA_VISIBLE_DEVICES={cuda_val}")
++                local_rank = visible.index(accelerator_id)
++            else:
++                local_rank = int(accelerator_id)
++            os.environ["LOCAL_RANK"] = str(local_rank)
++            get_torch_device().set_device(local_rank)
+ 
+     def _configure_with_store(self, store: dict):
+         """
+diff --git a/verl/trainer/ppo/ray_trainer.py b/verl/trainer/ppo/ray_trainer.py
+index 9352bcfa..ae5cdc27 100644
+--- a/verl/trainer/ppo/ray_trainer.py
++++ b/verl/trainer/ppo/ray_trainer.py
+@@ -1673,6 +1673,14 @@ class RayPPOTrainer:
+                             norm_adv_by_std_in_grpo=norm_adv_by_std_in_grpo,
+                             config=self.config.algorithm,
+                         )
++                    # A project trainer may reject an otherwise valid online
++                    # batch with no policy signal. Resample from the next task
++                    # cells without counting an optimizer step or changing the
++                    # current policy. This hook is absent for normal VeRL runs.
++                    skip_hook = getattr(self, "_skip_uninformative_batch", None)
++                    if skip_hook is not None and skip_hook(batch):
++                        self.checkpoint_manager.wake_up_replicas()
++                        continue
+                     # update critic
+                     if self.use_critic:
+                         with marked_timer("update_critic", timing_raw, color="pink"):
+diff --git a/verl/trainer/sft_trainer.py b/verl/trainer/sft_trainer.py
+index 393a3f69..e83bceaf 100644
+--- a/verl/trainer/sft_trainer.py
++++ b/verl/trainer/sft_trainer.py
+@@ -14,6 +14,7 @@
+ 
+ 
+ import os
++from collections import deque
+ from functools import partial
+ 
+ from tensordict.tensorclass import NonTensorData
+@@ -233,8 +234,14 @@ class SFTTrainer:
+         dp_rank = self.engine.get_data_parallel_rank()
+         dp_size = self.engine.get_data_parallel_size()
+ 
++        # A frozen, cell-stratified SFT view carries its own registered order.
++        # Keep the historical shuffled default for other datasets.
+         self.train_sampler = DistributedSampler(
+-            self.train_dataset, shuffle=True, num_replicas=dp_size, rank=dp_rank, drop_last=True
++            self.train_dataset,
++            shuffle=config.data.get("sampler_shuffle", True),
++            num_replicas=dp_size,
++            rank=dp_rank,
++            drop_last=True,
+         )
+ 
+         self.global_batch_size = config.data.train_batch_size
+@@ -353,6 +360,7 @@ class SFTTrainer:
+ 
+         train_time = 0
+         total_tokens = 0
++        recent_train_losses = deque(maxlen=32)
+         for epoch in range(start_epoch, self.config.trainer.total_epochs):
+             self.train_sampler.set_epoch(epoch=epoch)
+ 
+@@ -394,12 +402,15 @@ class SFTTrainer:
+                 if self.engine.is_mp_src_rank_with_outputs():
+                     metrics = tu.get(output, "metrics")
+ 
+-                    # TODO: we can actual accumulate metrics for N steps and perform aggregate metrics
+                     for k in ["loss", "grad_norm", "lr", "mfu"]:
+                         if k in metrics.keys():
+                             value = metrics.pop(k)
+                             metrics[f"train/{k}"] = value
+ 
++                    if "train/loss" in metrics:
++                        recent_train_losses.append(float(metrics["train/loss"]))
++                        metrics["train/loss_ma32"] = sum(recent_train_losses) / len(recent_train_losses)
++
+                     metrics["train/global_tokens"] = torch.sum(
+                         torch.tensor(batch_seqlens, device=self.device_name)
+                     ).item()
+diff --git a/verl/utils/fsdp_utils.py b/verl/utils/fsdp_utils.py
+index 13c1bd32..2aa99ad6 100644
+--- a/verl/utils/fsdp_utils.py
++++ b/verl/utils/fsdp_utils.py
+@@ -253,12 +253,67 @@ def offload_fsdp_optimizer(optimizer):
+ def load_fsdp_optimizer(optimizer, device_id):
+     if not optimizer.state:
+         return
++    # File-backed CPU pages can be unmapped as soon as state[key] is replaced.
++    # Finish the copy before dropping that mapping on the sync-park path.
++    # Project-local patch (cross_harness_alignment): keep the sync-park path's
++    # load synchronous so the file-backed mappings fault in before their
++    # anonymous predecessors are replaced.
++    non_blocking = os.environ.get("VERL_PARK_OPTIMIZER_STATES_FOR_SYNC") != "1"
+     for param_group in optimizer.param_groups:
+         for param in param_group["params"]:
+             state = optimizer.state[param]
+             for key, value in state.items():
+                 if isinstance(value, torch.Tensor):
+-                    state[key] = value.to(device_id, non_blocking=True)
++                    state[key] = value.to(device_id, non_blocking=non_blocking)
++
++
++@torch.no_grad()
++def park_fsdp_optimizer_states_for_sync(optimizer):
++    """Back CPU Adam states with reclaimable files during colocated weight sync.
++
++    Project-local patch (cross_harness_alignment): the colocated weight-sync
++    path overlaps optimizer-offload anonymous pages with vLLM wake-up and FSDP
++    state-dict collection, a ~90GB transient host-RAM spike that OOM-killed
++    r18/r19. Parking the states on unlinked file mappings makes those pages
++    reclaimable for the sync window.
++
++    The state values remain ordinary CPU tensors to the optimizer.  Each file is
++    unlinked after its mapping is populated, so an interrupted worker cannot
++    leave multi-GB optimizer snapshots in /tmp.  The next optimizer load copies
++    these tensors back to the GPU through ``load_fsdp_optimizer`` as usual.
++    """
++    import ctypes
++    import gc
++    import tempfile
++
++    parked_bytes = 0
++    libc = ctypes.CDLL(None, use_errno=True)
++    for group in optimizer.param_groups:
++        for param in group["params"]:
++            for key, value in optimizer.state[param].items():
++                if not isinstance(value, torch.Tensor) or value.device.type != "cpu" or value.nbytes < 1 << 20:
++                    continue
++                fd, path = tempfile.mkstemp(
++                    prefix="verl-optimizer-sync-", dir=os.environ.get("VERL_SYNC_PARK_DIR", "/tmp")
++                )
++                try:
++                    os.ftruncate(fd, value.nbytes)
++                    mapped = torch.from_file(path, shared=True, size=value.numel(), dtype=value.dtype).view(value.shape)
++                    mapped.copy_(value)
++                    os.fsync(fd)
++                    # A clean file mapping still contributes to RSS until its
++                    # pages are evicted. Drop them now; later reads fault the
++                    # exact state values back from the backing inode.
++                    if libc.madvise(ctypes.c_void_p(mapped.data_ptr()), ctypes.c_size_t(value.nbytes), 4) != 0:
++                        raise OSError(ctypes.get_errno(), "madvise(MADV_DONTNEED) failed")
++                    optimizer.state[param][key] = mapped
++                    parked_bytes += value.nbytes
++                finally:
++                    os.close(fd)
++                    os.unlink(path)
++    gc.collect()
++    ctypes.CDLL(None).malloc_trim(0)
++    return parked_bytes
+ 
+ 
+ @contextmanager
+diff --git a/verl/utils/torch_functional.py b/verl/utils/torch_functional.py
+index 490ffc1b..5281cf84 100644
+--- a/verl/utils/torch_functional.py
++++ b/verl/utils/torch_functional.py
+@@ -170,6 +170,53 @@ def logprobs_from_logits_naive(logits: torch.Tensor, labels: torch.Tensor) -> to
+     return logpy
+ 
+ 
++class _ChunkedSelectedLogProb(torch.autograd.Function):
++    """Selected log-probabilities without retaining a full float32 vocab tensor.
++
++    The ordinary bfloat16 fallback casts every token's vocabulary logits to
++    float32 for ``logsumexp``. Autograd then retains that cast until backward,
++    which can exhaust a 24 GiB card on long online-agent trajectories. Keep
++    only the original logits and recompute the softmax in small token chunks
++    during backward. The gradient is exactly one_hot(label) - softmax(logits).
++    """
++
++    @staticmethod
++    def forward(ctx, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
++        original_shape = labels.shape
++        vocab_size = logits.shape[-1]
++        flat_logits = logits.reshape(-1, vocab_size)
++        flat_labels = labels.reshape(-1)
++        chunk_size = 32
++        selected = []
++        for start in range(0, flat_logits.shape[0], chunk_size):
++            chunk = flat_logits[start : start + chunk_size].float()
++            targets = flat_labels[start : start + chunk_size].unsqueeze(-1)
++            selected.append(chunk.gather(-1, targets).squeeze(-1) - torch.logsumexp(chunk, dim=-1))
++        ctx.save_for_backward(logits, labels)
++        ctx.chunk_size = chunk_size
++        return torch.cat(selected).reshape(original_shape)
++
++    @staticmethod
++    def backward(ctx, grad_output: torch.Tensor) -> tuple[torch.Tensor, None]:
++        logits, labels = ctx.saved_tensors
++        vocab_size = logits.shape[-1]
++        flat_logits = logits.reshape(-1, vocab_size)
++        flat_labels = labels.reshape(-1)
++        flat_grad = grad_output.reshape(-1)
++        grad_logits = torch.empty_like(flat_logits)
++        for start in range(0, flat_logits.shape[0], ctx.chunk_size):
++            stop = start + ctx.chunk_size
++            grad = -torch.softmax(flat_logits[start:stop].float(), dim=-1)
++            grad.scatter_add_(
++                -1,
++                flat_labels[start:stop].unsqueeze(-1),
++                torch.ones_like(flat_grad[start:stop]).unsqueeze(-1),
++            )
++            grad.mul_(flat_grad[start:stop].unsqueeze(-1))
++            grad_logits[start:stop].copy_(grad)
++        return grad_logits.reshape(logits.shape), None
++
++
+ def logprobs_from_logits_v2(logits: torch.FloatTensor, labels: torch.Tensor) -> torch.Tensor:
+     """Memory-efficient log-probability computation using row-wise processing.
+ 
+@@ -197,13 +244,9 @@ def logprobs_from_logits_v2(logits: torch.FloatTensor, labels: torch.Tensor) ->
+         logsumexp_values = torch.stack([torch.logsumexp(logit, dim=-1) for logit in logits])
+         logprobs_labels = logits_labels - logsumexp_values  # log_softmax(x_i) = x_i - logsumexp(x)
+     else:
+-        # logsumexp approach is unstable with bfloat16, fall back to slightly less efficent approach
+-        logprobs_labels = []
+-        for row_logits, row_labels in zip(logits, labels, strict=True):  # loop to reduce peak mem consumption
+-            row_logprobs = F.log_softmax(row_logits, dim=-1)
+-            row_logprobs_labels = row_logprobs.gather(dim=-1, index=row_labels.unsqueeze(-1)).squeeze(-1)
+-            logprobs_labels.append(row_logprobs_labels)
+-        logprobs_labels = torch.stack(logprobs_labels)
++        # Recompute softmax in bounded token chunks during backward. This
++        # avoids retaining one float32 [tokens, vocab] cast per training step.
++        logprobs_labels = _ChunkedSelectedLogProb.apply(logits, labels)
+     return logprobs_labels
+ 
+ 
+diff --git a/verl/workers/config/model.py b/verl/workers/config/model.py
+index 545ec468..132554b6 100644
+--- a/verl/workers/config/model.py
++++ b/verl/workers/config/model.py
+@@ -173,8 +173,7 @@ class HFModelConfig(BaseConfig):
+         if self.custom_chat_template is not None:
+             if self.processor is not None:
+                 self.processor.chat_template = self.custom_chat_template
+-            else:
+-                self.tokenizer.chat_template = self.custom_chat_template
++            self.tokenizer.chat_template = self.custom_chat_template
+ 
+         self.local_hf_config_path = copy_to_local(self.hf_config_path, use_shm=self.use_shm)
+         self.generation_config = get_generation_config(
+diff --git a/verl/workers/engine/base.py b/verl/workers/engine/base.py
+index 161faed0..6ca92c84 100644
+--- a/verl/workers/engine/base.py
++++ b/verl/workers/engine/base.py
+@@ -184,7 +184,12 @@ class BaseEngine:
+     # faster H2D on the diff read-back but competes with every other pinned pool
+     # on the node; backends whose memory profile makes that competition
+     # dangerous override this to False (see MegatronEngine).
+-    delta_pin_snapshots: bool = True
++    # Project-local patch (cross_harness_alignment): our FSDP2 9B layout on a
++    # shared 251GB host is exactly the "dangerous competition" case this field
++    # exists for (r11/r12 OOM 2026-10-28): a pinned whole-shard diff base adds
++    # ~18GB/rank of unreclaimable cudaHostAlloc on top of the offload pools.
++    # MegatronEngine already overrides this to False for the same reason.
++    delta_pin_snapshots: bool = False
+ 
+     def prime_delta_snapshots(self) -> None:
+         """
+@@ -320,10 +325,13 @@ class BaseEngineCtx:
+         if self.mode == "eval":
+             self.engine.to(device=device, model=self.engine.is_param_offload_enabled, optimizer=False, grad=False)
+         elif self.mode == "train":
++            # Project-local patch: with jit_optimizer_states the optimizer
++            # moments are loaded inside optimizer_step, not at context entry.
++            jit_optimizer = getattr(self.engine, "jit_optimizer_states", False)
+             self.engine.to(
+                 device=device,
+                 model=self.engine.is_param_offload_enabled,
+-                optimizer=self.engine.is_optimizer_offload_enabled,
++                optimizer=self.engine.is_optimizer_offload_enabled and not jit_optimizer,
+                 grad=self.engine.is_param_offload_enabled,
+             )
+ 
+diff --git a/verl/workers/engine/fsdp/transformer_impl.py b/verl/workers/engine/fsdp/transformer_impl.py
+index c5cbc35d..989f23ae 100644
+--- a/verl/workers/engine/fsdp/transformer_impl.py
++++ b/verl/workers/engine/fsdp/transformer_impl.py
+@@ -15,6 +15,8 @@
+ The concrete Engine implementation using PyTorch FullyShardedDataParallel (FSDP)
+ """
+ 
++from verl.utils.reference_placement import should_cpu_offload
++
+ import logging
+ import os
+ import warnings
+@@ -96,11 +98,14 @@ def _is_scalar_unit_temperature(temperature) -> bool:
+ 
+ 
+ def _scale_logits_by_temperature(logits, temperature, *, is_unit_temperature: bool):
+-    """Scale logits without copying the full vocabulary tensor for temperature 1."""
++    """Scale logits in place to avoid a second full vocabulary tensor."""
+ 
+     if is_unit_temperature:
+         return logits
+-    return logits / temperature.clamp(min=1e-8).to(logits.dtype)
++    # Logits are a fresh LM-head output, not a parameter or saved model input.
++    # Out-of-place scaling doubles the peak [tokens, vocab] allocation (about
++    # 2 GiB for a long Qwen3.5 agent trajectory) before selected log-probs.
++    return logits.div_(temperature.clamp(min=1e-8).to(logits.dtype))
+ 
+ 
+ class FSDPEngine(BaseEngine):
+@@ -159,6 +164,14 @@ class FSDPEngine(BaseEngine):
+         # set FSDP offload params
+         self._is_offload_param = self.engine_config.param_offload
+         self._is_offload_optimizer = self.engine_config.optimizer_offload
++        # Project-local patch (cross_harness_alignment): with optimizer_offload
++        # enabled, AdamW moments were kept GPU-resident for the whole
++        # train-mode context, so every backward pass paid ~9 GB for a 2.21B
++        # model on 24 GB cards and the second update OOMed. Keep the moments
++        # on CPU during forward/backward and load them only inside
++        # optimizer_step. Semantically neutral: the moved tensors are
++        # identical, only their device changes.
++        self.jit_optimizer_states = True
+         self._is_lora = self.model_config.lora_rank > 0
+         # Set in _build_fsdp_module when FSDP2 CPUOffloadPolicy is configured (see #5995).
+         self._uses_fsdp2_cpu_offload_policy = False
+@@ -429,7 +442,7 @@ class FSDPEngine(BaseEngine):
+             # We force reference policy to use CPUOffload to save memory.
+             # We force turn off CPUOffload for actor because it causes incorrect results when using grad accumulation
+             cpu_offload = None
+-            if self.engine_config.forward_only:
++            if should_cpu_offload(requested=False, forward_only=self.engine_config.forward_only):
+                 cpu_offload = CPUOffload(offload_params=True)
+                 self._is_offload_param = False
+                 self._is_offload_optimizer = False
+@@ -456,7 +469,8 @@ class FSDPEngine(BaseEngine):
+                 param_dtype=param_dtype, reduce_dtype=reduce_dtype, cast_forward_inputs=True
+             )
+             offload_policy = None
+-            if self.engine_config.offload_policy or self.engine_config.forward_only:
++            if should_cpu_offload(requested=self.engine_config.offload_policy,
++                                  forward_only=self.engine_config.forward_only):
+                 self._is_offload_param = False
+                 self._is_offload_optimizer = False
+                 offload_policy = CPUOffloadPolicy(pin_memory=True)
+@@ -598,6 +612,16 @@ class FSDPEngine(BaseEngine):
+         if self._is_lora:
+             module = self._build_lora_module(module)
+ 
++        require_full = os.environ.get("CHSFT_REQUIRE_FULL_TRAINABLE") == "1"
++        if require_full:
++            if self._is_lora:
++                raise RuntimeError("Full-SFT guard failed: LoRA is still enabled")
++            frozen = [name for name, param in module.named_parameters() if not param.requires_grad]
++            if frozen:
++                raise RuntimeError(f"Full-SFT guard failed: {len(frozen)} frozen parameters; first={frozen[0]}")
++            if self.rank == 0:
++                print(f"Full-SFT trainable parameters: {sum(p.numel() for p in module.parameters()):,}", flush=True)
++
+         # Apply QAT before FSDP wrapping (training only)
+         if self._qat_enabled and not self.engine_config.forward_only:
+             module = self._apply_qat(module)
+@@ -616,6 +640,11 @@ class FSDPEngine(BaseEngine):
+         if not self.engine_config.forward_only:
+             # Initialize optimizer with model parameters and config settings
+             optimizer = self._build_optimizer(module)
++            if require_full:
++                model_params = {id(p) for p in module.parameters()}
++                optimizer_params = {id(p) for group in optimizer.param_groups for p in group["params"]}
++                if model_params != optimizer_params:
++                    raise RuntimeError("Full-SFT guard failed: optimizer parameter set differs from FSDP model")
+             # Create learning rate scheduler with warmup and decay settings
+             lr_scheduler = self._build_lr_scheduler(optimizer)
+         else:
+@@ -794,6 +823,11 @@ class FSDPEngine(BaseEngine):
+         """
+         assert self.optimizer_config.clip_grad is not None
+ 
++        # Project-local patch: load the AdamW moments just-in-time for the
++        # step and offload them again afterwards (see jit_optimizer_states).
++        if getattr(self, "jit_optimizer_states", False) and self._is_offload_optimizer and self.optimizer is not None:
++            load_fsdp_optimizer(self.optimizer, get_device_name())
++
+         # getattr fallback: some subclasses (e.g. VeOmniEngine) bypass FSDPEngine.__init__.
+         scaler = getattr(self, "scaler", None)
+ 
+@@ -831,6 +865,9 @@ class FSDPEngine(BaseEngine):
+ 
+             invalidate_all_scales(self.module)
+ 
++        if getattr(self, "jit_optimizer_states", False) and self._is_offload_optimizer and self.optimizer is not None:
++            offload_fsdp_optimizer(self.optimizer)
++
+         return grad_norm.item()
+ 
+     def lr_scheduler_step(self):
+@@ -1026,10 +1063,13 @@ class FSDPEngine(BaseEngine):
+             per_tensor_param = params.items()
+         else:
+             device = get_device_id()  # used when fsdp2 set cpu_offload_policy
++            from verl.utils.weight_sync import materialize_rollout_weight, rollout_sync_dtype
++
++            sync_dtype = rollout_sync_dtype()
+             per_tensor_param = (
+                 (
+                     name,
+-                    param.to(device, non_blocking=True).full_tensor() if isinstance(param, DTensor) else param,
++                    materialize_rollout_weight(param, device, sync_dtype),
+                 )
+                 for name, param in params.items()
+             )
+@@ -1383,53 +1423,61 @@ class FSDPEngineWithLMHead(FSDPEngine):
+                 # With TP, logits are DTensors sharded on vocab dim; gather for log_softmax.
+                 if isinstance(logits_rmpad, DTensor):
+                     logits_rmpad = logits_rmpad.full_tensor()
+-                logits_rmpad = _scale_logits_by_temperature(
+-                    logits_rmpad,
+-                    temperature_rmpad.unsqueeze(-1),
+-                    is_unit_temperature=temperature_is_one,
+-                )
++                if os.environ.get("VERL_CHUNKED_SCALED_LOGPROBS") == "1":
++                    if calculate_sum_pi_squared or distillation_use_topk or distillation_only:
++                        raise ValueError("chunked scaled outputs do not support distillation or sum_pi_squared")
++                    from verl.utils.scaled_chunked_outputs import scaled_chunked_logprobs_entropy
+ 
+-                log_probs = None
++                    log_probs, entropy_rmpad = scaled_chunked_logprobs_entropy(
++                        logits_rmpad, input_ids_rmpad_rolled, temperature_rmpad, chunk_size=128
++                    )
++                else:
++                    logits_rmpad = _scale_logits_by_temperature(
++                        logits_rmpad,
++                        temperature_rmpad.unsqueeze(-1),
++                        is_unit_temperature=temperature_is_one,
++                    )
+ 
+-                if calculate_sum_pi_squared:
+-                    sum_pi_squared_rmpad = verl_F.calculate_sum_pi_squared_from_logits(logits_rmpad)
++                    log_probs = None
+ 
+-                if calculate_entropy:
+-                    if not self.engine_config.entropy_checkpointing:
+-                        if self.engine_config.entropy_from_logits_with_chunking:
+-                            entropy_rmpad = self.compute_entropy_from_logits(
+-                                logits_rmpad,
+-                                chunk_size=self.engine_config.entropy_from_logits_chunk_size,
+-                            )  # ((total_nnz / sp) + pad)
++                    if calculate_sum_pi_squared:
++                        sum_pi_squared_rmpad = verl_F.calculate_sum_pi_squared_from_logits(logits_rmpad)
++
++                    if calculate_entropy:
++                        if not self.engine_config.entropy_checkpointing:
++                            if self.engine_config.entropy_from_logits_with_chunking:
++                                entropy_rmpad = self.compute_entropy_from_logits(
++                                    logits_rmpad,
++                                    chunk_size=self.engine_config.entropy_from_logits_chunk_size,
++                                )  # ((total_nnz / sp) + pad)
++                            else:
++                                entropy_rmpad = self.compute_entropy_from_logits(logits_rmpad)
+                         else:
+-                            entropy_rmpad = self.compute_entropy_from_logits(logits_rmpad)
+-                    else:
+-                        entropy_rmpad = torch.utils.checkpoint.checkpoint(
+-                            self.compute_entropy_from_logits, logits_rmpad
+-                        )
++                            entropy_rmpad = torch.utils.checkpoint.checkpoint(
++                                self.compute_entropy_from_logits, logits_rmpad
++                            )
+ 
+-                # logits_processor_func return tensors with shape (1, total_nnz/sp_size)
+-                if distillation_use_topk:
+-                    outputs = logits_processor_func(student_logits=logits_rmpad.unsqueeze(0), data=micro_batch)
+-                    cu_seqlens = input_ids.offsets()
+-                    for k, v in outputs.items():
+-                        v = v.squeeze(0)
+-                        assert v.shape == (logits_rmpad.shape[0],), (
+-                            f"logits_rmpad len: {logits_rmpad.shape[0]}, {k} shape: {v.shape}"
+-                        )
+-                        v = self._gather_and_unpad_packed(v, output_args["pad_size"])
+-                        model_output[k] = torch.nested.nested_tensor_from_jagged(v, cu_seqlens)
++                    # logits_processor_func return tensors with shape (1, total_nnz/sp_size)
++                    if distillation_use_topk:
++                        outputs = logits_processor_func(student_logits=logits_rmpad.unsqueeze(0), data=micro_batch)
++                        cu_seqlens = input_ids.offsets()
++                        for k, v in outputs.items():
++                            v = v.squeeze(0)
++                            assert v.shape == (logits_rmpad.shape[0],), (
++                                f"logits_rmpad len: {logits_rmpad.shape[0]}, {k} shape: {v.shape}"
++                            )
++                            v = self._gather_and_unpad_packed(v, output_args["pad_size"])
++                            model_output[k] = torch.nested.nested_tensor_from_jagged(v, cu_seqlens)
+ 
+-                if not distillation_only:
+-                    # if use_sp: ((total_nnz / sp) + pad) ; if not use_sp: (batch, seqlen)
+-                    inplace_backward = True
+-                    if calculate_entropy:
+-                        inplace_backward = False
+-                    log_probs = logprobs_from_logits(
+-                        logits=logits_rmpad,
+-                        labels=input_ids_rmpad_rolled,
+-                        inplace_backward=inplace_backward,
+-                    )
++                    if not distillation_only:
++                        inplace_backward = True
++                        if calculate_entropy:
++                            inplace_backward = False
++                        log_probs = logprobs_from_logits(
++                            logits=logits_rmpad,
++                            labels=input_ids_rmpad_rolled,
++                            inplace_backward=inplace_backward,
++                        )
+ 
+             # gather across the ulysses sp group and drop the packed-sequence padding
+             pad_size = output_args["pad_size"]
+diff --git a/verl/workers/engine_workers.py b/verl/workers/engine_workers.py
+index b55d4ce6..c07bdd0f 100644
+--- a/verl/workers/engine_workers.py
++++ b/verl/workers/engine_workers.py
+@@ -530,6 +530,14 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
+     def set_loss_fn(self, loss_fn):
+         self.actor.set_loss_fn(loss_fn=loss_fn)
+ 
++    @register(dispatch_mode=Dispatch.ONE_TO_ALL)
++    def get_physical_gpu_assignment(self):
++        """Report Ray's actual GPU assignment for resource-pool auditing."""
++        import ray
++        from verl.utils.device import get_resource_name
++
++        return ray.get_runtime_context().get_accelerator_ids()[get_resource_name()]
++
+     @register(dispatch_mode=Dispatch.ONE_TO_ALL)
+     def to(self, device, model=True, optimizer=True, grad=True):
+         """Manual control of load/offload"""
+@@ -554,6 +562,14 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
+ 
+             # The ref model does not need to enable MTP; force it to false.
+             ref_config.model_config = deepcopy(model_config)
++            if os.environ.get("VERL_REF_FUSED_TORCH") == "1":
++                if self.role != "ref" or model_config.hf_config.model_type != "qwen3_5":
++                    raise ValueError("reference-only fused mode requires a separate Qwen3.5 reference worker")
++                from verl.utils.reference_chunked import reference_fused_model_config
++
++                ref_config.model_config = reference_fused_model_config(ref_config.model_config)
++                print("REFERENCE_CHUNKED_LOGPROBS backend=torch chunk_size="
++                      + os.environ.get("VERL_REF_FUSED_CHUNK_SIZE", "512"), flush=True)
+             ref_config.model_config.mtp = MtpConfig(enable=False)
+ 
+             # Build the inner ref profiler config via the hydra path (same as the actor / SFT),
+@@ -695,15 +711,25 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
+     @_with_routing_replay_flag(enabled=False)
+     def compute_ref_log_prob(self, data: TensorDict) -> TensorDict:
+         output = self.ref.infer_batch(data=data)
+-        return output.cpu() if output is not None else None
++        if output is not None:
++            output = output.cpu()
++        # Project-local patch (cross_harness_alignment): release the pinned-host
++        # caching allocator's free blocks at the phase boundary. r11/r12 died at
++        # ~96% node RAM because cudaHostAlloc staging blocks stay unreclaimable
++        # while cached, so each phase's high-water mark persisted into the next.
++        torch._C._host_emptyCache()
++        return output
+ 
+     @register(dispatch_mode=make_nd_compute_dataproto_dispatch_fn(mesh_name="actor"))
+     @DistProfiler.annotate(color="blue", role="actor_compute_log_prob")
+     @_with_routing_replay_flag(enabled=True)
+     def compute_log_prob(self, data: TensorDict) -> TensorDict:
+         output = self.actor.infer_batch(data)
+-
+-        return output.cpu() if output is not None else None
++        if output is not None:
++            output = output.cpu()
++        # Project-local patch (cross_harness_alignment): see compute_ref_log_prob.
++        torch._C._host_emptyCache()
++        return output
+ 
+     @register(dispatch_mode=make_nd_compute_dataproto_dispatch_fn(mesh_name="actor"))
+     # scheduled=True: this stage iterates over update mini-batches, so in discrete mode its trace
+@@ -711,8 +737,29 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
+     @DistProfiler.annotate(color="red", role="actor_update", scheduled=True)
+     @_with_routing_replay_flag(enabled=True)
+     def update_actor(self, data: TensorDict) -> TensorDict:
++        # Project-local patch (cross_harness_alignment): r11/r12/r14 all died at
++        # ~96-99% node RAM inside this call. Log the incoming batch's tensor
++        # footprint once so the ~12GB/rank resident between rollout and update
++        # can be attributed to a concrete tensor.
++        if torch.distributed.get_rank() == 0:
++            try:
++                _items = [(k, tuple(v.shape), str(v.dtype), v.nbytes) for k, v in data.batch.items()]
++                _tot = sum(i[3] for i in _items)
++                logger.warning(
++                    "update_actor batch_tensors total_gib=%.2f rss_gib=%.2f %s",
++                    _tot / 2**30,
++                    psutil.Process().memory_info().rss / 2**30,
++                    _items,
++                )
++            except Exception as _e:  # diagnostics must never kill training
++                logger.warning("update_actor batch_tensors log failed: %r", _e)
+         output = self.actor.train_mini_batch(data=data)
+-        return output.cpu() if output is not None else None
++        if output is not None:
++            output = output.cpu()
++        # Project-local patch (cross_harness_alignment): see compute_ref_log_prob;
++        # this boundary also relieves the post-update colocated weight sync.
++        torch._C._host_emptyCache()
++        return output
+ 
+     @register(dispatch_mode=Dispatch.ONE_TO_ALL)
+     def load_checkpoint(self, local_path, hdfs_path=None, del_local_after_load=False):
+@@ -769,6 +816,29 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
+         get_torch_device().empty_cache()
+         log_gpu_memory_usage("Before resume weights", logger=logger)
+ 
++        def log_sync_ram(stage):
++            logger.warning(
++                "colocated weight sync %s rank=%s rss_gib=%.2f host_available_gib=%.2f",
++                stage,
++                torch.distributed.get_rank(),
++                psutil.Process().memory_info().rss / 2**30,
++                psutil.virtual_memory().available / 2**30,
++            )
++
++        log_sync_ram("before_optimizer_park")
++        # Project-local patch (cross_harness_alignment): park CPU Adam states
++        # onto reclaimable file-backed pages before vLLM wake-up; both ranks
++        # must release anonymous pages before either worker touches weights.
++        if os.environ.get("VERL_PARK_OPTIMIZER_STATES_FOR_SYNC") == "1":
++            from verl.utils.fsdp_utils import park_fsdp_optimizer_states_for_sync
++
++            parked = park_fsdp_optimizer_states_for_sync(self.actor.engine.optimizer)
++            logger.warning("colocated weight sync parked optimizer rank=%s bytes=%s", torch.distributed.get_rank(), parked)
++            # Both ranks must release anonymous pages before either vLLM worker
++            # wakes its weight storage or FSDP starts collecting the state dict.
++            await asyncio.to_thread(torch.distributed.barrier)
++        log_sync_ram("before_vllm_wake")
++
+         # 1. resume rollout memory (weights were released during sleep)
+         # sleep_level=1 (adapter mode) in SGLang never released weights, so do not resume them.
+         # vLLM is different: its level-1 sleep goes through CuMemAllocator.sleep(offload_tags=("weights",))
+@@ -780,12 +850,14 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
+             resume_weights = self.config.rollout.free_cache_engine
+         if resume_weights:
+             await self.rollout.resume(tags=["weights"])
++        log_sync_ram("after_vllm_wake")
+         log_gpu_memory_usage("After resume weights", logger=logger)
+ 
+         # 2. determine if we need a base weight sync (adapter path only)
+         per_tensor_param, peft_config = self.actor.engine.get_per_tensor_param(
+             layered_summon=self.layered_summon, base_sync_done=True
+         )
++        log_sync_ram("after_actor_state_dict")
+ 
+         do_lora_base_sync = False
+         if not self.peft_merge and peft_config is not None:
+@@ -804,6 +876,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
+         await self.rollout.update_weights(
+             per_tensor_param, peft_config=peft_config, base_sync_done=True, global_steps=global_steps
+         )
++        log_sync_ram("after_bucket_transfer")
+ 
+         log_gpu_memory_usage("After update_weights", logger=logger)
+ 
+diff --git a/verl/workers/rollout/llm_server.py b/verl/workers/rollout/llm_server.py
+index 5b677b62..868dd306 100644
+--- a/verl/workers/rollout/llm_server.py
++++ b/verl/workers/rollout/llm_server.py
+@@ -19,6 +19,7 @@ Utility classes for manage and request LLM servers:
+ 
+ import asyncio
+ import logging
++import math
+ import os
+ from typing import Any, Optional
+ from uuid import uuid4
+@@ -147,8 +148,14 @@ class LLMServerClient:
+             priority_kwargs = (
+                 {"priority": priority} if priority != 0 and self.config.actor_rollout_ref.rollout.name == "vllm" else {}
+             )
+-            output: TokenOutput = await server.generate.remote(
+-                request_id=self._vllm_request_id(request_id),  # use new request_id for each turn
++            deadline = float(os.getenv("VERL_GENERATION_TIMEOUT_SECONDS", "0"))
++            if not math.isfinite(deadline) or deadline < 0:
++                raise ValueError("generation deadline must be finite and nonnegative")
++            if deadline and self.config.actor_rollout_ref.rollout.name != "vllm":
++                raise ValueError("generation deadline supports vLLM only")
++            backend_request_id = self._vllm_request_id(request_id)
++            generation = server.generate.remote(
++                request_id=backend_request_id,  # use new request_id for each turn
+                 prompt_ids=prompt_ids,
+                 sampling_params=sampling_params,
+                 image_data=image_data,
+@@ -157,6 +164,17 @@ class LLMServerClient:
+                 **priority_kwargs,
+                 **kwargs,
+             )
++            if deadline:
++                from rl_generation_deadline import generate_with_deadline
++
++                async def abort_backend():
++                    result = await server.abort_request.remote(backend_request_id, reset_prefix_cache=False)
++                    if not result.get("aborted"):
++                        raise RuntimeError(f"backend abort not confirmed: {result}")
++
++                output: TokenOutput = await generate_with_deadline(generation, abort_backend, deadline)
++            else:
++                output: TokenOutput = await generation
+             global_steps = output.extra_fields.get("global_steps")
+             output.extra_fields.setdefault("min_global_steps", global_steps)
+             output.extra_fields.setdefault("max_global_steps", global_steps)
+diff --git a/verl/workers/rollout/vllm_rollout/vllm_async_server.py b/verl/workers/rollout/vllm_rollout/vllm_async_server.py
+index 92cb6937..988b35c6 100644
+--- a/verl/workers/rollout/vllm_rollout/vllm_async_server.py
++++ b/verl/workers/rollout/vllm_rollout/vllm_async_server.py
+@@ -84,6 +84,29 @@ logger = logging.getLogger(__file__)
+ logger.setLevel(logging.INFO)
+ 
+ 
++def _track_generation_task(func):
++    """Track server-side RPCs, including time before vLLM registers a request."""
++    import functools
++    @functools.wraps(func)
++    async def wrapped(self, *args, **kwargs):
++        request_id = kwargs.get('request_id', args[2] if len(args) > 2 else None)
++        if not request_id:
++            raise ValueError('generation request_id is required')
++        tasks = getattr(self, '_generation_tasks', None)
++        if tasks is None:
++            tasks = self._generation_tasks = {}
++        if request_id in tasks:
++            raise ValueError('duplicate active generation request_id')
++        task = asyncio.current_task()
++        tasks[request_id] = task
++        try:
++            return await func(self, *args, **kwargs)
++        finally:
++            if tasks.get(request_id) is task:
++                tasks.pop(request_id, None)
++    return wrapped
++
++
+ class vLLMHttpServer:
+     """vLLM http server in single node, this is equivalent to launch server with command line:
+     ```
+@@ -553,6 +576,7 @@ class vLLMHttpServer:
+         self.task = asyncio.create_task(asyncio.to_thread(run_headless_wrapper))
+         self.task.add_done_callback(on_run_headless_done)
+ 
++    @_track_generation_task
+     async def generate(
+         self,
+         prompt_ids: list[int],
+@@ -1016,9 +1040,31 @@ class vLLMHttpServer:
+ 
+         try:
+             request_states = self.engine.output_processor.request_states
++            # vLLM 0.23 gives each external request an internal suffixed ID.
++            # Use its public abort API so the output processor translates the
++            # external ID and emits the abort result before removing state.
++            external = getattr(self.engine.output_processor, "external_req_ids", {})
++            internal_ids = list(external.get(request_id, []))
++            if internal_ids:
++                await self.engine.abort(request_id)
++                if any(identifier in request_states for identifier in internal_ids):
++                    return {"aborted": False, "request_id": request_id, "error": "request state remains after abort"}
++                if reset_prefix_cache:
++                    await self.clear_kv_cache()
++                return {"aborted": True, "request_id": request_id}
+             req_state = request_states.get(request_id)
+ 
+             if req_state is None:
++                task = getattr(self, '_generation_tasks', {}).get(request_id)
++                if task is not None and not task.done():
++                    task.cancel()
++                    await asyncio.gather(task, return_exceptions=True)
++                    remaining = list(getattr(self.engine.output_processor, 'external_req_ids', {}).get(request_id, []))
++                    if remaining:
++                        await self.engine.abort(request_id)
++                        if any(identifier in request_states for identifier in remaining):
++                            return {"aborted": False, "request_id": request_id, "error": "request state remains after cancellation"}
++                    return {"aborted": True, "request_id": request_id, "stage": "before_engine_registration"}
+                 return {"aborted": False, "error": f"Request {request_id} not found"}
+ 
+             # Create abort output and put it to the queue
+diff --git a/verl/utils/reference_chunked.py b/verl/utils/reference_chunked.py
+new file mode 100644
+index 00000000..3e0555f0
+--- /dev/null
++++ b/verl/utils/reference_chunked.py
+@@ -0,0 +1,17 @@
++"""Opt-in settings for memory-bounded reference log-prob computation."""
++
++import os
++from dataclasses import replace
++
++
++def reference_fused_model_config(model_config):
++    options = dict(model_config.fused_kernel_options or {})
++    options["impl_backend"] = "torch"
++    return replace(model_config, use_fused_kernels=True, fused_kernel_options=options)
++
++
++def reference_chunk_size():
++    value = int(os.environ.get("VERL_REF_FUSED_CHUNK_SIZE", "512"))
++    if value <= 0:
++        raise ValueError("VERL_REF_FUSED_CHUNK_SIZE must be positive")
++    return value
+diff --git a/verl/utils/reference_placement.py b/verl/utils/reference_placement.py
+new file mode 100644
+index 00000000..8a39c460
+--- /dev/null
++++ b/verl/utils/reference_placement.py
+@@ -0,0 +1,7 @@
++"""Explicit placement opt-in; legacy forward-only CPU offload remains default."""
++import os
++
++
++def should_cpu_offload(*, requested: bool, forward_only: bool) -> bool:
++    keep_reference_on_gpu = os.environ.get('VERL_REFERENCE_KEEP_ON_GPU') == '1'
++    return bool(requested or (forward_only and not keep_reference_on_gpu))
+diff --git a/verl/utils/scaled_chunked_outputs.py b/verl/utils/scaled_chunked_outputs.py
+new file mode 100644
+index 00000000..c23c1f20
+--- /dev/null
++++ b/verl/utils/scaled_chunked_outputs.py
+@@ -0,0 +1,50 @@
++"""Temperature-scaled selected log-probs and entropy without mutating logits."""
++
++import torch
++
++
++class _ScaledChunkedOutputs(torch.autograd.Function):
++    @staticmethod
++    def forward(ctx, logits, labels, temperatures, chunk_size):
++        if logits.ndim != 2 or labels.shape != logits.shape[:-1] or temperatures.shape != labels.shape:
++            raise ValueError("expected logits [tokens,vocab] and matching labels/temperatures")
++        if chunk_size <= 0:
++            raise ValueError("chunk_size must be positive")
++        temps = temperatures.clamp(min=1e-8).to(logits.dtype)
++        selected, entropies = [], []
++        for start in range(0, logits.shape[0], chunk_size):
++            stop = min(start + chunk_size, logits.shape[0])
++            scores = (logits[start:stop] / temps[start:stop, None]).float()
++            logsum = torch.logsumexp(scores, dim=-1)
++            probs = scores.softmax(dim=-1)
++            selected.append(scores.gather(-1, labels[start:stop, None]).squeeze(-1) - logsum)
++            entropies.append(logsum - (probs * scores).sum(-1))
++        ctx.save_for_backward(logits, labels, temps)
++        ctx.chunk_size = chunk_size
++        ctx.set_materialize_grads(False)
++        return torch.cat(selected), torch.cat(entropies)
++
++    @staticmethod
++    def backward(ctx, grad_logp, grad_entropy):
++        logits, labels, temps = ctx.saved_tensors
++        grad_logits = torch.empty_like(logits)
++        for start in range(0, logits.shape[0], ctx.chunk_size):
++            stop = min(start + ctx.chunk_size, logits.shape[0])
++            scores = (logits[start:stop] / temps[start:stop, None]).float()
++            logsum = torch.logsumexp(scores, dim=-1, keepdim=True)
++            log_probs = scores - logsum
++            probs = log_probs.exp()
++            grad = torch.zeros_like(probs)
++            if grad_logp is not None:
++                g = grad_logp[start:stop, None].float()
++                grad = -probs * g
++                grad.scatter_add_(-1, labels[start:stop, None], g)
++            if grad_entropy is not None:
++                entropy = -(probs * log_probs).sum(-1, keepdim=True)
++                grad = grad - grad_entropy[start:stop, None].float() * probs * (log_probs + entropy)
++            grad_logits[start:stop].copy_(grad / temps[start:stop, None].float())
++        return grad_logits, None, None, None
++
++
++def scaled_chunked_logprobs_entropy(logits, labels, temperatures, chunk_size=128):
++    return _ScaledChunkedOutputs.apply(logits, labels, temperatures, chunk_size)
+diff --git a/verl/utils/weight_sync.py b/verl/utils/weight_sync.py
+new file mode 100644
+index 00000000..51859d90
+--- /dev/null
++++ b/verl/utils/weight_sync.py
+@@ -0,0 +1,55 @@
++"""Helpers for preparing sharded actor weights for rollout backends."""
++
++from __future__ import annotations
++
++import os
++
++import torch
++
++
++_SYNC_DTYPES = {
++    "bf16": torch.bfloat16,
++    "bfloat16": torch.bfloat16,
++    "fp16": torch.float16,
++    "float16": torch.float16,
++    "fp32": torch.float32,
++    "float32": torch.float32,
++}
++
++
++def rollout_sync_dtype() -> torch.dtype | None:
++    """Return an explicitly configured rollout transfer dtype, or None.
++
++    The default preserves VeRL's historical transfer behavior. Setting this
++    only changes the temporary synchronization representation; it never casts
++    or mutates the trainable parameters or optimizer state.
++    """
++    value = os.environ.get("VERL_SYNC_WEIGHT_DTYPE")
++    if value is None or not value.strip():
++        return None
++    try:
++        return _SYNC_DTYPES[value.strip().lower()]
++    except KeyError as exc:
++        raise ValueError(
++            f"Unsupported VERL_SYNC_WEIGHT_DTYPE={value!r}; choose bf16, fp16, or fp32"
++        ) from exc
++
++
++def materialize_rollout_weight(param, device: torch.device, dtype: torch.dtype | None):
++    """Stage a sharded tensor, cast its local shard, then gather if needed.
++
++    Casting before ``full_tensor`` bounds the temporary GPU allocation by the
++    rollout dtype. This is particularly useful when FP32 master parameters are
++    transferred to a BF16 rollout engine. The source parameter remains intact.
++    """
++    # FSDP2 CPUOffloadPolicy keeps the local master shard on CPU. Cast there
++    # first: moving an FP32 shard to an already crowded GPU and then allocating
++    # its BF16 copy can itself OOM before the lower-precision all-gather begins.
++    staged = param
++    if dtype is not None and staged.is_floating_point() and staged.dtype != dtype:
++        staged = staged.to(dtype=dtype)
++    staged = staged.to(device, non_blocking=True)
++
++    from torch.distributed.tensor import DTensor
++
++    return staged.full_tensor() if isinstance(staged, DTensor) else staged
