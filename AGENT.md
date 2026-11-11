@@ -1,5 +1,44 @@
 # 跨 Harness 安全对齐：新服务器接手说明
 
+## 2026-11-11：4B Harness Scaling × FlashRSI 接手（最高优先级）
+
+用户当前目标是先在 4B 上完成安全 RSI 预检，再在 4B/9B 上比较通用能力与安全效用；**不使用本项目教师 SFT 权重作为起点**。以 `experiments/cross_harness_sft/docs/safe_rsi_harness_scaling_experiment_20261111.md` 为实验主设计，其他旧 2B/9B 训练指令只作历史资料。优先阅读 `docs/harness_scaling_infrastructure_20261111.md`、`docs/flashrsi_integration_20261111.md` 和 `docs/4b_safe_rsi_local_launch_plan_20261111.md`（均位于 `experiments/cross_harness_sft/`）。
+
+**当前不是可直接启动正式训练的状态。** 五维配置和 K=2 任务分配、原始 rollout 的分段记录、GRPO 的分段评分/准入准备已有 CPU 原型。C1/C2 尚未接入真实训练循环及 optimizer；CHS-PO 分段路径、真实 autograd/分布式归约、actor 更新与 rollout 权重同步未验证。FlashRSI 上游 AHE 默认可修改全部组件，安全约束、真实环境与五维资源接线尚未完成。此前针对这些原型的 CPU 定向测试 26 项通过、2 项因 PyTorch 导入超时未验证；不能将超时当作通过。原有 C1/C2 fail-closed 不得解除来冒充已完成。
+
+新机器按以下顺序继续，不要覆盖历史运行目录或把历史 SFT/checkpoint 当成新主线：
+
+1. 核对 GPU 型号、空闲显存、RAM、磁盘、CUDA、容器隔离和任务环境；单张 A6000 48GB / 60GB RAM 适合先尝试资源受控预检，不能保证全参数训练可运行。旧入口的 80 GiB 宿主内存门槛不能因为换机直接删除；另做小规模资源预检，记录峰值。不要终止他人进程。
+2. 下载官方模型 `Qwen/Qwen3.5-4B`，固定 revision `851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a`，完成后核对模型、tokenizer 与文件完整性。Git 不包含模型、私有数据、输出或凭证：
+
+   ```bash
+   cd experiments/cross_harness_sft
+   hf download Qwen/Qwen3.5-4B --revision 851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a --local-dir checkpoints/qwen35-4b-instruct-official-851bf6e
+   git clone https://github.com/RUC-NLPIR/FlashRSI.git vendor/FlashRSI
+   git -C vendor/FlashRSI checkout --detach 778e2d01a995491fe63db210dcf46db1723a4430
+   git -C vendor/FlashRSI rev-parse HEAD
+   ```
+
+   FlashRSI 需要 Python >=3.11；依其上游说明在隔离环境安装。`--check-only` 不调用模型也不验证隔离；不要运行默认 AHE 资源演化直到不可变安全策略、工具权限、端点、沙箱、训练/测试隔离和候选验收已实现。FlashRSI 的资源演化不是模型参数 RL。
+3. 按仓库现有 `scripts/bootstrap_rl_sources.sh` 与实验文档准备并核对 VeRL、AgentDojo 和相关补丁的版本，单独准备 HarnessAudit；任务、fixtures、配对 ledger 和未见 family 划分需要重新准备和审计，Git 中的代码不是数据集。不要用旧测试家族参与训练。真实 reset、工具协议、独立 verifier、clean/attack 语义与副作用均须通过正反例验收。
+4. 在新机器重跑 CPU 测试（先建立含 pytest、PyTorch 和兼容 VeRL 的环境；无需 GPU）：
+
+   ```bash
+   cd experiments/cross_harness_sft
+   PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:vendor/verl python -m pytest -q \
+     tests/test_harness_scaling_infrastructure.py tests/test_harness_scaling_online_cpu.py \
+     tests/test_harness_segment_admission.py tests/test_harness_segment_dataproto.py \
+     tests/test_harness_segment_actor_bridge.py tests/test_harness_segment_pipeline.py \
+     tests/test_rl_whitebox_reward_contract_pair.py
+   ```
+
+5. 完成真实上下文压缩和 C1/C2 训练循环；按原 rollout 计算优势并检查 token mask、真实前缀、old/reference log-prob、全局 token 归约、policy 版本及 G=4 准入。接入 CHS-PO 和共享奖励契约，并做真实 autograd、跨微批/分布式数值比较。`validate_paired_profiles` 必须在对照运行间实际调用，单个运行内的 profile 校验不等于跨运行匹配已验证。
+6. 再做 4B 小规模真实在线预检：模型生成→环境执行和安全评分→一次有效 optimizer step→actor 到 rollout 同步→checkpoint 保存/恢复；分别记录资源、原始证据及可复现配置。LoRA 可作为单卡可行性预检，须标注且不得冒充全参数对照。接通 FlashRSI 的版本化资源和安全门禁，验证下一轮确实使用冻结的新产物。全部通过后再冻结 GRPO/CHS-PO 公平预算并启动正式实验。
+
+## 2026-11-11：当前研究方向更新
+
+用户确定新主线为**不做本项目教师轨迹 SFT、从官方 Qwen3.5-4B/9B 后训练模型出发，研究 Harness Scaling × RSI 的安全效用与 CHS-PO**。完整共识、历史代码可复用范围、评测及启动门槛见 `experiments/cross_harness_sft/docs/safe_rsi_harness_scaling_experiment_20261111.md`；下方 9B SFT 起点和真实 harness RL 启动顺序为历史设计，不覆盖新主线。目前新 4B 入口、完整五维配置和 RSI 闭环尚未验证；不能因 GPU 空闲而直接运行下方旧 2B/9B SFT 脚本冒充新实验。
+
 ## 2026-11-03：9B Harness Scaling 迁移入口
 
 - 9B 全参数 SFT 合并权重的上传目标是 Hugging Face `Limax11/harness_alignment` 中的 `qwen35-9b-sft-step291/`，下载前先确认该目录已上传完成。该目录用于从权重新初始化在线 RL，不能恢复 SFT 优化器。
