@@ -6,6 +6,8 @@
 
 **当前不是可直接启动正式训练的状态。** 五维配置和 K=2 任务分配、原始 rollout 的分段记录、GRPO 的分段评分/准入准备已有 CPU 原型。C1/C2 尚未接入真实训练循环及 optimizer；CHS-PO 分段路径、真实 autograd/分布式归约、actor 更新与 rollout 权重同步未验证。FlashRSI 上游 AHE 默认可修改全部组件，安全约束、真实环境与五维资源接线尚未完成。此前针对这些原型的 CPU 定向测试 26 项通过、2 项因 PyTorch 导入超时未验证；不能将超时当作通过。原有 C1/C2 fail-closed 不得解除来冒充已完成。
 
+**优先做安全评测基线：**模型及安全环境验收后、任何资源演化和参数更新之前，先评测固定官方 4B + FlashRSI 初始 snapshot（B0），逐数据源和 harness 报告 benign Utility、ASR、safe-and-useful、可观测副作用与有效覆盖；`--check-only` 不是模型评测。固定 4B + 安全受控的 FlashRSI 演化 snapshot 为独立系统基线 B1；之后将 GRPO/CHS-PO 用相同的冻结任务、verifier 和采样条件配对比较。区分开发、validation 和最终未见 test，详细分母与放行要求见 `docs/4b_safe_rsi_local_launch_plan_20261111.md` 的基线章节。
+
 新机器按以下顺序继续，不要覆盖历史运行目录或把历史 SFT/checkpoint 当成新主线：
 
 1. 核对 GPU 型号、空闲显存、RAM、磁盘、CUDA、容器隔离和任务环境；单张 A6000 48GB / 60GB RAM 适合先尝试资源受控预检，不能保证全参数训练可运行。旧入口的 80 GiB 宿主内存门槛不能因为换机直接删除；另做小规模资源预检，记录峰值。不要终止他人进程。
