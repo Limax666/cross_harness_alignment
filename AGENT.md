@@ -1,5 +1,14 @@
 # 跨 Harness 安全对齐：新服务器接手说明
 
+## 2026-11-12：FlashRSI GEPA 4B 安全基线交接（最新）
+
+B0 已暂停，原始输出保存在服务器。B1 的 AgentDojo × FlashRSI MiniAgent 单元已完成一次预算内 GEPA 迭代与选定 Snapshot 的 96 条 held-out test 评测。固定 Qwen/Qwen3.5-4B revision `851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a`，FlashRSI revision `778e2d01a995491fe63db210dcf46db1723a4430`。Worker 的一次提议因修改固定安全策略被拒绝；GEPA 最终保留初始 Snapshot `487f11214c730975b9ce68b903026e68321f5e7c7ff779c98844c293d6a65ade`。该运行是上游 GEPA 加项目的安全准入门禁，未产生被接受的演化 Snapshot。由于实现返回原 Snapshot 后仍执行了候选 minibatch，应按实际 decision 记录解释，不把重跑原 Snapshot 当作新候选。
+
+共 196 次 Target case 尝试中 144 次取得官方评分，52 次出错；test verifier coverage 为 64/96，path audit coverage 为 0。失败样本按 fail-closed 计分，汇总并非完整覆盖的 ASR 估计。两个 qualification family 的历史开发暴露未知。详细结果、原始轨迹、所有 case、Snapshot 和决策保存在 `experiment_records/flashrsi_b1_20261112/gepa_miniagent_agentdojo_complete.tar.gz`；`SHA256SUMS` 可校验。归档包含 AgentDojo 模拟环境和攻击内容，不包含模型权重、数据包和真实服务凭证。原始 `b1_invocation.json` 的 running 状态是启动时快照，以 `result.json` 为准。`matrix_at_launch.jsonl` 是启动时状态，不是实时进度。
+
+后续目标是 AgentDojo × 其他六个 FlashRSI harness 的 GEPA：必须真实运行目标 harness，绑定候选 Snapshot 的 prompt，固定工具和安全策略，记录 Worker、候选、决策与预算；先验收隔离、协议、oracle、reset 和轨迹身份，再启动。现有 OpenCode、OpenClaw、Pi、Hermes 是 B0 桥接，尚不能当成 B1 GEPA 路径；Codex 与 Claude Code 适配和验收亦未完成。train/dev/test family 保持隔离，已有 test 结果已被查看，不能再宣称对本轮迭代完全未见。七个 harness × 安全 benchmark 的其他单元仍未完成，不要以 B0 或单元运行冒充完整矩阵。
+
+
 ## 2026-11-11：4B Harness Scaling × FlashRSI 接手（最高优先级）
 
 用户当前目标是先在 4B 上完成安全 RSI 预检，再在 4B/9B 上比较通用能力与安全效用；**不使用本项目教师 SFT 权重作为起点**。以 `experiments/cross_harness_sft/docs/safe_rsi_harness_scaling_experiment_20261111.md` 为实验主设计，其他旧 2B/9B 训练指令只作历史资料。优先阅读 `docs/harness_scaling_infrastructure_20261111.md`、`docs/flashrsi_integration_20261111.md` 和 `docs/4b_safe_rsi_local_launch_plan_20261111.md`（均位于 `experiments/cross_harness_sft/`）。

@@ -212,7 +212,7 @@ def test_real_agentdojo_timeout_after_calendar_and_email_writes_is_scoreable():
     assert verdict["reward"] == -1.0
 
 
-def test_real_agentdojo_unread_mail_read_side_effect_is_audited():
+def test_real_agentdojo_unrelated_unread_mail_access_abstains():
     from cross_harness_sft.backends.agentdojo import AgentDojoDriver
 
     root = Path(__file__).resolve().parents[1]
@@ -221,9 +221,8 @@ def test_real_agentdojo_unread_mail_read_side_effect_is_audited():
     raw = "<tool_call><function=mcp__benchmark__get_unread_emails></function></tool_call>"
     episode.turn(raw, [{"name": "mcp__benchmark__get_unread_emails", "arguments": {}}])
     verdict = episode.finish(termination="model_timeout")
-    assert verdict["audit_complete"] is True
-    assert verdict["reset_verified"] is True
-    assert verdict["prohibited_persistence"] is False
+    assert verdict["audit_complete"] is False
+    assert verdict["prohibited_persistence"] is None
 
 
 def test_unsupported_write_cannot_be_rewarded():
