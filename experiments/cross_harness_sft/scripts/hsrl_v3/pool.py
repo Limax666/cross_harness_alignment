@@ -236,6 +236,134 @@ def validate_lifecycle_split(split: dict, source_tasks: list[dict]) -> dict:
             "condition_counts": dict(condition_counts), "assignment_sha256": hashlib.sha256(json.dumps(expected, sort_keys=True).encode()).hexdigest()}
 
 
+
+def _tree_digest_from_hashes(files: dict[str, str]) -> str:
+    value = hashlib.sha256()
+    for name in sorted(files, key=lambda name: Path(name).parts):
+        value.update(name.encode())
+        value.update(b"\0")
+        value.update(bytes.fromhex(files[name]))
+    return value.hexdigest()
+
+
+def verify_hf_task_assets(task_dir: Path, expected: dict[str, str]) -> None:
+    if task_dir.is_symlink():
+        raise ValueError("HF_consumed_task_symlink")
+    actual = {}
+    for path in task_dir.rglob("*"):
+        if path.is_symlink():
+            raise ValueError("HF_consumed_asset_symlink:" + str(path))
+        if path.is_file():
+            actual[path.relative_to(task_dir).as_posix()] = sha256_file(path)
+    if set(actual) != set(expected):
+        raise ValueError("HF_consumed_asset_file_set_mismatch:" + task_dir.name)
+    for name in expected:
+        if actual[name] != expected[name]:
+            raise ValueError("HF_consumed_asset_bytes_mismatch:" + task_dir.name + "/" + name)
+
+
+def verify_hf_selected_source(tasks_root: Path, selection_repo: Path) -> dict:
+    """Independently derive all selected asset hashes from fixed raw HF bytes.
+
+    HF_MATERIALIZATION is compared to this derivation as an index, never used as
+    a self-signed trust root. No source code or payload is executed.
+    """
+    from .claw_backend import HF_REVISION, HF_SHA256, PINNED_REVISION
+    tasks_root, selection_repo = Path(tasks_root).resolve(), Path(selection_repo).resolve()
+    index = json.loads((tasks_root.parent / "HF_MATERIALIZATION.json").read_text())
+    if index.get("hf_revision") != HF_REVISION or index.get("raw_sha256") != HF_SHA256 or index.get("selection_revision") != PINNED_REVISION:
+        raise ValueError("HF_materialization_revision_binding_mismatch")
+    selection_proof = verify_pinned_tree(selection_repo, PINNED_REVISION, ["RL/data/clawgym_train"])
+    selected_root = selection_repo / "RL/data/clawgym_train"
+    if index.get("repo") != "RUC-AIBOX/ClawGym-Task" or Path(index.get("selection_root", "")).resolve() != selected_root:
+        raise ValueError("HF_materialization_index_selection_origin_mismatch")
+    selected = {}
+    for path in sorted(selected_root.glob("*/data_entry.json")):
+        entry = json.loads(path.read_text())
+        prompt_sha = hashlib.sha256(entry["user_query"].strip().encode()).hexdigest()
+        if prompt_sha in selected:
+            raise ValueError("ambiguous_pinned_selection_prompt")
+        selected[prompt_sha] = (path.parent.name, entry, path)
+    if len(selected) != 2000:
+        raise ValueError("pinned_selection_count_mismatch")
+    raw = Path(index["raw_path"]).resolve(strict=True)
+    records, restored, seen = {}, [], set()
+    raw_digest, raw_count, existing_asset_count = hashlib.sha256(), 0, 0
+    with raw.open("rb") as stream:
+        for raw_count, line in enumerate(stream, 1):
+            raw_digest.update(line)
+            row = json.loads(line)
+            prompt_sha = hashlib.sha256(row["prompt"].strip().encode()).hexdigest()
+            if prompt_sha not in selected:
+                continue
+            task_id, entry, entry_path = selected[prompt_sha]
+            if task_id in seen:
+                raise ValueError("duplicate_selected_HF_record")
+            seen.add(task_id)
+            source_assets, expected = set(), {}
+            hf_asset_hashes = {}
+            for asset in row["input_files"]:
+                name = Path(asset["file_path"])
+                if name.is_absolute() or ".." in name.parts or not name.parts or "\\" in asset["file_path"]:
+                    raise ValueError("unsafe_HF_source_asset_path")
+                if name.as_posix() in source_assets:
+                    raise ValueError("duplicate_HF_source_asset_path")
+                source_assets.add(name.as_posix())
+                if name.parts[0] == "reward":
+                    if len(name.parts) < 2:
+                        raise ValueError("invalid_HF_reward_path")
+                    output = Path("reward/check.py") if name.parts[1:] == ("test.py",) else name
+                else:
+                    output = Path("input_files") / name
+                key = output.as_posix()
+                if key in expected:
+                    raise ValueError("colliding_HF_adapted_asset_path")
+                data = asset["content"].encode()
+                expected[key] = hashlib.sha256(data).hexdigest()
+                hf_asset_hashes[key] = expected[key]
+                old = selected_root / task_id / output
+                if old.exists():
+                    if old.read_bytes() != data:
+                        raise ValueError("pinned_Git_asset_differs_from_selected_HF_record:" + task_id + "/" + key)
+                    existing_asset_count += 1
+                else:
+                    restored.append({"task": task_id, "path": key, "sha256": expected[key]})
+            entry_bytes = (json.dumps(entry, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode()
+            expected["data_entry.json"] = hashlib.sha256(entry_bytes).hexdigest()
+            wrapper = selected_root / task_id / "reward/reward.sh"
+            expected["reward/reward.sh"] = sha256_file(wrapper)
+            verify_hf_task_assets(tasks_root / task_id, expected)
+            record = {"id": task_id, "hf_line": raw_count, "prompt_sha256": prompt_sha,
+                "hf_record_sha256": hashlib.sha256(line.rstrip(b"\r\n")).hexdigest(),
+                "hf_record_canonical_sha256": hashlib.sha256(json.dumps(row, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode()).hexdigest(),
+                "file_hashes": expected, "files": hf_asset_hashes, "tree_sha256": _tree_digest_from_hashes(expected),
+                "selection_entry_sha256": sha256_file(entry_path)}
+            records[task_id] = record
+    if raw_digest.hexdigest() != HF_SHA256:
+        raise ValueError("HF_raw_bytes_differ_from_frozen_revision")
+    if raw_count != 15402 or len(records) != 2000 or {p.name for p in tasks_root.iterdir()} != set(records):
+        raise ValueError("HF_fixed_selected_2000_identity_or_raw_count_mismatch")
+    declared_records = index.get("records", [])
+    declared = {record["id"]: record for record in declared_records}
+    if len(declared_records) != 2000 or set(declared) != set(records) or index.get("selection_count") != 2000:
+        raise ValueError("HF_materialization_index_identity_mismatch")
+    for task_id, record in records.items():
+        for key in ("hf_line", "prompt_sha256", "hf_record_sha256", "files", "tree_sha256"):
+            if declared[task_id].get(key) != record[key]:
+                raise ValueError("HF_materialization_index_differs_from_fixed_raw_derivation:" + task_id + ":" + key)
+    signature = lambda rows: {(row["task"], row["path"], row["sha256"]) for row in rows}
+    if signature(index.get("restored_HF_input_files", [])) != signature(restored):
+        raise ValueError("HF_restored_asset_index_mismatch")
+    return {"verified": True, "format": "hf_selected2k", "repo": "RUC-AIBOX/ClawGym-Task",
+        "hf_revision": HF_REVISION, "hf_sha256": HF_SHA256, "raw_path": str(raw), "raw_record_count": raw_count,
+        "selection_revision": PINNED_REVISION, "selected_count": len(records),
+        "existing_Git_asset_count": existing_asset_count, "restored_input_count": len(restored),
+        "restored_HF_input_files": restored, "selection_pinned_bytes": selection_proof,
+        "materialization_index_sha256": sha256_file(tasks_root.parent / "HF_MATERIALIZATION.json"),
+        "adaptations": ["reward/test.py renamed reward/check.py without changing bytes", "data_entry serialized as canonical sorted JSON from pinned selection", "official reward.sh copied from pinned Git selection"],
+        "records": records}
+
+
 def prepare_pool(project_root: Path, claw_root: Path, out: Path) -> dict:
     """V4: official ClawGym selected RL plus frozen SkillLife lifecycle only."""
     from .claw_backend import PINNED_REVISION as CLAW_REVISION, qualification as claw_qualification, source_contract
@@ -246,7 +374,16 @@ def prepare_pool(project_root: Path, claw_root: Path, out: Path) -> dict:
     life_root = exp / "vendor/skilllifebench_security_research_20261116"
     split_path = Path(__file__).resolve().parents[2] / "docs/research/skilllife_lifecycle_split_20261116.json"
     manifest_path = life_root / "data/lifecycle/protocol/task-manifest.json"
-    pinned_sources = {"clawgym": verify_pinned_tree(claw_root, CLAW_REVISION, ["RL/data/clawgym_train"]),
+    hf_proof = None
+    if (claw_root.parent / "HF_MATERIALIZATION.json").is_file():
+        selection_repo = exp / "vendor/clawgym_agents_hsrl_v3_0e8526d"
+        hf_proof = verify_hf_selected_source(claw_root, selection_repo)
+        claw_tasks_root = claw_root
+        claw_pinned = {key: value for key, value in hf_proof.items() if key != "records"}
+    else:
+        claw_tasks_root = claw_root / "RL/data/clawgym_train"
+        claw_pinned = verify_pinned_tree(claw_root, CLAW_REVISION, ["RL/data/clawgym_train"])
+    pinned_sources = {"clawgym": claw_pinned,
                       "skilllifebench": verify_pinned_tree(life_root, LIFE_REVISION, ["skilllifebench", "data/lifecycle/protocol/task-manifest.json"])}
     split = json.loads(split_path.read_text())
     if split["source_revision"] != LIFE_REVISION or split["source_manifest_sha256"] != MANIFEST_SHA256 or sha256_file(manifest_path) != MANIFEST_SHA256:
@@ -258,12 +395,23 @@ def prepare_pool(project_root: Path, claw_root: Path, out: Path) -> dict:
     split_admission = validate_lifecycle_split(split, source_tasks)
     code_hashes = source_code_hashes(life_root)
     rows, claw_rows = [], []
-    for path in sorted((claw_root / "RL/data/clawgym_train").glob("*/data_entry.json")):
+    for path in sorted(claw_tasks_root.glob("*/data_entry.json")):
         data = json.loads(path.read_text())
         row = _record("clawgym", data["task_id"], "pending_source_template", path,
                       source_revision=CLAW_REVISION, source_tree_sha256=tree_digest(path.parent))
+        if hf_proof is not None:
+            record = hf_proof["records"][row["id"]]
+            row["source_revision"] = hf_proof["hf_revision"]
+            row["source_sha256"] = record["file_hashes"]["data_entry.json"]
+            row["source_tree_sha256"] = record["tree_sha256"]
+            row["source_identity"] = {"format": "hf_selected2k", "hf_revision": hf_proof["hf_revision"],
+                "hf_sha256": hf_proof["hf_sha256"], "selection_revision": CLAW_REVISION,
+                "official_selection_id": row["id"], "hf_line": record["hf_line"],
+                "hf_record_sha256": record["hf_record_sha256"],
+                "hf_record_canonical_sha256": record["hf_record_canonical_sha256"],
+                "selection_entry_sha256": record["selection_entry_sha256"]}
         row["input_contract"] = source_contract(path)
-        row["exclusion_reasons"] = claw_qualification(path, contract=row["input_contract"])
+        row["exclusion_reasons"] = claw_qualification(path, contract=row["input_contract"], source_identity=row.get("source_identity"))
         row["qualified"] = not row["exclusion_reasons"]
         row["input_assets_optional"] = True
         if row["exclusion_reasons"]:
@@ -323,6 +471,8 @@ def prepare_pool(project_root: Path, claw_root: Path, out: Path) -> dict:
     for split_name, group in grouped.items():
         write_json(out / (split_name + ".json"), group)
     write_json(out / "exclusions.json", exclusions)
+    if hf_proof is not None:
+        write_json(out / "hf_consumed_source_proof.json", hf_proof)
     write_json(out / "claw_source_contract_audit.json", {"source_task_count": len(claw_rows),
         "method": "user_goal_clauses_plus_actual_fixtures_and_checker_AST_not_URL_presence",
         "tasks": [{"id": row["id"], "qualified": row["qualified"], "reasons": row["exclusion_reasons"],

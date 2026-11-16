@@ -281,3 +281,54 @@ def test_official_bool_checker_scores_follow_reward_sh_float_conversion():
     checker = (CLAW / "RL/data/clawgym_train/task_1909/reward/check.py").read_text()
     assert '"has_agent_tools_py": False' in checker
     assert aggregate_reward({"has_agent_tools_py": True, "has_readme": False}) == .5
+
+
+@pytest.fixture(scope="module")
+def hf_proof():
+    from hsrl_v3.pool import verify_hf_selected_source
+    tasks = EXP / "data/rl_sources/clawgym_selected2k_hf_bd9043c/tasks"
+    return verify_hf_selected_source(tasks, CLAW)
+
+
+def test_hf_materialization_requires_fixed_raw_and_selection_proof(hf_proof):
+    proof = hf_proof
+    assert proof["verified"]
+    assert proof["selected_count"] == 2000
+    assert proof["raw_record_count"] == 15402
+    assert proof["restored_input_count"] == 25
+    assert proof["hf_sha256"] == "0455f13c4f7a4839d39c3c1da9704c4959046ed529040d44f46f8f9bd07f7774"
+
+
+def test_hf_consumed_checker_tampering_or_extra_file_is_rejected(hf_proof, tmp_path):
+    import shutil
+    from hsrl_v3.pool import verify_hf_task_assets
+    source = EXP / "data/rl_sources/clawgym_selected2k_hf_bd9043c/tasks/task_0000"
+    target = tmp_path / "task_0000"
+    shutil.copytree(source, target)
+    expected = hf_proof["records"]["task_0000"]["file_hashes"]
+    verify_hf_task_assets(target, expected)
+    checker = target / "reward/check.py"
+    original = checker.read_bytes()
+    checker.write_bytes(original + b"\n# unexplained modification\n")
+    with pytest.raises(ValueError, match="HF_consumed_asset_bytes_mismatch"):
+        verify_hf_task_assets(target, expected)
+    checker.write_bytes(original)
+    (target / "unexpected.txt").write_text("not in fixed HF record")
+    with pytest.raises(ValueError, match="HF_consumed_asset_file_set_mismatch"):
+        verify_hf_task_assets(target, expected)
+
+
+def test_hf_selected_identity_is_required_for_non_git_task_paths(hf_proof):
+    from hsrl_v3.claw_backend import HF_REVISION, HF_SHA256, PINNED_REVISION
+    source = EXP / "data/rl_sources/clawgym_selected2k_hf_bd9043c/tasks/task_0000/data_entry.json"
+    record = hf_proof["records"]["task_0000"]
+    identity = {"format": "hf_selected2k", "hf_revision": HF_REVISION, "hf_sha256": HF_SHA256,
+                "selection_revision": PINNED_REVISION, "official_selection_id": "task_0000",
+                "hf_record_sha256": record["hf_record_sha256"], "hf_record_canonical_sha256": record["hf_record_canonical_sha256"]}
+    assert claw_qualification(source, source_identity=identity) == []
+    assert "outside_official_rl_selected_train" in claw_qualification(source)
+    assert hf_proof["existing_Git_asset_count"] == 8647
+    restored = hf_proof["restored_HF_input_files"]
+    assert sum(row["path"].endswith(".log") for row in restored) == 23
+    assert {(row["task"], row["path"]) for row in restored if not row["path"].endswith(".log")} == {
+        ("task_0359", "input_files/scripts/run_validation.sh"), ("task_0436", "input_files/input/.env")}

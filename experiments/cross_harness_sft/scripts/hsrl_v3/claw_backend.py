@@ -11,6 +11,8 @@ import shutil
 from .backends import checked_source, invalid, tree_digest, write_json, sha256_file
 
 PINNED_REVISION = "0e8526d8f5e0999896c74cee4d6b998fb8a0429e"
+HF_REVISION = "bd9043cff88b913922a165d9c022a4796aee3f3a"
+HF_SHA256 = "0455f13c4f7a4839d39c3c1da9704c4959046ed529040d44f46f8f9bd07f7774"
 REWARD_SH = """#!/usr/bin/env bash
 set -euo pipefail
 
@@ -203,7 +205,7 @@ def input_integrity_violations(workspace: Path, contract: dict) -> list[str]:
     return violations
 
 
-def qualification(path: Path, *, contract: dict | None = None) -> list[str]:
+def qualification(path: Path, *, contract: dict | None = None, source_identity: dict | None = None) -> list[str]:
     reasons = []
     root = path.parent
     if not (root / "reward/check.py").is_file():
@@ -220,7 +222,12 @@ def qualification(path: Path, *, contract: dict | None = None) -> list[str]:
         deps = contract["dependency_contract"]
         if deps["unavailable_required_checker_modules"] or deps["unresolved_requested_execution_modules"]:
             reasons.append("required_third_party_dependency_contract_pending")
-    if "clawgym_train" not in path.parts or "clawgym_eval" in path.parts:
+    hf_selected = bool(source_identity and source_identity.get("format") == "hf_selected2k"
+        and source_identity.get("hf_revision") == HF_REVISION and source_identity.get("hf_sha256") == HF_SHA256
+        and source_identity.get("selection_revision") == PINNED_REVISION
+        and source_identity.get("official_selection_id") == path.parent.name
+        and source_identity.get("hf_record_canonical_sha256") and source_identity.get("hf_record_sha256"))
+    if ("clawgym_train" not in path.parts and not hf_selected) or "clawgym_eval" in path.parts:
         reasons.append("outside_official_rl_selected_train")
     data = json.loads(path.read_text())
     if not isinstance(data.get("user_query"), str) or not data["user_query"].strip():
@@ -254,7 +261,7 @@ class ClawBackend:
     def __init__(self, task: dict, workspace: Path, evidence_dir: Path):
         from .sandbox import WorkspaceTools
         path = checked_source(task)
-        reasons = qualification(path)
+        reasons = qualification(path, source_identity=task.get("source_identity"))
         if reasons:
             raise ValueError(";".join(reasons))
         self.task, self.source_dir = task, path.parent
@@ -281,6 +288,7 @@ class ClawBackend:
         self.finished, self.closed = False, False
         write_json(self.evidence_dir / "source_provenance.json", {
             "source_path": str(path), "source_sha256": task["source_sha256"],
+            "source_identity": task.get("source_identity", {"format": "pinned_git_selected2k", "revision": PINNED_REVISION}),
             "source_tree_sha256": task.get("source_tree_sha256"),
             "checker_tree_sha256": tree_digest(self.source_dir / "reward"),
             "adaptation": "unchanged_check.py_in_private_grader_invoked_with_frozen_workspace_snapshot",
@@ -316,7 +324,8 @@ class ClawBackend:
                       "c_source": None, "persistence": None,
                       "metrics": {"official_checker_scores": raw,
                                   "safety_oracle_applicable": False,
-                                  "source_protocol": "clawgym_private_grader_adaptation_v3"},
+                                  "source_protocol": "clawgym_private_grader_adaptation_v4",
+                                  "source_format": self.task.get("source_identity", {}).get("format", "pinned_git_selected2k")},
                       "evidence": {"private_grade": str(self.evidence_dir / "private_grade.json"),
                                    "source_provenance": str(self.evidence_dir / "source_provenance.json")}}
         except Exception as exc:
