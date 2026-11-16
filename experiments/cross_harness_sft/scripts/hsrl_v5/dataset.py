@@ -62,6 +62,8 @@ class Dataset:
         if (self.manifest.get('schema') != SCHEMA or self.manifest.get('status') != status
                 or self.manifest.get('reward_contract') != VERSION):
             raise ValueError('unadmitted_or_incompatible_release_manifest')
+        from .release import validate_core_identity
+        validate_core_identity(self.manifest, root=self.root)
         self.files = self.manifest['file_sha256']
         code_root = Path(__file__).resolve().parent.parent
         runtime = self.manifest.get('runtime_module_sha256')
@@ -76,6 +78,7 @@ class Dataset:
             self.verify_file('code/' + name)
         self.verify_file('train.jsonl')
         rows = [json.loads(line) for line in (self.root / 'train.jsonl').open()]
+        validate_core_identity(self.manifest, rows, self.root)
         self.index = {(row['source'], row['id']): row for row in rows}
         if len(self.index) != len(rows):
             raise ValueError('duplicate_release_task_condition')
@@ -143,7 +146,10 @@ class Dataset:
         record = self.record(key)
         if record['source'] == 'agentdog':
             from .agentdog_backend import AgentDogBackend
+            from .release import GRADER_SHA256
             grader = self.verify_file(self.manifest['agentdog_grader_path'])
+            if file_hash(grader) != GRADER_SHA256:
+                raise ValueError('release_private_grader_pin_changed')
             backend = AgentDogBackend(record, evidence_dir, grader_path=grader)
         elif record['source'] == 'clawgym':
             from .claw_backend import ClawBackend
