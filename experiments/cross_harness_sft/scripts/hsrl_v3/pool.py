@@ -10,7 +10,7 @@ import random
 import re
 import subprocess
 
-from .backends import sha256_file, tree_digest, write_json
+from .backends import sha256_file, tree_digest, write_json, verify_pinned_tree
 
 SEED = 20261116
 REFERENCE_WEIGHTS_V3 = {"clawgym": 0.75, "harnesssafe": 0.125, "harnessaudit": 0.125}
@@ -182,9 +182,63 @@ def prepare_reference_pool_v3(project_root: Path, claw_root: Path, out: Path) ->
     return payload
 
 
+
+def validate_lifecycle_split(split: dict, source_tasks: list[dict]) -> dict:
+    """Recompute the approved template assignment, independent of mutable labels."""
+    if split.get("seed") != SEED:
+        raise ValueError("lifecycle_split_seed_changed")
+    by_id = {row["id"]: row for row in source_tasks}
+    frozen_rows = split.get("tasks", [])
+    if len(source_tasks) != 60 or len(by_id) != 60 or len(frozen_rows) != 60 or {row["id"] for row in frozen_rows} != set(by_id):
+        raise ValueError("lifecycle_split_identity_or_duplicate_error")
+    template_classes, template_parents, template_sizes = {}, {}, Counter()
+    parents_to_template = {}
+    for row in source_tasks:
+        template, risk, parent = row["template_id"], row["class"], row["parent_id"]
+        if risk not in {"B", "D", "E"} or template_classes.get(template, risk) != risk or template_parents.get(template, parent) != parent:
+            raise ValueError("lifecycle_template_class_or_parent_crossing")
+        if parents_to_template.get(parent, template) != template:
+            raise ValueError("lifecycle_parent_crosses_template")
+        template_classes[template], template_parents[template] = risk, parent
+        parents_to_template[parent] = template
+        template_sizes[template] += 1
+    if len(template_sizes) != 12 or set(template_sizes.values()) != {5}:
+        raise ValueError("lifecycle_template_instance_counts_changed")
+    expected = {}
+    for risk in ("B", "D", "E"):
+        templates = [template for template, value in template_classes.items() if value == risk]
+        if len(templates) != 4:
+            raise ValueError("lifecycle_class_template_count_changed")
+        templates.sort(key=lambda template: hashlib.sha256(f"{SEED}|{template}".encode()).hexdigest())
+        expected.update({template: "train" if index < 2 else "dev" if index == 2 else "test" for index, template in enumerate(templates)})
+    instance_counts, condition_counts = Counter(), Counter()
+    for row in frozen_rows:
+        source = by_id[row["id"]]
+        if any(row.get(key) != source[key] for key in ("template_id", "parent_id", "class")):
+            raise ValueError("lifecycle_split_source_binding_changed")
+        if row.get("split") != expected[source["template_id"]] or sorted(row.get("conditions", [])) != ["attack", "clean"]:
+            raise ValueError("lifecycle_deterministic_split_or_pair_changed")
+        instance_counts[row["split"]] += 1
+        condition_counts[row["split"]] += len(row["conditions"])
+    counts = Counter(expected.values())
+    if counts != {"train": 6, "dev": 3, "test": 3} or instance_counts != {"train": 30, "dev": 15, "test": 15} or condition_counts != {"train": 60, "dev": 30, "test": 30}:
+        raise ValueError("lifecycle_actual_split_counts_changed")
+    if split.get("template_counts") != dict(counts) or split.get("instance_counts") != dict(instance_counts) or split.get("condition_counts") != dict(condition_counts):
+        raise ValueError("lifecycle_declared_split_counts_inconsistent")
+    declared_templates = split.get("templates", [])
+    if len(declared_templates) != 12 or {row["template_id"] for row in declared_templates} != set(expected):
+        raise ValueError("lifecycle_declared_template_table_inconsistent")
+    for row in declared_templates:
+        if row.get("split") != expected[row["template_id"]] or row.get("parent_id") != template_parents[row["template_id"]] or row.get("class") != template_classes[row["template_id"]]:
+            raise ValueError("lifecycle_declared_template_assignment_inconsistent")
+    return {"verified": True, "rule": "sha256(20261116|template)_BDE_2train_1dev_1test",
+            "template_counts": dict(counts), "instance_counts": dict(instance_counts),
+            "condition_counts": dict(condition_counts), "assignment_sha256": hashlib.sha256(json.dumps(expected, sort_keys=True).encode()).hexdigest()}
+
+
 def prepare_pool(project_root: Path, claw_root: Path, out: Path) -> dict:
     """V4: official ClawGym selected RL plus frozen SkillLife lifecycle only."""
-    from .claw_backend import PINNED_REVISION as CLAW_REVISION, qualification as claw_qualification
+    from .claw_backend import PINNED_REVISION as CLAW_REVISION, qualification as claw_qualification, source_contract
     from .skilllife_backend import (PINNED_REVISION as LIFE_REVISION, MANIFEST_SHA256,
         canonical_digest, qualification as life_qualification, source_code_hashes)
     project_root, claw_root, out = Path(project_root).resolve(), Path(claw_root).resolve(), Path(out).resolve()
@@ -192,10 +246,8 @@ def prepare_pool(project_root: Path, claw_root: Path, out: Path) -> dict:
     life_root = exp / "vendor/skilllifebench_security_research_20261116"
     split_path = Path(__file__).resolve().parents[2] / "docs/research/skilllife_lifecycle_split_20261116.json"
     manifest_path = life_root / "data/lifecycle/protocol/task-manifest.json"
-    for root, expected in ((claw_root, CLAW_REVISION), (life_root, LIFE_REVISION)):
-        revision = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
-        if revision != expected:
-            raise ValueError("source_revision_not_pinned:" + str(root))
+    pinned_sources = {"clawgym": verify_pinned_tree(claw_root, CLAW_REVISION, ["RL/data/clawgym_train"]),
+                      "skilllifebench": verify_pinned_tree(life_root, LIFE_REVISION, ["skilllifebench", "data/lifecycle/protocol/task-manifest.json"])}
     split = json.loads(split_path.read_text())
     if split["source_revision"] != LIFE_REVISION or split["source_manifest_sha256"] != MANIFEST_SHA256 or sha256_file(manifest_path) != MANIFEST_SHA256:
         raise ValueError("skilllife_frozen_manifest_binding_mismatch")
@@ -203,13 +255,15 @@ def prepare_pool(project_root: Path, claw_root: Path, out: Path) -> dict:
     source_tasks = json.loads(manifest_path.read_text())["tasks"]
     if len(source_tasks) != 60 or len(split_by_id) != 60 or {row["id"] for row in source_tasks} != set(split_by_id):
         raise ValueError("skilllife_frozen_task_identity_mismatch")
+    split_admission = validate_lifecycle_split(split, source_tasks)
     code_hashes = source_code_hashes(life_root)
     rows, claw_rows = [], []
     for path in sorted((claw_root / "RL/data/clawgym_train").glob("*/data_entry.json")):
         data = json.loads(path.read_text())
         row = _record("clawgym", data["task_id"], "pending_source_template", path,
                       source_revision=CLAW_REVISION, source_tree_sha256=tree_digest(path.parent))
-        row["exclusion_reasons"] = claw_qualification(path)
+        row["input_contract"] = source_contract(path)
+        row["exclusion_reasons"] = claw_qualification(path, contract=row["input_contract"])
         row["qualified"] = not row["exclusion_reasons"]
         row["input_assets_optional"] = True
         if row["exclusion_reasons"]:
@@ -245,6 +299,7 @@ def prepare_pool(project_root: Path, claw_root: Path, out: Path) -> dict:
     grouped = {s: [row for row in qualified if row["split"] == s] for s in ("train", "dev", "test")}
     exclusions = [row for row in rows if not row["qualified"]]
     payload = {"schema_version": 4, "protocol": "clawgym_skilllife_online_rl_v4", "seed": SEED,
+        "pinned_consumed_sources": pinned_sources, "split_admission": split_admission,
         "source_weights": WEIGHTS, "source_condition_weights": {"clawgym": {"benign": 1.0}, "skilllifebench": {"clean": .5, "attack": .5}},
         "source_counts": {"clawgym": len(claw_rows), "skilllifebench": len(source_tasks)},
         "condition_counts": dict(Counter(row["source"] for row in rows)),
@@ -268,6 +323,10 @@ def prepare_pool(project_root: Path, claw_root: Path, out: Path) -> dict:
     for split_name, group in grouped.items():
         write_json(out / (split_name + ".json"), group)
     write_json(out / "exclusions.json", exclusions)
+    write_json(out / "claw_source_contract_audit.json", {"source_task_count": len(claw_rows),
+        "method": "user_goal_clauses_plus_actual_fixtures_and_checker_AST_not_URL_presence",
+        "tasks": [{"id": row["id"], "qualified": row["qualified"], "reasons": row["exclusion_reasons"],
+                   "contract": row["input_contract"]} for row in claw_rows]})
     return payload
 
 

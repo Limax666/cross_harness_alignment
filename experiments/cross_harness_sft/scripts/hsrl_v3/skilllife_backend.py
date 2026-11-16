@@ -25,6 +25,33 @@ CONTEXT_TOOL = {"type": "function", "function": {"name": "read_file",
                    "required": ["path"], "additionalProperties": False}}}
 
 
+class ModelProtocolError(ValueError):
+    reason = "invalid_tool_call"
+
+
+def validate_public_call(tools: list[dict], name: str, arguments: dict) -> None:
+    from jsonschema import Draft202012Validator
+    schemas = {tool["function"]["name"]: tool["function"]["parameters"] for tool in tools}
+    try:
+        if name not in schemas or not isinstance(arguments, dict):
+            raise ValueError("unknown_tool_or_non_object_arguments")
+        json.dumps(arguments, allow_nan=False)
+        Draft202012Validator(schemas[name]).validate(arguments)
+    except Exception as exc:
+        raise ModelProtocolError(f"{type(exc).__name__}:{exc}") from exc
+
+
+def classify_source_failure(*, exception: BaseException | None = None, receipt: dict | None = None) -> dict | None:
+    if exception is not None:
+        reason = getattr(exception, "reason", type(exception).__name__)
+        return {"kind": "model_protocol" if reason == "invalid_tool_call" else "source_execution",
+                "reason": reason, "detail": str(exception)}
+    if receipt is not None and receipt.get("status") != "ok":
+        return {"kind": "source_execution", "reason": receipt.get("status", "missing_receipt_status"),
+                "detail": receipt.get("execution_error"), "receipt_status": receipt.get("status")}
+    return None
+
+
 def canonical_digest(value: object) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
                                     separators=(",", ":"), allow_nan=False).encode()).hexdigest()
@@ -36,6 +63,8 @@ def source_code_hashes(root: Path) -> dict[str, str]:
 
 def import_source(root: Path):
     root = root.resolve(strict=True)
+    # Source checkouts are read-only dependencies, including lazy grader imports.
+    sys.dont_write_bytecode = True
     loaded = sys.modules.get("skilllifebench")
     if loaded is not None and Path(loaded.__file__).resolve().parent != root / "skilllifebench":
         raise ValueError("different_skilllifebench_package_already_loaded")
@@ -96,6 +125,7 @@ class SkillLifeBackend:
         self.stack = ExitStack()
         self.closed, self.finished, self.failures = False, False, []
         self.stop_reason = "completed"
+        self.protocol_errors = []
         try:
             # Preserve official defaults; no fallback to an unisolated executor.
             self.executor = self.stack.enter_context(executor_module.IsolatedExecutor())
@@ -131,21 +161,43 @@ class SkillLifeBackend:
     def call(self, name: str, arguments: dict) -> str:
         if self.closed or self.finished:
             raise RuntimeError("backend_closed_or_finished")
+        try:
+            validate_public_call(self.tools, name, arguments)
+        except ModelProtocolError as exc:
+            failure = {"kind": "model_protocol", "reason": exc.reason, "detail": str(exc),
+                       "name": name, "arguments": arguments, "executed": False}
+            self.protocol_errors.append(failure)
+            write_json(self.evidence_dir / "protocol_errors.json", self.protocol_errors)
+            return json.dumps({"error": "invalid_tool_call", "detail": str(exc), "executed": False})
         if name == "read_file":
             return self._read_context(arguments)
-        if name not in {tool["function"]["name"] for tool in self.source_backend.public_tools}:
-            raise ValueError("unknown_tool:" + name)
         before = len(self.source_backend.events)
         try:
-            return self.source_backend.execute(name, copy.deepcopy(arguments), call_id=f"hsrl_{before:04d}")
-        except BaseException as exc:
-            self.failures.append(f"{type(exc).__name__}:{exc}")
+            result = self.source_backend.execute(name, copy.deepcopy(arguments), call_id=f"hsrl_{before:04d}")
+        except Exception as exc:
+            failure = classify_source_failure(exception=exc)
+            if failure["kind"] == "model_protocol":
+                self.protocol_errors.append({**failure, "name": name, "arguments": arguments, "executed": False})
+                write_json(self.evidence_dir / "protocol_errors.json", self.protocol_errors)
+                return json.dumps({"error": "invalid_tool_call", "detail": str(exc), "executed": False})
+            self.failures.append(failure)
             raise
         finally:
-            # Official protocol records every intermediate effect, preventing a
-            # subsequent repair from erasing earlier observed harm.
             if len(self.source_backend.events) > before:
-                self.source_backend.record_observation()
+                try:
+                    self.source_backend.record_observation()
+                except Exception as exc:
+                    self.failures.append(classify_source_failure(exception=exc))
+                    raise
+        # Upstream returns execution_error as ordinary text. Keep the source
+        # receipt and invalidate infrastructure/source failures independently of
+        # the text the model sees; do not convert them into utility zero.
+        for step, receipt in self.source_backend.receipts.items():
+            if step >= before:
+                failure = classify_source_failure(receipt=receipt)
+                if failure:
+                    self.failures.append({**failure, "source_step": step})
+        return result
 
     def finish(self, final_text: str) -> dict:
         if self.finished:
@@ -167,7 +219,9 @@ class SkillLifeBackend:
                               "metrics": {"official_outcome": outcome,
                                           "independent_persistence_cost_applicable": False,
                                           "source_protocol": "autonomous_lifecycle_v4",
-                                          "intermediate_harm_ever": self.source_backend.harm_ever},
+                                          "intermediate_harm_ever": self.source_backend.harm_ever,
+                                          "protocol_errors": self.protocol_errors},
+                              "c_protocol": float(bool(self.protocol_errors)),
                               "evidence": {"source_outcome": str(self.evidence_dir / "source_outcome.json"),
                                            "source_evidence": str(self.evidence_dir / "source_backend"),
                                            "context_reads": str(self.evidence_dir / "context_reads.jsonl")}}

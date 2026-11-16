@@ -68,3 +68,53 @@ def open_backend(task: dict, workspace: Path, evidence_dir: Path):
         yield backend
     finally:
         backend.close()
+
+
+def verify_pinned_tree(root: Path, revision: str, consumed: list[str]) -> dict:
+    """Compare every consumed file and its file set to the Git commit itself.
+
+    HEAD identity plus newly recorded working-tree hashes is insufficient. This
+    check refuses missing, modified, symlinked, or unexpected consumed files.
+    """
+    import subprocess
+    root = Path(root).resolve(strict=True)
+    head = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
+    if head != revision:
+        raise ValueError("source_revision_not_pinned")
+    raw = subprocess.check_output(["git", "-C", str(root), "ls-tree", "-rz", revision, "--", *consumed])
+    expected = {}
+    for record in raw.split(b"\0"):
+        if not record:
+            continue
+        meta, name = record.split(b"\t", 1)
+        mode, kind, oid = meta.decode().split()
+        if kind != "blob" or mode not in {"100644", "100755"}:
+            raise ValueError("unsupported_pinned_source_entry:" + name.decode())
+        expected[name.decode()] = (mode, oid)
+    if not expected:
+        raise ValueError("empty_pinned_source_scope")
+    actual = set()
+    for scope in consumed:
+        path = root / scope
+        paths = [path] if path.is_file() or path.is_symlink() else path.rglob("*")
+        for item in paths:
+            relative = item.relative_to(root).as_posix()
+            if item.is_symlink():
+                raise ValueError("pinned_source_symlink_rejected:" + relative)
+            if item.is_file():
+                actual.add(relative)
+    unexpected = actual - set(expected)
+    if unexpected:
+        raise ValueError("unexpected_consumed_source_file:" + ",".join(sorted(unexpected)))
+    missing = set(expected) - actual
+    if missing:
+        raise ValueError("missing_consumed_source_file:" + ",".join(sorted(missing)))
+    for name, (mode, oid) in expected.items():
+        data = (root / name).read_bytes()
+        git_oid = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+        executable = bool((root / name).stat().st_mode & 0o111)
+        if git_oid != oid or executable != (mode == "100755"):
+            raise ValueError("pinned_source_bytes_mismatch:" + name)
+    return {"verified": True, "revision": revision, "consumed_scopes": consumed,
+            "file_count": len(expected), "pinned_blob_manifest_sha256": hashlib.sha256(
+                json.dumps(expected, sort_keys=True).encode()).hexdigest()}

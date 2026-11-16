@@ -99,7 +99,7 @@ def test_claw_unchanged_reward_aggregation_and_strict_failure():
     assert claw_qualification(source) == []
     assert aggregate_reward({"a": 1, "b": .5, "c": 0}) == .5
     assert aggregate_reward(.5) == .5
-    for malformed in ({}, {"score": float("nan")}, {"score": "error"}, [], True, 2):
+    for malformed in ({}, {"score": float("nan")}, {"score": "error"}, [], 2):
         with pytest.raises(ValueError):
             aggregate_reward(malformed)
 
@@ -150,10 +150,11 @@ def test_v4_claw_optional_inputs_and_real_capability_exclusions(manifest_v4):
         assert not (Path(by_id[task_id]["source_path"]).parent / "input_files").exists()
         assert by_id[task_id]["qualified"]
     assert not by_id["task_0398"]["qualified"]
-    assert "live_external_download" in by_id["task_0398"]["exclusion_reasons"][0]
+    assert "external_network" in by_id["task_0398"]["exclusion_reasons"][0]
     assert "Internet essential" in by_id["task_0398"]["exclusion_evidence"]["user_query"]
     assert not by_id["task_0545"]["qualified"]
-    assert manifest_v4["qualified_instance_counts"]["clawgym"] == 1992
+    assert manifest_v4["qualified_instance_counts"]["clawgym"] == sum(row["qualified"] for row in by_id.values())
+    assert manifest_v4["qualified_instance_counts"]["clawgym"] < 1992
 
 
 def test_v4_official_source_interfaces_and_context_authority():
@@ -173,3 +174,110 @@ def test_v4_official_source_interfaces_and_context_authority():
     # running any reference actions, qualification replay, model or source tool.
     tasks = json.loads((root / "data/lifecycle/protocol/task-manifest.json").read_text())["tasks"]
     assert all(qualification(task) == [] for task in tasks)
+
+
+@pytest.mark.parametrize("task_id,path", [("task_0102", "pipeline/config.yaml"), ("task_0486", "input/indexing_config.yaml")])
+def test_claw_authorized_in_place_assets_are_outputs_not_immutable_gold(task_id, path):
+    import hsrl_v3.claw_backend as claw
+    source = CLAW / "RL/data/clawgym_train" / task_id / "data_entry.json"
+    contract = claw.source_contract(source)
+    assert path in contract["writable_inputs"]
+    assert path not in contract["immutable_inputs"]
+    assert contract["reference_policy"] == "unchanged_source_checker_with_hash_guarded_immutable_inputs_and_explicit_writable_outputs"
+    assert contract["writable_input_evidence"][path]
+
+
+@pytest.mark.parametrize("task_id", ["task_0067", "task_0103", "task_0474"])
+def test_claw_required_live_network_is_excluded_from_real_task_text(task_id):
+    source = CLAW / "RL/data/clawgym_train" / task_id / "data_entry.json"
+    reasons = claw_qualification(source)
+    assert any("network" in reason or "external_download" in reason for reason in reasons), reasons
+
+
+def test_claw_offline_html_urls_do_not_imply_network_requirement():
+    import hsrl_v3.claw_backend as claw
+    source = CLAW / "RL/data/clawgym_train/task_0486/data_entry.json"
+    contract = claw.source_contract(source)
+    assert contract["capability_requirements"] == []
+    assert claw_qualification(source) == []
+
+
+def test_skilllife_protocol_vs_source_failure_classification():
+    from hsrl_v3 import skilllife_backend as life
+    backend, _ = life.import_source(EXP / "vendor/skilllifebench_security_research_20261116")
+    stop = backend.HarnessStop("invalid_tool_call", "wrong workspace_id")
+    assert life.classify_source_failure(exception=stop)["kind"] == "model_protocol"
+    assert life.classify_source_failure(receipt={"status": "execution_error", "execution_error": "source failed"})["kind"] == "source_execution"
+    with pytest.raises(life.ModelProtocolError):
+        life.validate_public_call([life.CONTEXT_TOOL], "read_file", {"path": "/etc/passwd"})
+
+
+def test_pinned_consumed_bytes_reject_unexpected_or_modified_files(tmp_path):
+    from hsrl_v3.backends import verify_pinned_tree
+    import subprocess
+    repo = tmp_path / "source"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    (repo / "data").mkdir()
+    (repo / "data/input.txt").write_text("tracked source\n")
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=Verification", "-c", "user.email=verification@localhost", "commit", "-qm", "fixture commit"], check=True)
+    revision = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+    assert verify_pinned_tree(repo, revision, ["data"])["verified"]
+    (repo / "data/input.txt").write_text("modified source\n")
+    with pytest.raises(ValueError, match="pinned_source_bytes_mismatch"):
+        verify_pinned_tree(repo, revision, ["data"])
+    (repo / "data/input.txt").write_text("tracked source\n")
+    (repo / "data/unexpected.txt").write_text("unexpected\n")
+    with pytest.raises(ValueError, match="unexpected_consumed_source_file"):
+        verify_pinned_tree(repo, revision, ["data"])
+
+
+def test_mutated_lifecycle_split_is_rejected_before_admission():
+    from hsrl_v3.pool import validate_lifecycle_split
+    import copy
+    root = EXP / "vendor/skilllifebench_security_research_20261116"
+    tasks = json.loads((root / "data/lifecycle/protocol/task-manifest.json").read_text())["tasks"]
+    path = Path(__file__).resolve().parents[1] / "docs/research/skilllife_lifecycle_split_20261116.json"
+    split = json.loads(path.read_text())
+    assert validate_lifecycle_split(split, tasks)["verified"]
+    for mode in ("one_row", "whole_template", "wrong_seed", "missing_pair"):
+        altered = copy.deepcopy(split)
+        if mode == "one_row":
+            altered["tasks"][0]["split"] = "train"
+        elif mode == "whole_template":
+            template = altered["tasks"][0]["template_id"]
+            for row in altered["tasks"]:
+                if row["template_id"] == template:
+                    row["split"] = "train"
+        elif mode == "wrong_seed":
+            altered["seed"] = 42
+        else:
+            altered["tasks"][0]["conditions"] = ["attack"]
+        with pytest.raises(ValueError):
+            validate_lifecycle_split(altered, tasks)
+
+
+def test_actual_authorized_edits_preserve_independent_grading_inputs(tmp_path):
+    from hsrl_v3.claw_backend import source_contract, input_integrity_violations
+    import shutil
+    task = CLAW / "RL/data/clawgym_train/task_0486"
+    contract = source_contract(task / "data_entry.json")
+    workspace = tmp_path / "workspace"
+    shutil.copytree(task / "input_files", workspace)
+    (workspace / "input/indexing_config.yaml").write_text("indexing:\n  fields: {}\n")
+    assert input_integrity_violations(workspace, contract) == []
+    page = workspace / "input/catalog_pages/page1.html"
+    page.write_text("changed grading reference")
+    assert "input/catalog_pages/page1.html" in input_integrity_violations(workspace, contract)
+
+
+def test_unreviewed_writable_input_gold_stays_pending():
+    source = CLAW / "RL/data/clawgym_train/task_1895/data_entry.json"
+    assert "writable_input_gold_contract_pending_review" in claw_qualification(source)
+
+
+def test_official_bool_checker_scores_follow_reward_sh_float_conversion():
+    checker = (CLAW / "RL/data/clawgym_train/task_1909/reward/check.py").read_text()
+    assert '"has_agent_tools_py": False' in checker
+    assert aggregate_reward({"has_agent_tools_py": True, "has_readme": False}) == .5
