@@ -50,6 +50,17 @@ def test_component_grades_cannot_hide_out_of_range_values_in_average():
             grade(value)
 
 
+def test_numerical_libraries_fit_frozen_container_pid_budget():
+    from hsrl_v5.workspace_worker import command_environment
+    environment = command_environment()
+    # Retained genuine risk_metrics_calculation checker failed importing pandas:
+    # OpenBLAS attempted64threads in a64-PID container already running2processes.
+    for key in ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS',
+                'NUMEXPR_NUM_THREADS', 'NUMEXPR_MAX_THREADS', 'BLIS_NUM_THREADS'):
+        assert environment[key] == '1'
+    assert 'API_KEY' not in environment
+
+
 def test_pending_infrastructure_record_is_retried_but_completed_record_is_reused(tmp_path, monkeypatch):
     from hsrl_v5 import quality_claw as qc
     from hsrl_v5.io import atomic_json, digest
@@ -95,7 +106,22 @@ def test_bounded_dispatch_stops_after_infrastructure_failure(tmp_path):
 def test_oversized_worker_count_is_rejected_before_source_access(tmp_path):
     from hsrl_v5.quality_claw import run
     with pytest.raises(ValueError, match='workers'):
-        run(tmp_path / 'missing', tmp_path / 'out', 5)
+        run(tmp_path / 'missing', tmp_path / 'out', 17)
+
+
+def test_full_pinned_boundary_cache_rechecks_actual_checker_bytes(tmp_path):
+    from hsrl_v5.quality_claw import prefilter_checker_boundaries
+    exp = Path('/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft')
+    prepared = Path(__file__).resolve().parents[1] / 'outputs/rl/hsrl_v5_claw_prepare_shell_contract_fix1_20261116'
+    records = [r for r in map(json.loads, (prepared / 'accepted.jsonl').open()) if r['split'] == 'train']
+    cache = exp / 'outputs/rl/hsrl_v5_claw_runtime_quality_boundary_v2_20261116T193656'
+    runnable, pending, summary = prefilter_checker_boundaries(records, tmp_path / 'reused', cache_dir=cache)
+    assert len(runnable) == 7262 and len(pending) == 376
+    assert summary['verified_static_cache']['all_records_and_actual_checker_bytes_rechecked'] is True
+    assert summary['source_execution_performed'] is False
+    records[0] = {**records[0], 'exclusion_reasons': ['source_record_changed']}
+    with pytest.raises(ValueError, match='source_record_changed'):
+        prefilter_checker_boundaries(records, tmp_path / 'rejected', cache_dir=cache)
 
 
 def test_original_checker_crash_and_malformed_scores_are_invalid_not_zero():
@@ -283,3 +309,278 @@ def test_html_parser_initialization_and_url_query_data_are_not_dynamic_execution
                    'class Reader(HTMLParser):\n def __init__(self):\n  super().__init__()\n  self.name=type(self).__name__\n'
                    'parsed=urlparse("https://example.invalid/?a=1")\nquery=parsed.query\nplatform.system()')
     assert checker_boundary_contract(path)['status']=='readonly_data_checker_static_boundary_pass'
+
+
+def test_private_projection_replaces_contents_preserves_roots_and_originals(tmp_path):
+    from hsrl_v5.grader_pool import replace_projection
+    source, target = tmp_path / 'source', tmp_path / 'projection'
+    source.mkdir(); target.mkdir()
+    (source / 'data.json').write_bytes(b'{"real":true}')
+    (target / 'old').write_bytes(b'stale')
+    inode = target.stat().st_ino
+    expected = {'data.json': {'bytes': 13, 'sha256': None}}
+    # Derive the expected digest independently from the fixed bytes below.
+    import hashlib
+    expected['data.json']['sha256'] = hashlib.sha256(b'{"real":true}').hexdigest()
+    assert replace_projection(source, target) == expected
+    assert target.stat().st_ino == inode and not (target / 'old').exists()
+    assert (source / 'data.json').read_bytes() == b'{"real":true}'
+    assert (target / 'data.json').stat().st_ino != (source / 'data.json').stat().st_ino
+    (source / 'escape').symlink_to('/etc/passwd')
+    with pytest.raises(ValueError, match='unsupported'):
+        replace_projection(source, target)
+
+
+def test_private_grader_identity_rejects_stale_and_malformed_frames():
+    from hsrl_v5.grader_pool import validate_response_identity
+    from hsrl_v5.isolation import IsolationError
+    good = {'ok': True, 'request_nonce': 'a' * 32,
+            'result': {'returncode': 0, 'stdout': '{"a":0}', 'stderr': '', 'child_pid': 12}}
+    validate_response_identity(good, 'a' * 32)
+    for bad in ({**good, 'request_nonce': 'b' * 32},
+                {**good, 'ok': False},
+                {**good, 'result': {**good['result'], 'child_pid': True}},
+                {**good, 'result': {**good['result'], 'child_pid': 1}}):
+        with pytest.raises(IsolationError):
+            validate_response_identity(bad, 'a' * 32)
+
+
+def test_private_scratch_clear_unlinks_symlinks_without_following(tmp_path):
+    from hsrl_v5.workspace_worker import clear_grader_scratch
+    scratch, outside = tmp_path / 'scratch', tmp_path / 'outside'
+    scratch.mkdir(); outside.mkdir(); (outside / 'keep').write_text('keep')
+    (scratch / 'nested').mkdir(); (scratch / 'nested' / 'cached').write_text('old')
+    (scratch / 'link').symlink_to(outside, target_is_directory=True)
+    clear_grader_scratch(scratch)
+    assert list(scratch.iterdir()) == [] and (outside / 'keep').read_text() == 'keep'
+
+
+@pytest.fixture
+def private_pool_transport(monkeypatch):
+    """Replace only forbidden Docker transport; projection/gates/lifecycle stay real."""
+    from hsrl_v5.workspace import WorkspaceWorker
+    from hsrl_v5.io import atomic_json
+    started, calls, stopped = [], [], []
+    def start(worker, evidence_dir, *, snapshot, checker):
+        worker.evidence = Path(evidence_dir); worker.evidence.mkdir(parents=True)
+        worker.name = 'unit-private-' + str(len(started))
+        worker.process = object()
+        worker.snapshot, worker.checker = Path(snapshot), Path(checker)
+        atomic_json(worker.evidence / 'isolation.json', {'container': worker.name, 'all_host_mounts': 'readonly'})
+        started.append(worker)
+    def request(worker, value, *, timeout):
+        calls.append((worker.name, dict(value)))
+        return {'ok': True, 'request_nonce': value['request_nonce'],
+                'result': {'returncode': 0, 'stdout': '{"score":0}', 'stderr': '', 'child_pid': len(calls) + 2}}
+    def close(worker):
+        stopped.append(worker.name)
+        atomic_json(worker.evidence / 'cleanup.json', {'container': worker.name, 'removal_confirmed': True})
+    monkeypatch.setattr(WorkspaceWorker, '__init__', start)
+    monkeypatch.setattr(WorkspaceWorker, 'request', request)
+    monkeypatch.setattr(WorkspaceWorker, 'close', close)
+    return started, calls, stopped
+
+
+def test_private_pool_reuses_only_grader_recycles_at_64_cases_and_preserves_evidence(tmp_path, private_pool_transport):
+    from hsrl_v5.grader_pool import PrivateGraderPool
+    from hsrl_v5.workspace import snapshot_entries
+    source, snapshot = tmp_path / 'source', tmp_path / 'snapshot'
+    source.mkdir(); snapshot.mkdir()
+    (source / 'test.py').write_text('print("{\\"score\\":0}")')
+    (snapshot / 'data').write_bytes(b'original')
+    pool = PrivateGraderPool(tmp_path / 'pool')
+    entries = snapshot_entries(snapshot)
+    proofs = []
+    for index in range(65):
+        response, proof = pool.grade(snapshot=snapshot, checker=source, entries=entries,
+            evidence_dir=tmp_path / 'cases' / str(index), case_id=str(index))
+        proofs.append(proof)
+    pool.close()
+    started, calls, stopped = private_pool_transport
+    assert len(started) == 2 and len(stopped) == 2
+    assert len({request['request_nonce'] for _, request in calls}) == 65
+    assert proofs[0]['container'] == proofs[63]['container'] != proofs[64]['container']
+    assert proofs[0]['bind_root_inodes'] == proofs[63]['bind_root_inodes']
+    assert (tmp_path / 'cases/0/source_snapshot/test.py').read_bytes() == (source / 'test.py').read_bytes()
+    assert json.loads((tmp_path / 'cases/0/cleanup.json').read_text())['removal_confirmed']
+    assert not list((tmp_path / 'pool').glob('generation_*/projection'))
+    assert (snapshot / 'data').read_bytes() == b'original'
+
+
+def test_private_pool_stale_nonce_poison_prevents_next_source_dispatch(tmp_path, private_pool_transport, monkeypatch):
+    from hsrl_v5.grader_pool import PrivateGraderPool
+    from hsrl_v5.workspace import WorkspaceWorker
+    from hsrl_v5.isolation import IsolationError
+    source, snapshot = tmp_path / 'source', tmp_path / 'snapshot'
+    source.mkdir(); snapshot.mkdir(); (source / 'test.py').write_text('print(0)')
+    def stale(worker, request, *, timeout):
+        return {'ok': True, 'request_nonce': '0' * 32,
+                'result': {'returncode': 0, 'stdout': '0', 'stderr': '', 'child_pid': 4}}
+    monkeypatch.setattr(WorkspaceWorker, 'request', stale)
+    pool = PrivateGraderPool(tmp_path / 'pool')
+    kwargs = dict(snapshot=snapshot, checker=source, entries={}, case_id='one')
+    with pytest.raises(IsolationError, match='identity_or_contract'):
+        pool.grade(evidence_dir=tmp_path / 'case1', **kwargs)
+    with pytest.raises(IsolationError, match='poisoned'):
+        pool.grade(evidence_dir=tmp_path / 'case2', **kwargs)
+    assert not (tmp_path / 'case2').exists()
+    assert len(private_pool_transport[2]) == 1
+    pool.close()
+
+
+def test_pool_checker_gate_cannot_be_bypassed_by_reuse(tmp_path, private_pool_transport):
+    from hsrl_v5.grader_pool import PrivateGraderPool
+    from hsrl_v5.isolation import IsolationError
+    source, snapshot = tmp_path / 'source', tmp_path / 'snapshot'
+    source.mkdir(); snapshot.mkdir(); (source / 'test.py').write_text('import subprocess\nsubprocess.run([])')
+    pool = PrivateGraderPool(tmp_path / 'pool')
+    with pytest.raises(IsolationError, match='boundary_pending'):
+        pool.grade(snapshot=snapshot, checker=source, entries={}, case_id='unsafe', evidence_dir=tmp_path / 'case')
+    assert not private_pool_transport[0]
+    pool.close()
+
+
+def test_private_pool_detects_changed_snapshot_after_grade_and_preserves_cleanup(tmp_path, private_pool_transport, monkeypatch):
+    from hsrl_v5.grader_pool import PrivateGraderPool
+    from hsrl_v5.workspace import WorkspaceWorker, snapshot_entries
+    from hsrl_v5.isolation import IsolationError
+    source, snapshot = tmp_path / 'source', tmp_path / 'snapshot'
+    source.mkdir(); snapshot.mkdir(); (source / 'test.py').write_text('print(0)')
+    (snapshot / 'data').write_bytes(b'frozen')
+    original_request = WorkspaceWorker.request
+    def corrupt_projection(worker, request, *, timeout):
+        response = original_request(worker, request, timeout=timeout)
+        (worker.snapshot / 'data').write_bytes(b'changed')
+        return response
+    monkeypatch.setattr(WorkspaceWorker, 'request', corrupt_projection)
+    pool = PrivateGraderPool(tmp_path / 'pool')
+    with pytest.raises(IsolationError, match='original_or_projection_changed'):
+        pool.grade(snapshot=snapshot, checker=source, entries=snapshot_entries(snapshot),
+                   case_id='one', evidence_dir=tmp_path / 'case')
+    assert pool.poisoned and (snapshot / 'data').read_bytes() == b'frozen'
+    assert json.loads((tmp_path / 'case/cleanup.json').read_text())['removal_confirmed']
+    pool.close()
+
+
+def test_private_pool_uncertain_cleanup_keeps_projection_and_records_failure(tmp_path, private_pool_transport, monkeypatch):
+    from hsrl_v5.grader_pool import LaneGraderPools
+    from hsrl_v5.workspace import WorkspaceWorker
+    from hsrl_v5.isolation import CleanupUncertain
+    source, snapshot = tmp_path / 'source', tmp_path / 'snapshot'
+    source.mkdir(); snapshot.mkdir(); (source / 'test.py').write_text('print(0)')
+    lanes = LaneGraderPools(tmp_path / 'pools')
+    pool = lanes.get()
+    pool.grade(snapshot=snapshot, checker=source, entries={}, case_id='one', evidence_dir=tmp_path / 'case')
+    def uncertain(worker):
+        raise CleanupUncertain('unit-removal-unconfirmed')
+    monkeypatch.setattr(WorkspaceWorker, 'close', uncertain)
+    with pytest.raises(CleanupUncertain, match='lane_cleanup_unconfirmed'):
+        lanes.close()
+    assert pool.projection.is_dir()
+    assert not (tmp_path / 'case/cleanup.json').exists()
+    cleanup = json.loads((tmp_path / 'pools/cleanup.json').read_text())
+    assert cleanup['all_owned_containers_removal_confirmed'] is False and cleanup['errors']
+
+
+def test_private_projection_retains_actual_risk_metrics_checker_bytes_without_executing(tmp_path):
+    from hsrl_v5.grader_pool import replace_projection
+    from hsrl_v5.workspace import checker_boundary_contract
+    from hsrl_v5.io import file_hash
+    prepared = Path(__file__).resolve().parents[1] / 'outputs/rl/hsrl_v5_claw_prepare_shell_contract_fix1_20261116'
+    records = map(json.loads, (prepared / 'accepted.jsonl').open())
+    record = next(record for record in records if 'risk_metrics_calculation' in record['id'])
+    checker = Path(record['private_checker_path'])
+    projection = tmp_path / 'source'; projection.mkdir()
+    manifest = replace_projection(checker.parent, projection)
+    assert manifest['test.py']['sha256'] == record['original_asset_sha256']['reward/test.py']
+    assert file_hash(projection / 'test.py') == file_hash(checker)
+    assert checker_boundary_contract(projection / 'test.py')['status'] == 'readonly_data_checker_static_boundary_pass'
+
+
+def test_private_grader_child_identity_is_actual_os_pid_and_every_request_is_fresh(tmp_path, monkeypatch):
+    from hsrl_v5 import workspace_worker as worker
+    monkeypatch.setattr(worker, 'PUBLIC', tmp_path)
+    results = [worker.bounded_command([sys.executable, '-c', 'import os;print(os.getpid())'], grader=True)
+               for _ in range(2)]
+    assert all(result['returncode'] == 0 and int(result['stdout']) == result['child_pid'] for result in results)
+    assert results[0]['child_pid'] != results[1]['child_pid']
+
+
+def test_projection_rejects_oversize_before_mutating_existing_projection(tmp_path, monkeypatch):
+    from hsrl_v5.grader_pool import replace_projection
+    from hsrl_v5 import workspace_worker as worker
+    source, target = tmp_path / 'source', tmp_path / 'target'
+    source.mkdir(); target.mkdir()
+    (source / 'large').write_bytes(b'123'); (target / 'keep').write_bytes(b'keep')
+    monkeypatch.setattr(worker, 'MAX_FILE', 2)
+    with pytest.raises(ValueError, match='snapshot_limit'):
+        replace_projection(source, target)
+    assert (target / 'keep').read_bytes() == b'keep'
+
+
+def test_private_pool_projects_new_case_bytes_and_removes_previous_case_files(tmp_path, private_pool_transport, monkeypatch):
+    from hsrl_v5.grader_pool import PrivateGraderPool
+    from hsrl_v5.workspace import WorkspaceWorker, snapshot_entries
+    source, snapshot = tmp_path / 'source', tmp_path / 'snapshot'
+    source.mkdir(); snapshot.mkdir(); (source / 'test.py').write_text('print(0)')
+    (source / 'old_reference').write_bytes(b'private case one')
+    (snapshot / 'old_output').write_bytes(b'case one')
+    original_request = WorkspaceWorker.request
+    def observe_projected_bytes(worker, request, *, timeout):
+        response = original_request(worker, request, timeout=timeout)
+        response['result']['stdout'] = json.dumps({'workspace': sorted(p.name for p in worker.snapshot.iterdir()),
+            'grader': sorted(p.name for p in worker.checker.iterdir())})
+        return response
+    monkeypatch.setattr(WorkspaceWorker, 'request', observe_projected_bytes)
+    pool = PrivateGraderPool(tmp_path / 'pool')
+    first, _ = pool.grade(snapshot=snapshot, checker=source, entries=snapshot_entries(snapshot),
+                          case_id='one', evidence_dir=tmp_path / 'first')
+    (source / 'old_reference').unlink(); (source / 'test.py').write_text('print(1)')
+    (snapshot / 'old_output').unlink(); (snapshot / 'new_output').write_bytes(b'case two')
+    second, _ = pool.grade(snapshot=snapshot, checker=source, entries=snapshot_entries(snapshot),
+                           case_id='two', evidence_dir=tmp_path / 'second')
+    assert json.loads(first['result']['stdout']) == {'workspace': ['old_output'], 'grader': ['old_reference', 'test.py']}
+    assert json.loads(second['result']['stdout']) == {'workspace': ['new_output'], 'grader': ['test.py']}
+    assert (tmp_path / 'first/source_snapshot/old_reference').read_bytes() == b'private case one'
+    assert (tmp_path / 'first/source_snapshot/test.py').read_text() == 'print(0)'
+    pool.close()
+
+
+def test_lane_cleanup_attempts_every_owned_pool_after_one_removal_failure(tmp_path, private_pool_transport, monkeypatch):
+    from hsrl_v5.grader_pool import LaneGraderPools
+    from hsrl_v5.workspace import WorkspaceWorker
+    from hsrl_v5.isolation import CleanupUncertain
+    import threading
+    source, snapshot = tmp_path / 'source', tmp_path / 'snapshot'
+    source.mkdir(); snapshot.mkdir(); (source / 'test.py').write_text('print(0)')
+    lanes = LaneGraderPools(tmp_path / 'pools')
+    failures = []
+    def create(index):
+        try:
+            lanes.get().grade(snapshot=snapshot, checker=source, entries={}, case_id=str(index),
+                              evidence_dir=tmp_path / f'case{index}')
+        except BaseException as exc:
+            failures.append(exc)
+    for index in range(2):
+        thread = threading.Thread(target=create, args=(index,)); thread.start(); thread.join()
+    assert not failures and len(lanes.pools) == 2
+    original_close = WorkspaceWorker.close
+    def one_uncertain(worker):
+        if worker.name == 'unit-private-0':
+            raise CleanupUncertain('unit-removal-unconfirmed')
+        original_close(worker)
+    monkeypatch.setattr(WorkspaceWorker, 'close', one_uncertain)
+    with pytest.raises(CleanupUncertain):
+        lanes.close()
+    assert lanes.pools[0].projection.exists() and not lanes.pools[1].projection.exists()
+    assert json.loads((tmp_path / 'case1/cleanup.json').read_text())['removal_confirmed']
+
+
+def test_quality_resume_refuses_unconfirmed_previous_pool_cleanup_before_source_access(tmp_path):
+    from hsrl_v5.quality_claw import run
+    from hsrl_v5.isolation import IsolationError
+    pool_directory = tmp_path / 'out/private_grader_pools/dispatch_old'
+    pool_directory.mkdir(parents=True)
+    (pool_directory / 'cleanup.json').write_text('{"all_owned_containers_removal_confirmed":false}')
+    with pytest.raises(IsolationError, match='previous_private_grader_pool_cleanup_unconfirmed'):
+        run(tmp_path / 'missing_source', tmp_path / 'out')

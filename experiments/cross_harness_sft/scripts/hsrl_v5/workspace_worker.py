@@ -54,10 +54,21 @@ def snapshot_entries(root):
     return entries
 
 
+def command_environment():
+    # OpenBLAS otherwise attempts64 threads in a64-PID sandbox that already
+    # contains the worker/child. Resource exhaustion is infrastructure, not a
+    # model failure or a zero score. Pin library concurrency inside the sandbox.
+    return {'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/tmp',
+            'LANG': 'C.UTF-8', 'PYTHONDONTWRITEBYTECODE': '1',
+            'OPENBLAS_NUM_THREADS': '1', 'OMP_NUM_THREADS': '1',
+            'MKL_NUM_THREADS': '1', 'NUMEXPR_NUM_THREADS': '1',
+            'NUMEXPR_MAX_THREADS': '1', 'BLIS_NUM_THREADS': '1',
+            'VECLIB_MAXIMUM_THREADS': '1'}
+
+
 def bounded_command(argv, *, grader=False):
     """Bound child output while reading, rather than after an unbounded file."""
-    env = {'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/tmp',
-           'LANG': 'C.UTF-8', 'PYTHONDONTWRITEBYTECODE': '1'}
+    env = command_environment()
     child = subprocess.Popen(argv, cwd=PUBLIC, env=env, stdin=subprocess.DEVNULL,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
     output = {'stdout': bytearray(), 'stderr': bytearray()}
@@ -78,7 +89,7 @@ def bounded_command(argv, *, grader=False):
                 if sum(map(len, output.values())) > 1024 * 1024:
                     raise RuntimeError('command_output_limit')
         code = child.wait(timeout=max(.1, deadline - time.monotonic()))
-        return {'returncode': code, **{key: bytes(value).decode('utf-8', errors='replace') for key, value in output.items()}}
+        return {'returncode': code, **({'child_pid': child.pid} if grader else {}), **{key: bytes(value).decode('utf-8', errors='replace') for key, value in output.items()}}
     finally:
         # Also terminate descendants that closed their inherited output pipes.
         try:
@@ -92,7 +103,19 @@ def bounded_command(argv, *, grader=False):
         child.stderr.close()
 
 
+def clear_grader_scratch(root=Path('/tmp')):
+    """Only the private grader owns this tmpfs; never follow cached symlinks."""
+    for path in Path(root).iterdir():
+        if path.is_dir() and not path.is_symlink():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+
+
 def main():
+    # Dataset preparation shares a host with model-serving/training jobs. All
+    # command descendants inherit this lower CPU scheduling priority.
+    os.nice(10)
     grader = '--grader' in sys.argv
     if not grader:
         PUBLIC.parent.mkdir(parents=True, exist_ok=True)
@@ -101,6 +124,7 @@ def main():
         print(json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(',', ':')), flush=True)
     respond({'ready': True, 'mode': 'file_grader' if grader else 'file_tools'})
     for line in sys.stdin:
+        nonce = None
         try:
             if len(line.encode()) > 8 * 1024 * 1024:
                 raise ValueError('request_size_limit')
@@ -109,6 +133,11 @@ def main():
             if grader:
                 if op != 'grade':
                     raise ValueError('private_grader_operation')
+                nonce = request.get('request_nonce')
+                if (not isinstance(nonce, str) or len(nonce) != 32
+                        or any(c not in '0123456789abcdef' for c in nonce)):
+                    raise ValueError('private_grader_request_nonce_invalid')
+                clear_grader_scratch()
                 result = bounded_command(['python3', '/grader/test.py', str(PUBLIC)], grader=True)
             elif op == 'snapshot':
                 result = {'entries': snapshot_entries(PUBLIC)}
@@ -144,9 +173,9 @@ def main():
                     raise ValueError('unknown_file_tool')
             else:
                 raise ValueError('unknown_file_worker_operation')
-            respond({'ok': True, 'result': result})
+            respond({'ok': True, 'result': result, **({'request_nonce': nonce} if grader else {})})
         except Exception as exc:
-            respond({'ok': False, 'error_type': type(exc).__name__, 'error': str(exc)[:1000]})
+            respond({'ok': False, 'error_type': type(exc).__name__, 'error': str(exc)[:1000], **({'request_nonce': nonce} if grader else {})})
 
 
 if __name__ == '__main__':

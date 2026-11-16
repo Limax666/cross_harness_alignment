@@ -2,6 +2,7 @@
 from __future__ import annotations
 import copy
 import json
+import uuid
 from pathlib import Path
 
 import jsonschema
@@ -21,7 +22,7 @@ def parse_checker_response(response):
 
 
 class ClawBackend:
-    def __init__(self, record, evidence_dir):
+    def __init__(self, record, evidence_dir, *, grader_pool=None):
         verify_prepared_record(record)
         if not record['qualified'] or record['reward_profile'] != PROFILE:
             raise ValueError('claw_source_not_statically_admitted')
@@ -36,6 +37,7 @@ class ClawBackend:
         self.schemas = {t['function']['name']: t['function']['parameters'] for t in self.tools}
         self.protocol_errors, self.finished, self.closed = [], False, False
         self.worker = None
+        self.grader_pool = grader_pool
         atomic_json(self.evidence / 'public_interface.json', {'messages': self.messages, 'tools': self.tools})
         atomic_json(self.evidence / 'private_grader_boundary.json', boundary)
         atomic_json(self.evidence / 'provenance.json', {
@@ -91,13 +93,24 @@ class ClawBackend:
                       'changed_inputs': changed, 'utility': None, 'c_source': None}
             atomic_json(self.evidence / 'result.json', result)
             return result
-        with WorkspaceWorker(self.evidence / 'private_grader', snapshot=snapshot,
-                             checker=Path(self.record['private_checker_path']).parent) as grader:
-            response = grader.request({'op': 'grade'}, timeout=65)
+        checker = Path(self.record['private_checker_path']).parent
+        grader_proof = None
+        if self.grader_pool is None:
+            from .grader_pool import validate_response_identity
+            nonce = uuid.uuid4().hex
+            with WorkspaceWorker(self.evidence / 'private_grader', snapshot=snapshot, checker=checker) as grader:
+                response = grader.request({'op': 'grade', 'request_nonce': nonce}, timeout=65)
+                validate_response_identity(response, nonce)
+        else:
+            response, grader_proof = self.grader_pool.grade(
+                snapshot=snapshot, checker=checker, entries=entries,
+                evidence_dir=self.evidence / 'private_grader', case_id=digest(self.record))
         atomic_json(self.evidence / 'private_grader_response.json', response)
         try:
             raw, score = parse_checker_response(response)
         except (ValueError, TypeError, KeyError) as exc:
+            if self.grader_pool is not None:
+                self.grader_pool.poison('source_checker_result_contract:' + repr(exc))
             atomic_json(self.evidence / 'result.json', {
                 'done': True, 'valid': False, 'utility': None, 'c_source': None,
                 'reason': 'private_original_checker_invalid', 'error_type': type(exc).__name__,
@@ -116,7 +129,7 @@ class ClawBackend:
                   'metrics': {'official_checker_scores': raw, 'profile': PROFILE,
                               'original_composite_rubric_utility': None},
                   'evidence': {'directory': str(self.evidence), 'initial_assets_sha256': digest(self.initial_entries),
-                               'final_assets_sha256': digest(entries)}}
+                               'final_assets_sha256': digest(entries), 'private_grader': grader_proof}}
         atomic_json(self.evidence / 'result.json', result)
         return result
 
