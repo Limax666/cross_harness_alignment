@@ -9,7 +9,7 @@ import jsonschema
 from .claw_source import verify_prepared_record, PROFILE
 from .io import atomic_json, append_jsonl, digest, file_hash
 from .isolation import IsolationError
-from .workspace import WorkspaceWorker, SCHEMAS, numeric_reward
+from .workspace import WorkspaceWorker, SCHEMAS, numeric_reward, checker_boundary_contract
 
 
 def parse_checker_response(response):
@@ -25,6 +25,9 @@ class ClawBackend:
         verify_prepared_record(record)
         if not record['qualified'] or record['reward_profile'] != PROFILE:
             raise ValueError('claw_source_not_statically_admitted')
+        boundary = checker_boundary_contract(record['private_checker_path'])
+        if boundary['status'] != 'readonly_data_checker_static_boundary_pass':
+            raise ValueError('private_grader_boundary_pending:' + ','.join(boundary['reasons']))
         self.record, self.evidence = record, Path(evidence_dir)
         self.evidence.mkdir(parents=True, exist_ok=False)
         entry = json.loads(Path(record['source_path']).read_text())
@@ -34,6 +37,7 @@ class ClawBackend:
         self.protocol_errors, self.finished, self.closed = [], False, False
         self.worker = None
         atomic_json(self.evidence / 'public_interface.json', {'messages': self.messages, 'tools': self.tools})
+        atomic_json(self.evidence / 'private_grader_boundary.json', boundary)
         atomic_json(self.evidence / 'provenance.json', {
             'source': 'clawgym', 'id': record['id'], 'source_sha256': record['source_sha256'],
             'source_tree_sha256': record['source_tree_sha256'], 'source_identity': record['source_identity'],

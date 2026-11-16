@@ -19,6 +19,47 @@ import traceback
 from .claw_backend import ClawBackend
 from .io import atomic_json, append_jsonl, digest, file_hash
 from .isolation import IsolationError
+from .workspace import checker_boundary_contract, CHECKER_BOUNDARY_VERSION
+
+
+def prefilter_checker_boundaries(records, out):
+    """Retain every static decision before dispatch; pending sources never run."""
+    out = Path(out)
+    runnable, pending, audits = [], [], []
+    for index, record in enumerate(records):
+        boundary = checker_boundary_contract(record['private_checker_path'])
+        expected = record['original_asset_sha256']['reward/test.py']
+        if boundary['checker_sha256'] != expected:
+            raise ValueError('private_checker_changed_before_boundary_admission:' + record['id'])
+        audits.append({'id': record['id'], 'family': record['family'], 'split': record['split'],
+                       'record_sha256': digest(record), 'private_grader_boundary': boundary})
+        if boundary['status'] == 'readonly_data_checker_static_boundary_pass':
+            runnable.append(record)
+        else:
+            proof = {'source': 'clawgym', 'id': record['id'], 'family': record['family'],
+                     'condition': 'benign', 'record_sha256': digest(record), 'ready': False,
+                     'reasons': ['private_grader_boundary_pending', *boundary['reasons']],
+                     'failure_class': 'source_private_grader_boundary_pending',
+                     'private_grader_boundary': boundary, 'source_execution_performed': False,
+                     'task_solvability_proven': False, 'model_calls': 0, 'judge_calls': 0,
+                     'utility': None, 'c_source': None, 'attempt_directory': None}
+            directory = out / 'cases' / hashlib.sha256(record['id'].encode()).hexdigest()
+            atomic_json(directory / 'quality.json', proof)
+            pending.append(proof)
+        if (index + 1) % 100 == 0:
+            progress = {'status': 'static_boundary_prefilter', 'scanned': index + 1,
+                        'total': len(records), 'pending_unsupported': len(pending)}
+            atomic_json(out / 'prefilter_progress.json', progress)
+            print(json.dumps(progress), flush=True)
+    atomic_json(out / 'private_grader_boundary_audit.json', audits)
+    summary = {'version': CHECKER_BOUNDARY_VERSION, 'records': len(records),
+               'eligible_for_runtime_qc': len(runnable), 'pending_unsupported': len(pending),
+               'readonly_compatibility_only_pending': sum(row['private_grader_boundary']['reasons'] == ['readonly_snapshot_write_capability_pending'] for row in pending),
+               'pending_reasons': dict(Counter(reason for row in pending for reason in row['private_grader_boundary']['reasons'])),
+               'source_execution_performed': False, 'all_original_checker_hashes_matched': True,
+               'audit_sha256': file_hash(out / 'private_grader_boundary_audit.json')}
+    atomic_json(out / 'private_grader_boundary_summary.json', summary)
+    return runnable, pending, summary
 
 
 def validate_record(record, directory):
@@ -71,6 +112,9 @@ def validate_record(record, directory):
                             'same_checker_scores': True},
                      verifier_profile=record['reward_profile'],
                      original_full_rubric_utility_claimed=False)
+        if first_grade['utility'] == 1.0:
+            proof.update(ready=False, failure_class='source_already_satisfied_pending')
+            proof['reasons'].append('untouched_source_verifier_already_satisfied_pending')
     except Exception as exc:
         proof['reasons'].append(type(exc).__name__ + ':' + str(exc))
         proof['failure_class'] = 'isolation_or_runtime_infrastructure' if isinstance(exc, IsolationError) else 'source_quality_or_control_pending'
@@ -108,9 +152,9 @@ def bounded_admission(records, out, workers, *, validate=validate_record):
     return results, blocked
 
 
-def run(source_dir, out, workers=2):
-    if type(workers) is not int or workers not in (1, 2):
-        raise ValueError('workers_must_be_1_or_2')
+def run(source_dir, out, workers=4):
+    if type(workers) is not int or workers not in (1, 2, 3, 4):
+        raise ValueError('workers_must_be_1_to_4')
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True, mode=0o700)
     # An advisory lock survives stale PID files and prevents duplicate resumes.
@@ -133,9 +177,11 @@ def _run_locked(source_dir, out, workers):
         raise ValueError('duplicate_train_record_id')
     out.mkdir(parents=True, exist_ok=True, mode=0o700)
     os.chmod(out, 0o700)
-    protocol = {'schema': 'hsrl-v5-claw-real-quality/v2', 'source_manifest_sha256': file_hash(source_dir / 'source_manifest.json'),
+    protocol = {'schema': 'hsrl-v5-claw-real-quality/v3', 'source_manifest_sha256': file_hash(source_dir / 'source_manifest.json'),
                 'records': len(records), 'workers': workers,
                 'source_dir': str(source_dir.resolve()), 'train_record_id_sha256': digest([r['id'] for r in records]),
+                'private_grader_boundary_gate': CHECKER_BOUNDARY_VERSION,
+                'unsupported_checker_execution': 'pending_without_source_execution_or_utility',
                 'code_sha256': {p.name: file_hash(p) for p in sorted(Path(__file__).parent.glob('*.py'))},
                 'controls': 'actual_input_read_and_private_original_checker_plus_fresh_os_process_tmpfs_reset',
                 'task_solvability_proven': False, 'model_calls': 0, 'judge_calls': 0}
@@ -143,7 +189,11 @@ def _run_locked(source_dir, out, workers):
         raise ValueError('quality_protocol_changed_requires_independent_run')
     atomic_json(out / 'protocol.json', protocol)
     atomic_json(out / 'run_state.json', {'pid': os.getpid(), 'status': 'running', 'planned': len(records)})
-    results = []
+    planned = len(records)
+    records, pending, boundary_summary = prefilter_checker_boundaries(records, out)
+    results = list(pending)
+    atomic_json(out / 'run_state.json', {'pid': os.getpid(), 'status': 'running', 'planned': planned,
+                'eligible_for_runtime_qc': len(records), 'boundary_pending': len(pending)})
     if records:
         first = validate_record(records[0], out / 'cases' / hashlib.sha256(records[0]['id'].encode()).hexdigest())
         results.append(first)
@@ -155,9 +205,10 @@ def _run_locked(source_dir, out, workers):
     results.extend(remainder)
     if blocked:
         atomic_json(out / 'run_state.json', {'pid': os.getpid(), 'status': 'blocked_shared_runtime',
-                    'planned': len(records), 'completed': len(results), 'pending': len(records) - sum(r['ready'] for r in results)})
+                    'planned': planned, 'completed': len(results), 'pending': planned - sum(r['ready'] for r in results)})
         raise IsolationError('full_admission_shared_runtime_requires_repair_see_cases')
-    summary = {'status': 'complete_runtime_validation_pass' if all(r['ready'] for r in results) else 'complete_with_pending_cases', 'planned': len(records), 'completed': len(results),
+    summary = {'status': 'complete_runtime_validation_pass' if all(r['ready'] for r in results) else 'complete_with_pending_cases', 'planned': planned, 'completed': len(results),
+               'boundary_prefilter': boundary_summary,
                'ready': sum(row['ready'] for row in results), 'reasons': dict(Counter(x for row in results for x in row['reasons'])),
                'protocol_sha256': file_hash(out / 'protocol.json')}
     atomic_json(out / 'summary.json', summary)
@@ -169,6 +220,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source-dir', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
-    parser.add_argument('--workers', type=int, default=2, choices=(1, 2))
+    parser.add_argument('--workers', type=int, default=4, choices=(1, 2, 3, 4))
     args = parser.parse_args()
     print(json.dumps(run(args.source_dir, args.out, args.workers)))
