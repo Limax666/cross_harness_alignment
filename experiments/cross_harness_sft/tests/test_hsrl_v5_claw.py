@@ -30,7 +30,7 @@ def actual_rows():
     result = {}
     for number, line in enumerate(RAW.open('rb'), 1):
         row = json.loads(line)
-        if number in (1, 2, 4074) or row['prompt'] in queries:
+        if number in (1, 2, 4074, 9571) or row['prompt'] in queries:
             result[number] = (row, line)
             if row['prompt'] in queries:
                 result[queries[row['prompt']]] = (number, row, line)
@@ -219,3 +219,61 @@ def test_refinement_copies_real_source_and_freezes_identity_split_without_mutati
     with pytest.raises(ValueError, match='HF_record_does_not_match_consumed_line'):
         module.copy_prepared_claw_record(original, changed, line, tmp_path / 'bad')
     assert not (tmp_path / 'bad').exists()
+
+
+def test_actual_hf9571_shell_command_payload_is_pending_and_source_bytes_stay_original(tmp_path, actual_rows):
+    module = api()
+    row, line = actual_rows[9571]
+    record = module.materialize_claw_record(row, 9571, line, tmp_path)
+    execution = record['source_contract']['checker_execution_contract']
+    assert not record['qualified'], 'HF9571 executes an unresolved policy-produced shell command'
+    assert 'checker_executable_or_script_contract_pending' in record['exclusion_reasons']
+    shell = next(c for c in execution['process_calls'] if c['program_or_expression'] == 'sh')
+    assert shell['shell'] is True
+    assert shell['shell_command_expression'] == 'command'
+    assert shell in execution['dynamic_command_evidence']
+    original = next(a['content'].encode() for a in row['input_files'] if a['file_path'] == 'reward/test.py')
+    assert Path(record['private_checker_path']).read_bytes() == original
+
+
+@pytest.mark.parametrize('program,flag', [('bash', '-lc'), ('/bin/bash', '-ec'), ('sh', '-uc'), ('sh', '--command')])
+def test_real_shell_checker_flag_variants_keep_command_expression_pending(tmp_path, actual_rows, program, flag):
+    from hsrl_v5.claw_contracts import checker_execution_contract
+    source = next(a['content'] for a in actual_rows[9571][0]['input_files'] if a['file_path'] == 'reward/test.py')
+    checker = tmp_path / 'checker.py'
+    checker.write_text(source.replace('["sh", "-c", command]', f'[{program!r}, {flag!r}, command]'))
+    contract = checker_execution_contract(checker, '')
+    assert contract['status'] == 'pending'
+    shell = contract['process_calls'][0]
+    assert shell['shell_command_expression'] == 'command'
+    assert shell['shell_command_mode'] == flag
+    assert shell in contract['dynamic_command_evidence']
+
+
+@pytest.mark.parametrize('other_reasons', [[], ['official_bench200_public_prompt_collision']])
+def test_recomputed_supported_execution_clears_only_own_stale_reason(tmp_path, actual_rows, other_reasons):
+    from hsrl_v5.claw_contracts import apply_execution_contract
+    module = api()
+    record = materialized(module, tmp_path, actual_rows)
+    record['exclusion_reasons'] = [*other_reasons, 'checker_executable_or_script_contract_pending']
+    record['qualified'] = record['structurally_admissible'] = False
+    record['capability_contract']['status'] = 'pending_or_unsupported'
+    record['family'], record['split'] = 'frozen_family', 'train'
+    apply_execution_contract(record)
+    assert record['exclusion_reasons'] == other_reasons
+    assert record['qualified'] is (not other_reasons)
+    assert record['structurally_admissible'] is (not other_reasons)
+    assert (record['family'], record['split']) == ('frozen_family', 'train')
+
+
+@pytest.mark.parametrize('argv', ['["sh"]', '["bash", "-s"]'])
+def test_shell_stdin_payload_keeps_command_expression_pending(tmp_path, actual_rows, argv):
+    from hsrl_v5.claw_contracts import checker_execution_contract
+    source = next(a['content'] for a in actual_rows[9571][0]['input_files'] if a['file_path'] == 'reward/test.py')
+    source = source.replace('["sh", "-c", command]', argv).replace('cwd=str(cwd),', 'input=command, cwd=str(cwd),')
+    checker = tmp_path / 'stdin_checker.py'
+    checker.write_text(source)
+    contract = checker_execution_contract(checker, '')
+    assert contract['status'] == 'pending'
+    assert contract['process_calls'][0]['shell_command_expression'] == 'command'
+    assert contract['process_calls'][0] in contract['dynamic_command_evidence']

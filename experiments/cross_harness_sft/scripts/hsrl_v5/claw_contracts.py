@@ -68,8 +68,40 @@ def checker_execution_contract(checker: Path, query: str) -> dict:
                     except (ValueError, IndexError):
                         program = arg.value
                     kind = 'shell_command_pending' if shell else 'string_command_pending'
+                shell_payload = {}
+                if program is not None and Path(program).name in {'sh', 'bash', 'dash', 'ash', 'zsh', 'ksh', 'mksh'} and isinstance(arg, (ast.List, ast.Tuple)):
+                    # An available interpreter does not establish the program
+                    # evaluated by -c (including bundled flags such as -lc).
+                    # Keep even literal shell bodies pending: their command
+                    # and script dependencies have not been audited here.
+                    for index, option in enumerate(arg.elts[1:], 1):
+                        if isinstance(option, ast.Constant) and isinstance(option.value, str):
+                            flag = option.value
+                            if flag == '--':
+                                break
+                            if flag == '--command' or (flag.startswith('-') and not flag.startswith('--') and 'c' in flag[1:]):
+                                payload = arg.elts[index + 1] if index + 1 < len(arg.elts) else None
+                                shell_payload = {'shell_command_mode': flag,
+                                    'shell_command_expression': ast.unparse(payload) if payload is not None else '<missing_shell_command_argument>'}
+                                break
+                        else:
+                            shell_payload = {'shell_command_mode': '<dynamic_shell_arguments>',
+                                             'shell_command_expression': expression}
+                            break
+                    if not shell_payload:
+                        stdin_arg = next((keyword.value for keyword in node.keywords if keyword.arg in {'input', 'stdin'}), None)
+                        options = arg.elts[1:]
+                        stdin_mode = not options or any(isinstance(option, ast.Constant) and isinstance(option.value, str)
+                            and option.value.startswith('-') and not option.value.startswith('--') and 's' in option.value[1:] for option in options)
+                        only_options = bool(options) and all(isinstance(option, ast.Constant) and isinstance(option.value, str)
+                            and option.value.startswith('-') and option.value != '--' for option in options)
+                        if stdin_arg is not None or stdin_mode or only_options:
+                            shell_payload = {'shell_command_mode': '<stdin>',
+                                'shell_command_expression': ast.unparse(stdin_arg) if stdin_arg is not None else '<inherited_stdin_unverified>'}
+                    if shell_payload:
+                        shell, kind = True, 'shell_command_pending'
                 evidence = {'line': node.lineno, 'call': call, 'program_or_expression': program or expression,
-                            'argument_expression': expression, 'kind': kind, 'shell': shell}
+                            'argument_expression': expression, 'kind': kind, 'shell': shell, **shell_payload}
                 calls.append(evidence)
                 if kind.endswith('_pending') or shell:
                     dynamic.append(evidence)
@@ -88,7 +120,7 @@ def checker_execution_contract(checker: Path, query: str) -> dict:
                              'script_request': script_request})
             unavailable.update(binary_names)
     pending = bool(unavailable or dynamic or parse_error)
-    return {'version': 'clawgym_checker_executables_and_requested_scripts_v1',
+    return {'version': 'clawgym_checker_executables_and_requested_scripts_v2_shell_modes',
             'image_contract': 'hsrl_tools_v4_python_slim_plus_pinned_pip_Dockerfile',
             'declared_programs': sorted(DECLARED_PROGRAMS),
             'unavailable_or_unverified_programs': sorted(unavailable),
@@ -110,7 +142,13 @@ def apply_execution_contract(record: dict) -> None:
     contract = checker_execution_contract(checker, json.loads(path.read_text())['user_query'])
     record['source_contract']['checker_execution_contract'] = contract
     record['capability_contract']['checker_execution_contract'] = contract
+    # Replace this scanner's own decision while retaining every independent
+    # source/capability/benchmark reason from the previous frozen inventory.
+    own_reason = 'checker_executable_or_script_contract_pending'
+    reasons = set(record['exclusion_reasons']) - {own_reason}
     if contract['status'] == 'pending':
-        record['exclusion_reasons'] = sorted({*record['exclusion_reasons'], 'checker_executable_or_script_contract_pending'})
-        record['qualified'] = record['structurally_admissible'] = False
-        record['capability_contract']['status'] = 'pending_or_unsupported'
+        reasons.add(own_reason)
+    record['exclusion_reasons'] = sorted(reasons)
+    record['qualified'] = record['structurally_admissible'] = not reasons
+    record['capability_contract']['status'] = ('pending_or_unsupported' if reasons
+        else 'structurally_supported_runtime_unverified')
