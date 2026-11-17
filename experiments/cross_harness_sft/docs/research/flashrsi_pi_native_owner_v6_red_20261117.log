@@ -1,0 +1,112 @@
+FFFFFFFFFFF                                                              [100%]
+=================================== FAILURES ===================================
+____________ test_retained_native_limit_is_typed_and_tools_settled _____________
+
+    def test_retained_native_limit_is_typed_and_tools_settled():
+>       from flashrsi_pi_owner_profile_v6 import terminal_receipt
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:32: ModuleNotFoundError
+_ test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[wrong_error] _
+
+mutation = 'wrong_error'
+
+    @pytest.mark.parametrize('mutation', ['wrong_error', 'aborted', 'missing_result', 'context', 'deferred', 'missing_python'])
+    def test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap(mutation):
+>       from flashrsi_pi_owner_profile_v6 import terminal_receipt, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:41: ModuleNotFoundError
+__ test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[aborted] ___
+
+mutation = 'aborted'
+
+    @pytest.mark.parametrize('mutation', ['wrong_error', 'aborted', 'missing_result', 'context', 'deferred', 'missing_python'])
+    def test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap(mutation):
+>       from flashrsi_pi_owner_profile_v6 import terminal_receipt, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:41: ModuleNotFoundError
+_ test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[missing_result] _
+
+mutation = 'missing_result'
+
+    @pytest.mark.parametrize('mutation', ['wrong_error', 'aborted', 'missing_result', 'context', 'deferred', 'missing_python'])
+    def test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap(mutation):
+>       from flashrsi_pi_owner_profile_v6 import terminal_receipt, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:41: ModuleNotFoundError
+__ test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[context] ___
+
+mutation = 'context'
+
+    @pytest.mark.parametrize('mutation', ['wrong_error', 'aborted', 'missing_result', 'context', 'deferred', 'missing_python'])
+    def test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap(mutation):
+>       from flashrsi_pi_owner_profile_v6 import terminal_receipt, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:41: ModuleNotFoundError
+__ test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[deferred] __
+
+mutation = 'deferred'
+
+    @pytest.mark.parametrize('mutation', ['wrong_error', 'aborted', 'missing_result', 'context', 'deferred', 'missing_python'])
+    def test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap(mutation):
+>       from flashrsi_pi_owner_profile_v6 import terminal_receipt, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:41: ModuleNotFoundError
+_ test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[missing_python] _
+
+mutation = 'missing_python'
+
+    @pytest.mark.parametrize('mutation', ['wrong_error', 'aborted', 'missing_result', 'context', 'deferred', 'missing_python'])
+    def test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap(mutation):
+>       from flashrsi_pi_owner_profile_v6 import terminal_receipt, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:41: ModuleNotFoundError
+___________ test_native_session_prefix_owner_once_and_leaf_preserved ___________
+
+    def test_native_session_prefix_owner_once_and_leaf_preserved():
+>       from flashrsi_pi_owner_profile_v6 import session_receipt, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:59: ModuleNotFoundError
+______ test_provider_projection_requires_real_successful_matched_requests ______
+
+    def test_provider_projection_requires_real_successful_matched_requests():
+>       from flashrsi_pi_owner_profile_v6 import provider_receipt, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:77: ModuleNotFoundError
+_______ test_namespace_process_receipt_rejects_unowned_surviving_writer ________
+
+    def test_namespace_process_receipt_rejects_unowned_surviving_writer():
+>       from flashrsi_pi_owner_profile_v6 import process_receipt, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:91: ModuleNotFoundError
+__________ test_bare_legacy_completed_status_is_not_profile_admission __________
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-284/test_bare_legacy_completed_sta0')
+
+    def test_bare_legacy_completed_status_is_not_profile_admission(tmp_path):
+>       from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_profile_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:102: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_retained_native_limit_is_typed_and_tools_settled
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[wrong_error]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[aborted]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[missing_result]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[context]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[deferred]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_invalid_or_unknown_native_endpoint_never_becomes_normal_cap[missing_python]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_native_session_prefix_owner_once_and_leaf_preserved
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_provider_projection_requires_real_successful_matched_requests
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_namespace_process_receipt_rejects_unowned_surviving_writer
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_bare_legacy_completed_status_is_not_profile_admission
+11 failed in 0.16s
