@@ -351,3 +351,27 @@ def test_missing_inflight_field_is_unknown_and_cannot_resume():
     rollout = rollout_module()
     with pytest.raises(ValueError, match='reconciliation'):
         rollout.require_resumable({'episodes': []})
+
+
+def test_staggered_renderer_waits_for_peer_generation_before_batch_dispatch():
+    rollout = rollout_module()
+    policy = BoundaryPolicy()
+    broker = rollout.WaveBroker(policy)
+    def rendered_first(facade):
+        return facade.generate([65], 7)
+    def still_rendering(facade):
+        # Force the reviewed race: slot 0 is already at generation when slot 1
+        # queues its tokenizer operation. Rendering cannot count as generation.
+        with broker._condition:
+            assert broker._condition.wait_for(
+                lambda: 0 in broker._pending and broker._pending[0].operation == 'generate',
+                timeout=1)
+        prompt = facade.tokenizer.encode('B')
+        assert not policy.calls, 'generation dispatched before the peer finished rendering'
+        return facade.generate(prompt, 7)
+    results = broker.run([rendered_first, still_rendering])
+    assert [result['response_ids'] for result in results] == [[65], [66]]
+    assert policy.calls == [[{'prompt_ids': [65], 'max_new_tokens': 7},
+                             {'prompt_ids': [66], 'max_new_tokens': 7}]]
+    assert broker.metrics['batch_size_2_calls'] == 1
+    assert not broker.live_threads()

@@ -313,7 +313,8 @@ class WaveBroker:
                         break
                     token_requests = [r for _, r in sorted(self._pending.items())
                                       if r.operation != 'generate']
-                    generation_ready = len(self._pending) + len(self._finished) == 2
+                    generation_ready = (len(self._pending) + len(self._finished) == 2
+                        and all(r.operation == 'generate' for r in self._pending.values()))
                     generate = [r for _, r in sorted(self._pending.items())
                                 if r.operation == 'generate'] if generation_ready else []
                     if not token_requests and not generate:
@@ -327,6 +328,11 @@ class WaveBroker:
                         self._pending.pop(request.slot)
                         request.future.set_result(value)
                         self._condition.notify_all()
+                if token_requests:
+                    # Released renderers may now request more tokenization or
+                    # generation. Recheck failures/completion and readiness from
+                    # current state; a tokenizer request never fills a GPU row.
+                    continue
                 if generate:
                     first, *rest = generate
                     if rest:
