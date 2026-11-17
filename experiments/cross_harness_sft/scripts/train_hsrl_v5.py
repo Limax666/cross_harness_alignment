@@ -236,6 +236,18 @@ def run(args):
         np.random.seed(args.seed)
         policy = Policy(model, args.seed)
         torch = policy.torch
+        actual_policy = {'language_LoRA_target_modules': policy.targets,
+            'trainable_parameter_count': sum(p.numel() for p in policy.trainable),
+            'trainable_parameter_dtypes': sorted({str(p.dtype) for p in policy.trainable}),
+            'actual_tokenizer_chat_template_sha256': digest(policy.tokenizer.chat_template),
+            'actual_protocol_eos_ids': policy.eos_ids, 'logprob_contract': LOGPROB_CONTRACT}
+        manifest = json.loads(manifest_path.read_text())
+        if args.resume:
+            if manifest.get('initialized_policy') != actual_policy:
+                raise ValueError('resumed_actual_policy_or_tokenizer_contract_changed')
+        else:
+            manifest['initialized_policy'] = actual_policy
+            atomic_json(manifest_path, manifest)
         optimizer = torch.optim.AdamW(policy.trainable, lr=CONFIG['lr'], betas=tuple(CONFIG['betas']),
                                      eps=CONFIG['eps'], weight_decay=CONFIG['weight_decay'])
         # LambdaLR applies lambda(0) at construction: update1 uses 0.5*lr,
