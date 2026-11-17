@@ -1,0 +1,51 @@
+.......................................F......                           [100%]
+=================================== FAILURES ===================================
+____________ test_retained_native_cap_shape_is_actual_saved_result _____________
+
+    def test_retained_native_cap_shape_is_actual_saved_result():
+        path=ROOT/'outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/cases/action_042/harness_result.json'
+        if not path.is_file():pytest.skip('retained historical artifact unavailable; never fabricate it')
+        result=json.loads(path.read_text())
+        native=[m for turn in result['turns'] for m in turn['messages'] if m.get('type')=='ResultMessage'][-1]
+        assert native['subtype']=='error_max_turns' and native['terminal_reason']=='max_turns'
+        assert native['num_turns']==17 and native['is_error'] is True
+        f=frames();f[3]={'type':'result',**{k:v for k,v in native.items() if k!='type'}}
+        native_sid=native['session_id'];f[0]['session_id']=native_sid;f[-1]['session_id']=native_sid
+        s=stop();s[0]['session_id']=native_sid
+>       admitted=profile().terminal_receipt(f,s,close(),native_sid)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_claude_native_owner_v9.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+frames = [{'type': 'system', 'subtype': 'init', 'session_id': '8c771942-5ca4-4e34-be7f-f671cc6c4b5d', 'cwd': '/work'}, {'type':...stem', 'subtype': 'session_state_changed', 'state': 'idle', 'session_id': '8c771942-5ca4-4e34-be7f-f671cc6c4b5d', ...}]
+stops = [{'hook_event_name': 'Stop', 'session_id': '8c771942-5ca4-4e34-be7f-f671cc6c4b5d', 'cwd': '/work', 'stop_hook_active': False, ...}]
+close = {'pid': 44, 'start': 123, 'events': ['begin', 'lock_acquired', 'stdin_closed', 'graceful_wait', 'graceful_reaped', 'reaped', ...], 'returncode': 0, ...}
+session_id = '8c771942-5ca4-4e34-be7f-f671cc6c4b5d'
+
+    def terminal_receipt(frames, stops, close, session_id):
+        valid_uuid(session_id)
+        close_receipt(close)
+        results = [e for e in frames if e.get('type') == 'result']
+        human = [r for r in results if r.get('origin') is None or r.get('origin', {}).get('kind') == 'human']
+        if len(human) != 1 or len(results) != 1:
+            raise ProfileError('scheduled_owner_native_result_unknown_or_background_turn')
+        result = human[0]
+        bounded = (result.get('subtype') == 'error_max_turns' and result.get('terminal_reason') == 'max_turns'
+                   and result.get('is_error') is True)
+        normal = (result.get('subtype') == 'success' and result.get('terminal_reason') == 'completed'
+                  and result.get('is_error') is False)
+        # Retained native cap has num_turns=17 under --max-turns16. These are native
+        # loop iterations, not tools or provider calls. Preserve the actual count.
+        count = result.get('num_turns')
+        if (not (bounded or normal) or type(count) is not int or not 1 <= count <= 17
+                or bounded and count != 17 or result.get('session_id') != session_id
+                or result.get('api_error_status') is not None or result.get('deferred_tool_use') is not None
+                or result.get('errors') not in (None, []) or result.get('result') is not None and not isinstance(result['result'], str)):
+>           raise ProfileError('native_terminal_not_exact_normal_or_cap')
+E           flashrsi_pi_owner_profile_v6.ProfileError: native_terminal_not_exact_normal_or_cap
+
+scripts/flashrsi_claude_owner_profile_v9.py:91: ProfileError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_retained_native_cap_shape_is_actual_saved_result
+1 failed, 45 passed in 1.35s

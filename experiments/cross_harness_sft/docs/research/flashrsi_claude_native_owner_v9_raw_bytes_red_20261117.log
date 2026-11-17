@@ -1,0 +1,15 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ test_stdout_observer_preserves_actual_bytes_before_json_or_utf8_parse _____
+
+    def test_stdout_observer_preserves_actual_bytes_before_json_or_utf8_parse():
+        import flashrsi_claude_owner_transport_v9 as transport
+>       assert hasattr(transport,'ObservedBytes'), 'raw bytes must survive native SDK parser failures'
+E       AssertionError: raw bytes must survive native SDK parser failures
+E       assert False
+E        +  where False = hasattr(<module 'flashrsi_claude_owner_transport_v9' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_transport_v9.py'>, 'ObservedBytes')
+
+tests/test_flashrsi_claude_native_owner_v9.py:515: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_stdout_observer_preserves_actual_bytes_before_json_or_utf8_parse
+1 failed, 77 deselected in 1.61s

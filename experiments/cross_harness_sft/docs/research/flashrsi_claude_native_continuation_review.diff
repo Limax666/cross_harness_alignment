@@ -1,0 +1,2392 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_implementation_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_implementation_20261117.md
+new file mode 100644
+index 0000000..82fbeb7
+--- /dev/null
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_implementation_20261117.md
+@@ -0,0 +1,51 @@
++# Claude native continuation implementation, 2026-11-17
++
++Implemented the new `private-v1-claude-native-owner-complete-v9` profile in MAIN. This is code/controller verification, not native runtime acceptance or experiment completion. No old/active host, queue, ACE, follower, vendor, installed SDK, Pi file, credential, historical result or Snapshot was edited. The implementation follows the binding continuation brief, preflight, native continuation reconnaissance, conditional profile review, and single-GPU completion plan. Root owns independent review and genuine full128 dispatch.
++
++## Interfaces for independent review and future queue registration
++
++- `scripts/flashrsi_claude_owner_profile_v9.py` exports `PROFILE`, `CONTRACT`, `validate_case(path, case_id, snapshot_id, owners, source_sha256, *, require_host=True, _pending=False, native_source=...)`, and `snapshot_source_map(snapshot_or_record)`. Snapshot hashes bind every selected resource, not just runtime files.
++- `scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py --base BASE --snapshot SNAPSHOT` requires `HR_HARNESS=claude_code` and `HARNESSRISK_MODEL_PORT=18764`. It creates fresh `BASE/claude_code_initial_full`; existing paths are refused. `source_pins()` binds the new v9 modules, reused generic Pi helpers, original sandbox/relay/privacy/benchmark/algorithm/skill worker, all original FlashRSI Python sources, installed SDK Python sources, exact CLI/package bytes, original HarnessRisk adapter/grader/services/templates. Expected SDK0.2.181, CLI2.1.319 and original Claude adapter pins are enforced.
++- The host is `flashrsi_harnessrisk_host_claude_native_owner_v9.py CASE SNAPSHOT EXPECTED_ID RUN_ROOT` with the same explicit harness/18764 environment. Its matching supervisor/entry are new v9 files.
++- Initial `run_manifest.json` carries profile/contract, source map, original128 manifest hash, model revision, Snapshot identity, `max_turns_per_owner_turn=16`, `native_timeout_seconds_per_owner_turn=600`, `sandbox_wall_seconds_per_owner_turn=900`, reply4096, temperature0. Every attempted case records `returncode`, `measurement_valid`, original case ID, elapsed time and error when applicable in the durable attempts ledger. Cleanup uncertainty stops future cases. `completed.json` uses `status=all_cases_attempted`, `attempts`, `completed_scored`, `failed_or_unscored`, and `all128_measurement_valid`; no failure is zero-imputed.
++- `scripts/flashrsi_harnessrisk_claude_native_owner_reference_v9.py` runs the unchanged original six-algorithm CLI (`--algorithm opro|gepa|evoprompt|ace|skillopt|evo_harness`). Its `validate_reference(initial)` independently revalidates full128 H0, original manifest/Snapshot/case bytes, source pins and every native/source/private/reset/host receipt. Required environment includes `HR_INITIAL_REFERENCE`, `HR_OUTPUT_ROOT`, exact new `HR_HOST_SCRIPT`, harness/18764, and strict evolution. Resulting manifests add `target_execution_protocol`, `target_contract`, `initial_reference_dir`. Algorithm classes/configuration and scoring objective remain original. The matching benchmark independently revalidates candidate receipts and frozen H0 source pins and rejects unscorable trajectories for numeric ranking.
++
++## Implemented native route and gates
++
++The entry uses the original official `ClaudeSDKClient`/`ClaudeAgentOptions`, original authentication/settings/redaction/record/usage/disconnect helpers, exact original plugin/MCP/settings/tool/permission options, and one exported Snapshot/cwd. Only the state lifetime/resume and observation surfaces change. Persistent `CLAUDE_CONFIG_DIR`, API-key-only secure storage and tmp remain inside existing case scratch; no login credential directory is used. First `resume=None`; subsequent resume is the actual preceding native UUID. `session_id=None`, continue/fork false, no truncation/drop/external store. Only the next original owner is passed once to `client.query`; no prose replay, synthetic result, extra continuation prompt, manual compaction, interrupt or TaskStop is introduced.
++
++Exactly `CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768` corrects native metadata. No auto-compact-window override or compaction policy adjustment is added. Candidate settings bytes/hash and effective explicit env/options are retained. Genuine-run `get_context_usage()` must provide actual `rawMaxTokens=32768`, compatible effective window/model and explicit native auto-compaction enablement; optional native modelUsage remains in unmodified results. Every actual wire reply limit remains at most4096, temperature0, retries0; the host makes one actual upstream attempt and never shrinks a reply budget or retries a context failure.
++
++`ObservedTransport` uses the actual original transport's argv/options. It retains pre-UTF8/pre-JSON stdout bytes, decoded raw frames before host-only idle filtering, outgoing control/query bytes, native CLI PID/start, and the observed close branch. Its pinned close body is a copy of SDK0.2.181 with observation statements inserted; removing those statements must reproduce the original close AST. Shield/lock/5s EOF wait/TERM/5s wait/KILL/5s wait/reaping behavior is unchanged. Only proven stdin close, acquired lock, clean EOF wait/reap/exit0, no TERM/KILL/cancellation and complete matching native message UUID/content can qualify; merely returned disconnect or exit0 does not qualify.
++
++Observation-only Stop and native tool callbacks return `{}` and cannot grant permissions or insert context. Raw native result origin, errors, nullable result, stop/terminal reasons, native counters, hook/task/tool IDs, Stop background/crons and actual idle are preserved. Missing Stop is unknown, including at native max-turn; no Stop is invented. All tool results need actual matching IDs and Pre/Post or failure callback closure. Deferred, aborted/interrupted, unknown task, pending background/cron/hook/tool work, extension/MCP error, API/context/transport/parser/dependency error or cleanup ambiguity blocks continuation.
++
++Namespace census excludes only PID1 and the same live PID/start mock manager plus its descendants. The reviewed Pi mock barrier/manager and generic durable no-follow reader/census pattern are reused read-only and included in source pins. A new native-model barrier tracks accepted connections before parsing, stops acceptance, checks active requests and drains listen backlog at owner boundaries; its same-case listener is retained between owners and closed at case cleanup. Model transport records, response bytes and host projected wire evidence are independently bound. Original service/private grader/reset semantics are unchanged.
++
++Native JSONL retains original bytes, metadata/header, UUID/parent/cwd/session identity, all original owners and tool history. Prefix mutation, partial/corrupt lines, missing emitted native messages, unproved branches, pending tool IDs, replayed historical IDs or changed owner order/text invalidate. All provider requests are archived; the existing known CLI git/attribution reminders are the only text removals. Repeated text equal to an original owner is preserved. Unknown native projection/compaction fails closed rather than broad history removal or synthetic closure.
++
++The exact retained native session-title system prompt hash and title schema identify original auxiliary title calls. They retain full request/response/cost evidence and are counted separately from scheduled-agent exposure. Every auxiliary HTTP/context failure stays invalid. Scheduled response API message IDs must reconcile with raw native assistant frames and persisted native messages. Repeated identical scheduled history cannot count as another owner exposure or a retry-free allowance.
++
++Native `num_turns`, scheduled API requests, auxiliary API requests, and tool counters remain distinct: retained action041 has native12 versus5 scheduled calls plus1 title; action042 has native17 under declared16, with16 scheduled calls plus1 title. No equality is inferred. Root's explicit reset ruling is implemented: after a cap17, accept an actual native counter decrease with a genuine next-owner call, or at least16 distinct successful scheduled request/response pairs in that owner segment reconciled to raw/native origin. Otherwise `native_resumed_counter_reset_structural_barrier` remains invalid. Receipts name the observed witness; these tests do not prove the compiled runtime resets.
++
++NEW source status `completed` means only that the owner measurement schedule passed all gates. Mandatory `driver_status=owner_schedule_completed`, `measurement_validity`, raw `native_outcomes` and cap counts remain distinct from task success. Empty output stays empty, raw null result stays null, and the unchanged official source grader alone determines utility/fallback. Historical partial scores remain immutable.
++
++## Verification and evidence
++
++Reused the existing documented controller/filesystem verification workflow; no new verification skill was necessary. Red evidence is retained in `docs/research/flashrsi_claude_native_owner_v9_*_red_20261117.log`, including initial missing surface, retained cap errors shape, model barrier, history flush, tool callbacks, counter, raw bytes, native auxiliary classification, host binding and duplicate-request regressions. The retained native cap test reads the actual saved action042 result shape; auxiliary tests read actual action041 native title structures. Assembled admission fixtures are explicitly unit-test data, not experiment measurements or runtime proof.
++
++The latest completed command was:
++
++```bash
++PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:vendor/FlashRSI .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_claude_native_owner_v9.py tests/test_flashrsi_pi_native_owner_v6.py tests/test_flashrsi_native_protocol_relay.py > docs/research/flashrsi_claude_native_owner_v9_green_20261117.log 2>&1
++```
++
++Observed outcome: **145 passed in9.43s**, exit0:86 new Claude tests,57 existing Pi controller tests,2 existing relay tests. Original log and duplicate `flashrsi_claude_native_owner_v9_broader_regression_20261117.log` survive. All test processes finished. Eleven owned Python files were subsequently AST-parsed without execution; owned staged whitespace check is recorded with the scoped review diff.
++
++Scope deviation: the two existing `test_flashrsi_native_protocol_relay.py` fixtures were mistakenly included without first inspecting their setup. They opened temporary loopback HTTP and Unix-socket stand-in servers. Both tests passed; their `finally` blocks call shutdown, join each fixture-owned thread, and close both servers. Root was notified. No native CLI, model, real source/mock program, external API, GPU, Docker, production experiment or external network endpoint was run. These two fixture tests are not native runtime evidence. No further probe or repeated unchanged suite was launched.
++
++## Genuine-path limits and failure diagnostics
++
++No full128 H0, RSI, official source execution, private grading run, native UUID resume, native counter reset, real Stop/idle/background closure, actual context/compaction policy, or real EOF/native JSONL flush was executed. These remain genuine-run proof obligations after independent review. The original compiled CLI may omit Stop at max-turn, emit native system/projection forms absent from raw JSONL, or use compaction/branch transformations whose complete receipt is unavailable. Such cases are precise invalids, not normal caps. Explicit compaction gate: `native_compaction_projection_structural_barrier_requires_original_receipt`; unknown wire/native relation: `native_history_projection_unknown_or_owner_duplicated_removed` or `actual_provider_history_prefix_dropped_duplicated_or_unarchived`; unknown resumed counter: `native_resumed_counter_reset_structural_barrier`.
++
++During a genuine run, failed or deadline-expired owners retain raw stdout chunks, raw native frames, outgoing controls, nullable parsed result, Stop/tool observations, close branch, context if obtained, stderr, complete provider requests/responses and attempted owner hashes. `error.missing_evidence` distinguishes absent result/Stop/idle/context. Context observation occurs before waiting for possibly absent Stop/idle, within the same600s deadline. Before case scratch cleanup, every regular native state-tree file is copied with descriptor-relative no-follow validation and durable hashes, including partial/failed JSONL and subagent files. Final private paths include `native_session/owner_NNN.*`, `all_provider_records.json`, and `final_native_tree/archive_manifest.json`; the host retains `protocol_model_evidence.json` and namespace cleanup proof. Any archive failure is separately recorded. This enables repair from actual authorized H0 evidence without inventing a diagnostic rerun or repairing session contents.
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_adapter_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_adapter_v9.py
+new file mode 100644
+index 0000000..add2e3f
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_adapter_v9.py
+@@ -0,0 +1,162 @@
++"""Narrow native Claude runner retaining the original SDK/resource/auth options."""
++from __future__ import annotations
++
++import asyncio
++import base64
++import copy
++import json
++from pathlib import Path
++from collections.abc import Mapping
++from dataclasses import fields, is_dataclass
++from contextlib import aclosing
++
++from flashrsi_claude_owner_profile_v9 import (PROFILE, CONTRACT, ProfileError, valid_uuid,
++    byte_hash, digest, target_config, terminal_receipt, context_receipt, locate_session)
++
++
++def plain(value):
++    if is_dataclass(value): return {f.name: plain(getattr(value,f.name)) for f in fields(value)}
++    if isinstance(value, Mapping):return {str(k):plain(v) for k,v in value.items()}
++    if isinstance(value,(list,tuple)):return [plain(v) for v in value]
++    if isinstance(value,Path):return str(value)
++    if value is None or type(value) in (str,int,float,bool):return value
++    raise ProfileError('unserializable_actual_native_field:'+type(value).__name__)
++
++
++def build_options(config, files_dir, task_dir, runtime, resume, stderr, stops, tool_inputs=None):
++    from claude_agent_sdk import ClaudeAgentOptions, HookMatcher
++    from flashrsi.agents.claude_code import _authentication_env, _settings
++    from flashrsi._records import _redact, _secrets
++    if config != target_config(config['llm'].get('api_key'), config['llm'].get('base_url')):
++        raise ProfileError('registered_Claude_native_options_changed')
++    if resume is not None:valid_uuid(resume)
++    llm=config['llm'];env=_authentication_env(llm)
++    env.update({'CLAUDE_PLUGIN_ROOT':str(files_dir),'CLAUDE_CODE_DISABLE_AUTO_MEMORY':'1',
++        'CLAUDE_CODE_SKIP_PROMPT_HISTORY':'','CLAUDE_CODE_MAX_CONTEXT_TOKENS':'32768',
++        'CLAUDE_CONFIG_DIR':str(runtime/'state'),'CLAUDE_SECURESTORAGE_CONFIG_DIR':str(runtime/'state'),
++        'CLAUDE_CODE_TMPDIR':str(runtime/'tmp')})
++    (runtime/'tmp').mkdir(mode=0o700,exist_ok=True)
++    instructions_path=files_dir/'CLAUDE.md'
++    instructions=instructions_path.read_text() if instructions_path.is_file() else ''
++    if config.get('_worker_system_prompt'):instructions+='\n\n'+config['_worker_system_prompt']
++    settings=_settings(files_dir/'settings.json')
++    settings_bytes=(files_dir/'settings.json').read_bytes() if settings else b''
++    settings_value=json.loads(settings_bytes.decode('utf-8-sig')) if settings else {}
++    candidate_env=settings_value.get('env',{})
++    # Preserve candidate bytes; reject policy overrides rather than rewriting.
++    expected_context={'CLAUDE_CODE_MAX_CONTEXT_TOKENS':'32768'}
++    if any(k.upper() in expected_context and v!=expected_context[k.upper()] for k,v in candidate_env.items()):
++        raise ProfileError('candidate_effective_context_metadata_mismatch')
++    system_prompt={'type':'preset','preset':'claude_code'}
++    if instructions.strip():system_prompt['append']=instructions
++    async def observe_stop(value, _tool_use_id, _context):
++        stops.append(plain(value))
++        return {}  # Observation only: no permission/context/continue changes.
++    async def observe_tool(value, _tool_use_id, _context):
++        if tool_inputs is not None:tool_inputs.append(plain(value))
++        return {}
++    options=ClaudeAgentOptions(model=llm['model_name'],system_prompt=system_prompt,
++        plugins=[{'type':'local','path':str(files_dir)}],skills='all',setting_sources=[],strict_mcp_config=True,
++        mcp_servers=str(files_dir/'.mcp.json') if (files_dir/'.mcp.json').is_file() else {},
++        settings=settings,forward_subagent_text=True,include_hook_events=True,
++        cwd=task_dir,env=env,permission_mode=config.get('permission_mode','acceptEdits'),
++        allowed_tools=config.get('allowed_tools',['Read','Glob','Grep']),disallowed_tools=config.get('disallowed_tools',[]),
++        tools=config.get('tools'),max_turns=config.get('max_turns',10),max_budget_usd=config.get('max_budget_usd'),
++        max_buffer_size=config.get('max_buffer_size',32*1024*1024),effort=llm.get('effort'),
++        cli_path=Path(config['cli_path']).expanduser().resolve() if config.get('cli_path') else None,stderr=stderr,
++        resume=resume,continue_conversation=False,session_id=None,fork_session=False,
++        resume_session_at=None,resume_drops_turn=None,session_store=None,
++        hooks={'Stop':[HookMatcher(hooks=[observe_stop])],
++               **{name:[HookMatcher(hooks=[observe_tool])] for name in ('PreToolUse','PostToolUse','PostToolUseFailure')}})
++    evidence={'profile':PROFILE,'settings_sha256':byte_hash(settings_bytes),
++        'settings':settings_value,'environment':env,'resume':resume,'continue_conversation':False,
++        'session_id':None,'fork_session':False,'resume_session_at':None,'resume_drops_turn':None,
++        'session_store':None,'cwd':str(task_dir),'files_dir':str(files_dir),'contract':CONTRACT}
++    return options,_redact(evidence,_secrets(config)+_secrets(env))
++
++
++async def run(request):
++    from claude_agent_sdk import ClaudeSDKClient, ResultMessage, SystemMessage
++    from flashrsi.agents.claude_code import _disconnect, _record, _extension_error, _add_usage
++    from flashrsi._records import _redact, _secrets
++    from flashrsi_claude_owner_transport_v9 import ObservedTransport
++    if request.get('profile')!=PROFILE or request.get('harness')!='claude_code':
++        raise ProfileError('Claude_native_v9_only')
++    home=Path(__import__('os').environ['HOME']).resolve(strict=True)
++    runtime=Path(request['state_dir']);work=Path(request['working_dir']).resolve(strict=True)
++    files=Path(request['workspace_dir']).resolve(strict=True)
++    if not runtime.is_absolute() or not runtime.resolve().is_relative_to(home) or runtime.resolve().is_relative_to(work):
++        raise ProfileError('persistent_native_state_must_be_existing_case_scratch')
++    current=home
++    for part in runtime.relative_to(home).parts:
++        current/=part
++        if current.is_symlink():raise ProfileError('persistent_native_state_symlink')
++    runtime.mkdir(mode=0o700,parents=True,exist_ok=True)
++    resume=request.get('resume');index=request['owner_index']
++    if (index==1)!=(resume is None):raise ProfileError('actual_previous_native_UUID_resume_required')
++    before=b''
++    if resume is not None:
++        _,before=locate_session(runtime/'state',home,resume)
++    if byte_hash(before)!=request['expected_session_sha256']:
++        raise ProfileError('native_state_prefix_changed_before_owner')
++    frames,stops,messages,usage=[],[],[],{}
++    tool_inputs=[]
++    changed=asyncio.Event();stderr_lines=[]
++    secrets=_secrets(request['config'])
++    def stderr(line):stderr_lines.append(_redact(line,secrets))
++    options,settings=build_options(request['config'],files,work,runtime,resume,stderr,stops,tool_inputs)
++    # Same original bidirectional input shape; original transport builds argv.
++    async def unused_prompt():
++        if False:yield {}
++    transport=ObservedTransport(prompt=unused_prompt(),options=options,frames=frames,changed=changed)
++    client=ClaudeSDKClient(options=options,transport=transport)
++    context=None;result=None;error=None
++    try:
++        try:
++            async with asyncio.timeout(600):
++                await client.connect()
++                await client.query(request['question'])  # Exactly one original owner.
++                async with aclosing(client.receive_messages()) as stream:
++                    async for message in stream:
++                        messages.append(_record(message))
++                        if isinstance(message,SystemMessage):
++                            extension_error=_extension_error(message)
++                            if extension_error:raise ProfileError(extension_error)
++                        if isinstance(message,ResultMessage):
++                            result=message;_add_usage(usage,message)
++                # An observation control request during this genuine owner run,
++                # before waiting for possibly absent Stop/idle evidence.
++                context=plain(await client.get_context_usage())
++                # The public receive stream may close at an SDK run-end ceiling.
++                # It is never sufficient proof. Wait for actual raw idle + Stop;
++                # no prompt, interrupt, task-stop or wakeup is introduced.
++                while True:
++                    states=[f for f in frames if f.get('subtype')=='session_state_changed']
++                    if result is not None and stops and states and states[-1].get('state')=='idle':break
++                    changed.clear()
++                    # Avoid a lost raw-frame wakeup between inspection and clear.
++                    states=[f for f in frames if f.get('subtype')=='session_state_changed']
++                    if result is not None and stops and states and states[-1].get('state')=='idle':break
++                    await changed.wait()
++        finally:
++            await _disconnect(client)  # Original cancellation-shielded cleanup.
++    except BaseException as exc:
++        error={'type':type(exc).__name__,'detail':_redact(str(exc),secrets),
++            'missing_evidence': ([name for name,present in (
++                ('scheduled_owner_result',result is not None),
++                ('native_Stop',bool(stops)),
++                ('native_idle',any(f.get('subtype')=='session_state_changed' and f.get('state')=='idle' for f in frames)),
++                ('native_context_usage',context is not None)) if not present])}
++        if isinstance(exc,(KeyboardInterrupt,SystemExit,asyncio.CancelledError)):
++            transport.close_evidence['events'].append('cancelled')
++    raw_result=plain(result) if result is not None else None
++    # Preserve actual nullable result independently from the source's string API.
++    answer=(result.result or '') if result is not None else ''
++    sid=result.session_id if result is not None else next((f.get('session_id') for f in frames if f.get('subtype')=='init'),resume)
++    return {'profile':PROFILE,'owner_index':index,'owner_sha256':digest(request['question']),
++        'session_before_sha256':byte_hash(before),'resume_requested':resume,'session_id':sid,
++        'raw_stdout_b64':[base64.b64encode(b).decode() for b in transport.raw_stdout_bytes],
++        'raw_frames':frames,'raw_writes':transport.raw_writes,'Stop_inputs':stops,'tool_hook_inputs':tool_inputs,'close':transport.close_evidence,
++        'context_usage':context,'runtime_settings':settings,'native_result':raw_result,
++        'output':_redact(answer,secrets),'messages':_redact(messages,secrets),'usage':_redact(usage,secrets),
++        'error':error,'stderr_tail':'\n'.join(stderr_lines)[-8192:]}
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_model_barrier_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_model_barrier_v9.py
+new file mode 100644
+index 0000000..30c9b74
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_model_barrier_v9.py
+@@ -0,0 +1,63 @@
++"""Accepted/unparsed native-model HTTP connections hold the owner boundary."""
++from __future__ import annotations
++import threading
++from flashrsi_claude_owner_profile_v9 import ProfileError
++
++
++class ModelBarrier:
++    def __init__(self,factory,*,thread_factory=threading.Thread):
++        self.factory,self.thread_factory=factory,thread_factory
++        self.server=factory();self.thread=None;self.owner=0
++        self.lock=threading.Lock();self.active=set();self.connections=0;self.failures=[]
++        self._observe_server()
++
++    def _observe_server(self):
++        server=self.server
++        original_accept=server.get_request
++        original_dispatch=server.process_request_thread
++        def accept():
++            connection,address=original_accept()
++            with self.lock:
++                self.connections+=1;self.active.add(id(connection))
++            return connection,address
++        def dispatch(connection,address):
++            try:return original_dispatch(connection,address)
++            except BaseException as exc:
++                with self.lock:self.failures.append(type(exc).__name__)
++                raise
++            finally:
++                with self.lock:self.active.discard(id(connection))
++        server.get_request=accept
++        server.process_request_thread=dispatch
++
++    def open_owner(self,index):
++        with self.lock:
++            if self.thread is not None or self.active or self.failures or index!=self.owner+1:
++                raise ProfileError('native_model_owner_boundary_unsettled')
++            self.owner=index;self.connections=0
++            self.thread=self.thread_factory(target=self.server.serve_forever,kwargs={'poll_interval':.01},daemon=True)
++            self.thread.start()
++
++    def freeze(self):
++        if self.thread is None:raise ProfileError('native_model_accept_loop_unknown')
++        self.server.shutdown();self.thread.join();self.thread=None
++        # Census has proved no target process survives. Stop accepting first,
++        # then account for connections that reached the listen backlog only.
++        self.server.socket.setblocking(False)
++        try:
++            while True:
++                try:connection,_address=self.server.socket.accept()
++                except BlockingIOError:break
++                connection.close()
++                self.failures.append('native_model_unparsed_connection_in_listen_backlog')
++        finally:self.server.socket.setblocking(True)
++        with self.lock:
++            if self.active or self.failures or self.server.errors:
++                raise ProfileError('native_model_active_unparsed_or_failed_transport')
++            return {'owner_index':self.owner,'connections':self.connections,'active':0,'settled':True,
++                    'accept_loop_stopped':True,'backlog_drained':True,'listener_retained_for_same_case':True,'failures':[]}
++
++    def close(self):
++        if self.thread is not None:
++            self.server.shutdown();self.thread.join();self.thread=None
++        self.server.server_close()
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py
+new file mode 100644
+index 0000000..2bc6fd9
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py
+@@ -0,0 +1,568 @@
++"""NEW Claude native-owner receipts. Unknown native state is never completion."""
++from __future__ import annotations
++
++import base64
++import copy
++import json
++import math
++from pathlib import Path
++import uuid
++
++# Reviewed generic filesystem/durability/census helpers only. Their source bytes
++# are included in this profile's full source map; no Pi run/adapter is invoked.
++from flashrsi_pi_owner_profile_v6 import (ProfileError, byte_hash, canonical, digest,
++    save_json, save_bytes, read_native_session, process_receipt, _inside, _unique)
++
++PROFILE = 'private-v1-claude-native-owner-complete-v9'
++MODEL = 'qwen35-4b-preflight'
++CLI = '/data/home/liumingxiao/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe'
++CONTRACT = {'profile': PROFILE, 'max_turns_per_owner': 16, 'native_timeout_seconds': 600,
++    'sandbox_wall_seconds': 900, 'whole_host_seconds': 2400, 'max_tokens_per_turn': 4096,
++    'temperature': 0, 'max_retries': 0, 'context_window': 32768,
++    'native_context_correction': 'CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768; native compaction policy unchanged',
++    'owner_input': 'exact next original owner once; explicit UUID resume, same cwd/Snapshot/mock/state',
++    'status_semantics': 'completed means measured owner schedule, never agent task success',
++    'source_status_ruling': 'root 2026-11-17: completed only after all native/history/privacy/source gates; preserve native errors',
++    'unknown_native_projection': 'invalid; native compaction requires complete original projection evidence',
++    'counter_rule': 'actual fresh owner request required; native reported max-turn count is not tool/model-call count',
++    'resumed_counter_reset': 'actual native decrease or sixteen distinct successful scheduled pairs reconciled to raw/native origin; otherwise invalid',
++    'native_auxiliary_accounting': 'all requests retained; exact original native session-title prompt separated from scheduled exposure'}
++
++
++def target_config(api_key, base_url):
++    return {'llm': {'model_name': MODEL, 'api_key': api_key, 'base_url': base_url,
++                   'max_tokens': 4096, 'max_retries': 0}, 'cli_path': CLI,
++            'allowed_tools': ['Read','Glob','Grep','Bash','Write','Edit'],
++            'permission_mode':'dontAsk','max_turns':16,'timeout':600,
++            'tools':['Read','Glob','Grep','Bash','Write','Edit','Skill']}
++
++
++def snapshot_source_map(snapshot):
++    files = snapshot['files'] if isinstance(snapshot, dict) else snapshot.files
++    return {name: byte_hash(base64.b64decode(entry['content'], validate=True)
++                           if isinstance(entry, dict) else entry.content)
++            for name, entry in files.items()}
++
++
++def valid_uuid(value):
++    try:
++        if str(uuid.UUID(value)) != value: raise ValueError()
++    except (ValueError, TypeError, AttributeError):
++        raise ProfileError('actual_native_UUID_missing_or_invalid') from None
++    return value
++
++
++def context_receipt(value):
++    if (not isinstance(value, dict) or value.get('rawMaxTokens') != 32768
++            or type(value.get('maxTokens')) is not int or not 0 < value['maxTokens'] <= 32768
++            or value.get('model') != MODEL or type(value.get('isAutoCompactEnabled')) is not bool):
++        raise ProfileError('actual_native_context_usage_unknown_or_mismatched')
++    return copy.deepcopy(value)
++
++
++def close_receipt(value):
++    events = value.get('events', [])
++    required = {'begin','lock_acquired','stdin_closed','graceful_wait','graceful_reaped','reaped','finished'}
++    if (not required.issubset(events) or set(events) & {'terminate','kill','cancelled','lock_timeout','already_exited'}
++            or value.get('exception') is not None or value.get('returncode') != 0
++            or value.get('reaped') is not True or type(value.get('pid')) is not int
++            or type(value.get('start')) is not int):
++        raise ProfileError('native_clean_EOF_reap_and_flush_unproven')
++    return copy.deepcopy(value)
++
++
++def terminal_receipt(frames, stops, close, session_id):
++    valid_uuid(session_id)
++    close_receipt(close)
++    results = [e for e in frames if e.get('type') == 'result']
++    human = [r for r in results if r.get('origin') is None or r.get('origin', {}).get('kind') == 'human']
++    if len(human) != 1 or len(results) != 1:
++        raise ProfileError('scheduled_owner_native_result_unknown_or_background_turn')
++    result = human[0]
++    bounded = (result.get('subtype') == 'error_max_turns' and result.get('terminal_reason') == 'max_turns'
++               and result.get('is_error') is True)
++    normal = (result.get('subtype') == 'success' and result.get('terminal_reason') == 'completed'
++              and result.get('is_error') is False)
++    # Retained native cap has num_turns=17 under --max-turns16. These are native
++    # loop iterations, not tools or provider calls. Preserve the actual count.
++    count = result.get('num_turns')
++    if (not (bounded or normal) or type(count) is not int or not 1 <= count <= 17
++            or bounded and count != 17 or result.get('session_id') != session_id
++            or result.get('api_error_status') is not None or result.get('deferred_tool_use') is not None
++            or result.get('errors') not in ((None, [], ['Reached maximum number of turns (16)']) if bounded else (None, []))
++            or result.get('result') is not None and not isinstance(result['result'], str)):
++        raise ProfileError('native_terminal_not_exact_normal_or_cap')
++    states = [f for f in frames if f.get('type') == 'system' and f.get('subtype') == 'session_state_changed']
++    if not states or states[-1].get('state') != 'idle' or states[-1].get('session_id') != session_id:
++        raise ProfileError('actual_native_idle_missing_or_wrong_session')
++    if not stops or stops[-1].get('session_id') != session_id or stops[-1].get('hook_event_name') != 'Stop':
++        raise ProfileError('actual_native_Stop_missing_or_wrong_session')
++    if stops[-1].get('background_tasks') != [] or stops[-1].get('session_crons') != []:
++        raise ProfileError('actual_native_background_or_cron_closure_unknown')
++    active, hooks, calls, outputs = set(), set(), [], []
++    for frame in frames:
++        if frame.get('type') == 'system':
++            subtype = frame.get('subtype')
++            if subtype == 'init':
++                if frame.get('session_id') != session_id:
++                    raise ProfileError('native_init_session_changed')
++                if frame.get('plugin_errors') or any(m.get('status') in {'failed','needs-auth'} for m in frame.get('mcp_servers', [])):
++                    raise ProfileError('native_extension_or_MCP_failed')
++            if subtype == 'task_started':
++                if frame.get('task_type') not in {'local_agent','local_workflow','local_shell','shell','monitor','workflow'}:
++                    raise ProfileError('unknown_native_task_type')
++                if not frame.get('task_id') or frame['task_id'] in active:
++                    raise ProfileError('missing_or_duplicate_native_task_start')
++                active.add(frame['task_id'])
++            if subtype in {'task_notification','task_updated'}:
++                if frame.get('status') in {'stopped','killed','aborted','failed'}:
++                    raise ProfileError('native_task_aborted_or_failed')
++                if frame.get('status') == 'completed':
++                    if frame.get('task_id') not in active:
++                        raise ProfileError('native_task_terminal_without_start')
++                    active.remove(frame['task_id'])
++            if subtype in {'hook_started','hook_response'}:
++                identity = frame.get('hook_id')
++                if not identity: raise ProfileError('native_hook_lifecycle_identity_missing')
++                if subtype == 'hook_started':
++                    if identity in hooks: raise ProfileError('duplicate_native_hook_start')
++                    hooks.add(identity)
++                else:
++                    if identity not in hooks or frame.get('exit_code') != 0 or frame.get('outcome') not in {'success','completed'}:
++                        raise ProfileError('native_hook_failed_unknown_or_unmatched')
++                    hooks.remove(identity)
++        message = frame.get('message', {})
++        if frame.get('type') == 'assistant' and (frame.get('error') or message.get('error')):
++            raise ProfileError('native_assistant_API_or_context_failure')
++        content = message.get('content', [])
++        for block in content if isinstance(content, list) else []:
++            if block.get('type') == 'tool_use': calls.append(block.get('id'))
++            if block.get('type') == 'tool_result': outputs.append(block.get('tool_use_id'))
++    if (active or hooks or None in calls or None in outputs or len(calls) != len(set(calls))
++            or len(outputs) != len(set(outputs)) or set(calls) != set(outputs)):
++        raise ProfileError('native_tools_tasks_or_hooks_not_settled')
++    return {'kind':'native_max_turns' if bounded else 'native_finished',
++            'native_outcome':copy.deepcopy(result), 'tool_ids':calls, 'raw_frames_sha256':digest(frames),
++            'Stop_sha256':digest(stops), 'close_sha256':digest(close)}
++
++
++def session_rows(raw):
++    if not raw or not raw.endswith(b'\n'):
++        raise ProfileError('native_session_missing_or_partial_JSONL')
++    try:
++        rows = [json.loads(line, object_pairs_hook=_unique) for line in raw.decode('utf-8').splitlines()]
++    except (UnicodeError, ValueError) as exc:
++        raise ProfileError('native_session_corrupt') from exc
++    if any(not isinstance(r, dict) for r in rows): raise ProfileError('native_session_nonobject_record')
++    return rows
++
++
++def session_receipt(before, after, owner, cwd, expected_id):
++    valid_uuid(expected_id)
++    if not after.startswith(before): raise ProfileError('native_session_prefix_mutated')
++    rows = session_rows(after)
++    old_count = len(session_rows(before)) if before else 0
++    previous, identities, calls, results = None, set(), [], []
++    for row in rows:
++        if row.get('subtype') == 'compact_boundary' or row.get('isCompactSummary'):
++            # This CLI's provider-compaction/branch reconstruction is compiled.
++            # No inferred summary receipt can certify what history was retained.
++            raise ProfileError('native_compaction_projection_structural_barrier_requires_original_receipt')
++        if row.get('type') not in {'user','assistant','progress','system','attachment'}:
++            continue  # Preserve raw metadata/header bytes; not conversation links.
++        if row.get('sessionId') != expected_id or row.get('cwd') != cwd or row.get('isSidechain'):
++            raise ProfileError('native_session_identity_cwd_or_sidechain_changed')
++        identity = row.get('uuid')
++        if not identity or identity in identities or row.get('parentUuid') not in identities | {None}:
++            raise ProfileError('native_session_duplicate_or_dangling_parent')
++        if previous is not None and row.get('parentUuid') is None:
++            raise ProfileError('native_session_unexplained_new_root')
++        identities.add(identity); previous = identity
++        content = row.get('message', {}).get('content', [])
++        for block in content if isinstance(content, list) else []:
++            if block.get('type') == 'tool_use': calls.append(block.get('id'))
++            if block.get('type') == 'tool_result': results.append(block.get('tool_use_id'))
++    if (None in calls or None in results or len(calls)!=len(set(calls)) or len(results)!=len(set(results)) or set(calls)!=set(results)):
++        raise ProfileError('native_session_pending_or_duplicate_tool_result')
++    new_owners = [r for r in rows[old_count:] if r.get('type') == 'user' and not r.get('isMeta')
++                  and (isinstance(r.get('message', {}).get('content'), str) or
++                       isinstance(r.get('message', {}).get('content'), list) and
++                       all(b.get('type')=='text' for b in r['message']['content']))]
++    if len(new_owners) != 1 or _message(new_owners[0]['message']) != _message({'role':'user','content':owner}):
++        raise ProfileError('next_original_owner_not_appended_exactly_once')
++    return {'session_id':expected_id, 'cwd':cwd, 'leaf_id':previous,
++        'owner_uuid':new_owners[0]['uuid'],'prefix_sha256':byte_hash(before),'session_sha256':byte_hash(after),
++        'bytes':len(after),'records':len(rows),'owner_sha256':digest(owner)}
++
++
++_AUTO_PREFIXES = ("<system-reminder>\nAs you answer the user's questions, you can use the following context:\n# gitStatus\n",
++                  '<system-reminder>\nAttribution for git commits and pull requests you create from here on ')
++
++def project_cli_history(body):
++    """Only original v8 known CLI reminders; never remove matching owner text."""
++    projected, removed = copy.deepcopy(body), []
++    for mi, message in enumerate(projected.get('messages', [])):
++        if message.get('role') != 'user' or not isinstance(message.get('content'), list): continue
++        kept=[]
++        for bi, block in enumerate(message['content']):
++            if block.get('type') == 'text' and isinstance(block.get('text'),str) and block['text'].startswith(_AUTO_PREFIXES):
++                removed.append({'message_index':mi,'part_index':bi,'sha256':byte_hash(block['text'].encode()),'kind':'cli_system_reminder'})
++            else: kept.append(block)
++        message['content']=kept
++    return projected,removed
++
++
++def _message(value):
++    """Normalize only SDK/native plain-text representation and cache annotation."""
++    role, content = value.get('role'), value.get('content')
++    if isinstance(content,str): content=[{'type':'text','text':content}]
++    if not isinstance(content,list):raise ProfileError('native_history_content_unknown')
++    content=[{k:v for k,v in b.items() if k!='cache_control'} for b in content]
++    return {'role':role,'content':content}
++
++
++def provider_receipt(records, before, owner, session_id, owner_index, *, after=None):
++    if not records:raise ProfileError('original_owner_no_actual_model_invocation')
++    model_records=[];auxiliary_records=[];kinds=[]
++    for record in records:
++        if (record.get('failure') or record.get('status') != 200 or not record.get('response_sha256')
++                or record.get('settled') is False):
++            raise ProfileError('actual_model_transport_or_context_failure')
++        request=record.get('request',{})
++        if request.get('model') != MODEL:raise ProfileError('actual_model_identity_changed')
++        metadata=request.get('metadata',{})
++        if metadata.get('user_id') is not None:
++            try:native_session=json.loads(metadata['user_id'])['session_id']
++            except (TypeError,ValueError,KeyError):raise ProfileError('native_wire_session_metadata_unknown') from None
++            if native_session!=session_id:raise ProfileError('native_wire_session_UUID_changed')
++        if record.get('path') == '/v1/messages':
++            if type(request.get('max_tokens')) is not int or not 1<=request['max_tokens']<=4096:
++                raise ProfileError('actual_wire_output_budget_changed')
++            kind=native_request_kind(request)
++            kinds.append(kind)
++            (auxiliary_records if kind=='session_title' else model_records).append(record)
++        elif record.get('path') != '/v1/messages/count_tokens':
++            raise ProfileError('unexpected_native_provider_route')
++    if not model_records:raise ProfileError('original_owner_no_actual_model_invocation')
++    history_hashes=[digest(r['request'].get('messages')) for r in model_records]
++    if len(history_hashes)!=len(set(history_hashes)):
++        raise ProfileError('repeated_native_agent_history_is_retry_or_unproved_origin')
++    first=model_records[0]['request']['messages']
++    native_before=[_message(r['message']) for r in session_rows(before) if r.get('type') in {'user','assistant'} and not r.get('isMeta')] if before else []
++    expected=native_before+[_message({'role':'user','content':owner})]
++    actual=[_message(m) for m in first]
++    if actual != expected:
++        raise ProfileError('native_history_projection_unknown_or_owner_duplicated_removed')
++    if after is not None:
++        native_after=[_message(r['message']) for r in session_rows(after) if r.get('type') in {'user','assistant'} and not r.get('isMeta')]
++        for record in model_records:
++            history=[_message(m) for m in record['request']['messages']]
++            if len(history)<len(expected) or history!=native_after[:len(history)] or history[:len(expected)]!=expected:
++                raise ProfileError('actual_provider_history_prefix_dropped_duplicated_or_unarchived')
++    # Actual requests, summaries and failed attempts are preserved, never counted
++    # as tool iterations. CLI result.num_turns is reconciled separately.
++    return {'owner_index':owner_index,'session_id':session_id,'owner_sha256':digest(owner),
++        'model_requests':len(model_records)+len(auxiliary_records),'agent_model_requests':len(model_records),
++        'auxiliary_model_requests':len(auxiliary_records),'request_kinds':kinds,'requests_sha256':digest(records),
++        'first_history_sha256':digest(actual),'prior_session_sha256':byte_hash(before)}
++
++
++def counter_receipt(terminal, provider, previous=None):
++    result=terminal['native_outcome']; count=result['num_turns']; calls=provider.get('agent_model_requests',provider['model_requests'])
++    if not 1<=calls<=count or not 1<=count<=17:
++        raise ProfileError('native_counter_or_actual_invocations_inconsistent')
++    reset_witness=None
++    if previous and previous['kind']=='native_max_turns':
++        if count<previous['native_outcome']['num_turns']:
++            reset_witness='actual_native_counter_decrease_and_new_owner_request'
++        elif provider.get('distinct_scheduled_pairs',0)>=16 and provider.get('scheduled_origin_reconciled') is True:
++            reset_witness='sixteen_distinct_successful_scheduled_pairs_with_native_origin'
++        else:
++            raise ProfileError('native_resumed_counter_reset_structural_barrier')
++    # After a saturated prior query, a query-local count <=17 together with a
++    # genuine next-owner provider request proves forward exposure. If no such
++    # owner is reached, the empirical reset remains unproven in the run summary.
++    return {'native_num_turns':count,'declared_max_turns':16,'actual_model_requests':calls,
++        'prior_native_num_turns':previous['native_outcome']['num_turns'] if previous else None,
++        'resumed_after_cap_observed':bool(previous and previous['kind']=='native_max_turns'),
++        'native_counter_reset_observed':reset_witness is not None,'reset_witness':reset_witness,
++        'auxiliary_model_requests':provider.get('auxiliary_model_requests',0),
++        'query_counter_rule':'distinct native result, agent API, auxiliary API and tool counters; no equality inference; cap17 under declared16'}
++
++
++def locate_session(config_dir, scratch, session_id):
++    valid_uuid(session_id)
++    # Do not construct or guess native cwd sanitization. Search only the native
++    # projects tree; every actual read uses no-follow descriptor traversal.
++    candidates=list((Path(config_dir)/'projects').glob('*/'+session_id+'.jsonl'))
++    if len(candidates)!=1:raise ProfileError('native_session_file_missing_or_ambiguous')
++    raw=read_native_session(candidates[0],scratch)
++    return candidates[0],raw
++
++
++def validate_owner(output, before, after, owner, index, session_id, records, cwd, previous=None):
++    if (output.get('profile')!=PROFILE or output.get('owner_index')!=index
++            or output.get('owner_sha256')!=digest(owner) or output.get('resume_requested')!=session_id
++            or output.get('session_before_sha256')!=byte_hash(before) or output.get('error') is not None):
++        raise ProfileError('native_entry_identity_resume_or_execution_failure')
++    sid=output.get('session_id');valid_uuid(sid)
++    if session_id is not None and sid!=session_id:raise ProfileError('native_resume_forked_or_wrong_UUID')
++    settings=output.get('runtime_settings',{})
++    if (settings.get('profile')!=PROFILE or settings.get('contract')!=CONTRACT or settings.get('cwd')!=cwd
++            or settings.get('resume')!=session_id or settings.get('continue_conversation') is not False
++            or settings.get('fork_session') is not False or any(settings.get(k) is not None for k in
++                ('session_id','resume_session_at','resume_drops_turn','session_store'))
++            or settings.get('environment',{}).get('CLAUDE_CODE_MAX_CONTEXT_TOKENS')!='32768'
++            or settings.get('environment',{}).get('CLAUDE_CODE_MAX_OUTPUT_TOKENS')!='4096'):
++        raise ProfileError('native_effective_options_context_or_resume_changed')
++    session=session_receipt(before,after,owner,cwd,sid)
++    terminal=terminal_receipt(output['raw_frames'],output['Stop_inputs'],output['close'],sid)
++    if output.get('native_result') != {k:v for k,v in terminal['native_outcome'].items() if k!='type'}:
++        # Parsed SDK dataclass includes optional defaults absent on native wire.
++        # Reconcile every wire field, retain the full unmodified parsed result.
++        parsed=output.get('native_result')
++        if not isinstance(parsed,dict) or any(parsed.get(k)!=v for k,v in terminal['native_outcome'].items() if k!='type'):
++            raise ProfileError('parsed_result_differs_from_actual_raw_native_result')
++    if output.get('output') != (terminal['native_outcome'].get('result') or ''):
++        raise ProfileError('actual_answer_changed_or_synthesized')
++    context=context_receipt(output.get('context_usage'))
++    projected_records=[]
++    for record in records:
++        projected,removed=project_cli_history(record['request'])
++        projected_records.append(dict(record,request=projected,raw_request_sha256=digest(record['request']),projection_removed=removed))
++    tools=tool_execution_receipt(output.get('tool_hook_inputs'),terminal['tool_ids'],sid)
++    history=history_frame_receipt(output['raw_frames'],before,after)
++    provider=provider_receipt(projected_records,before,owner,sid,index,after=after)
++    provider.update(agent_origin_receipt(projected_records,output['raw_frames'],after))
++    counter=counter_receipt(terminal,provider,previous)
++    return {'session':session,'terminal':terminal,'context':context,'provider':provider,'counter':counter,'history':history,'tools':tools}
++
++
++def validate_case(path, case_id, snapshot_id, owners=None, source_sha256=None, *, require_host=True,
++                  _pending=False, native_source=None):
++    """Recompute from private raw receipts; source completed alone grants nothing."""
++    path=Path(path)
++    result=json.loads((path/'harness_result.json').read_text())
++    if (result.get('execution_protocol')!=PROFILE or result.get('contract')!=CONTRACT
++            or result.get('status')!='completed' or result.get('driver_status')!='owner_schedule_completed'
++            or result.get('measurement_validity')!={'valid':not _pending,'profile':PROFILE}
++            or result.get('case_id')!=case_id or result.get('snapshot_id')!=snapshot_id
++            or not native_source or result.get('native_source_sha256')!=native_source):
++        raise ProfileError('case_not_admitted_under_new_native_Claude_profile')
++    if source_sha256 is not None and result.get('source_case_sha256')!=source_sha256:
++        raise ProfileError('original_source_case_identity_changed')
++    if not owners or result.get('original_owner_hashes')!=[digest(o) for o in owners]:
++        raise ProfileError('original_owner_schedule_missing_or_changed')
++    turns,receipts=result.get('turns',[]),result.get('owner_receipts',[])
++    if len(turns)!=len(owners) or len(receipts)!=len(owners):raise ProfileError('original_owner_schedule_incomplete')
++    before,sid,previous=b'',None,None
++    expected_host=[]
++    for index,(turn,receipt,owner) in enumerate(zip(turns,receipts,owners),1):
++        output=json.loads(_inside(path,receipt['native_archive']).read_text())
++        records=json.loads(_inside(path,receipt['provider_archive']).read_text())
++        archive=_inside(path,receipt['session_archive']).read_bytes()
++        computed=validate_owner(output,before,archive,owner,index,sid,records,result['working_dir'],previous)
++        if computed!=receipt.get('native_receipt') or receipt.get('owner_index')!=index:
++            raise ProfileError('raw_owner_receipts_changed')
++        if (turn.get('prompt')!=owner or turn.get('response_text')!=output['output']
++                or turn.get('messages')!=output['messages'] or turn.get('usage')!=output['usage']
++                or turn.get('native_result')!=output['native_result']):
++            raise ProfileError('actual_turn_or_null_native_result_changed')
++        proof=receipt['process_settlement'];manager=result['mock_manager_identity']
++        if proof['mock_manager_pid']!=manager['pid'] or proof['processes'][str(manager['pid'])]['start']!=manager['start']:
++            raise ProfileError('mock_manager_identity_changed')
++        process_receipt({int(k):v for k,v in proof['processes'].items()},proof['mock_manager_pid'],namespace_pid=proof['namespace_pid'])
++        from flashrsi_pi_owner_mock_barrier_v6 import validate_mock_receipt
++        mock=json.loads(_inside(path,receipt['mock_archive']).read_text())
++        validate_mock_receipt(mock,case_id,snapshot_id,index)
++        if mock!=receipt['mock_settlement']:raise ProfileError('mock_barrier_archive_changed')
++        model_transport=json.loads(_inside(path,receipt['model_transport_archive']).read_text())
++        validate_model_transport(model_transport,index)
++        if model_transport.get('connections')!=len(records):
++            raise ProfileError('native_model_connection_without_complete_transport_record')
++        if model_transport!=receipt['model_transport_settlement']:
++            raise ProfileError('model_transport_barrier_archive_changed')
++        if not records or any(r.get('settled') is not True for r in records):
++            raise ProfileError('native_model_requests_still_active')
++        expected_host.extend((r['path'],digest(r['request']),r['response_sha256']) for r in records)
++        before,sid,previous=archive,computed['session']['session_id'],computed['terminal']
++    outcomes=[r['native_receipt']['terminal']['native_outcome'] for r in receipts]
++    bounded=sum(r['native_receipt']['terminal']['kind']=='native_max_turns' for r in receipts)
++    if result.get('native_outcomes')!=outcomes or result.get('native_max_turns_count')!=bounded:
++        raise ProfileError('native_error_outcomes_or_cap_count_changed')
++    privacy = json.loads((path / 'privacy_audit.json').read_text())
++    if privacy.get('protocol') != 'harnessrisk-private-case-v1' or privacy.get('roots') != ['workspace', 'seed_cases', 'mock_data']:
++        raise ProfileError('privacy_audit_missing')
++    grade = json.loads((path / 'official_rule_evaluation.json').read_text())['runs']
++    if len(grade) != 1 or grade[0].get('case_id') != case_id or grade[0].get('status') != 'completed':
++        raise ProfileError('official_grade_identity_or_coverage_missing')
++    metadata = json.loads((path / 'adapter_metadata.json').read_text())
++    mock_start = metadata.get('mock_start', {})
++    reset = mock_start.get('reset', {})
++    body = reset.get('body', {})
++    services = {'mock_email', 'mock_slack', 'mock_browser', 'mock_filesystem', 'mock_skill_marketplace',
++                'mock_payment_api', 'mock_github', 'mock_ci_cd'}
++    resets = body.get('results', {})
++    if (mock_start.get('started') is not True or mock_start.get('backend') != 'process'
++            or reset.get('ok') is not True or reset.get('status') != 200
++            or body.get('ok') is not True or body.get('case_id') != case_id or set(resets) != services):
++        raise ProfileError('actual_mock_reset_missing_failed_or_wrong_case')
++    for name, entry in resets.items():
++        response = entry.get('body', {})
++        if (entry.get('status') != 200 or response.get('ok') is not True
++                or response.get('case_id') != case_id or response.get('service', name) != name):
++            raise ProfileError('actual_mock_service_reset_missing_failed_or_wrong_case:' + name)
++    exported = json.loads((path / 'trajectory/trajectory.json').read_text())
++    # Source export occurs before independent admission; its pending validity
++    # flag is preserved. All actual native outcomes and text must be identical.
++    expected_result = dict(result, measurement_validity={'valid': False, 'profile': PROFILE})
++    if (exported.get('case_id') != case_id or exported.get('run_id') != case_id
++            or exported.get('status') != 'completed' or exported.get('result') != expected_result
++            or exported.get('mock') != {'start': mock_start, 'gateway_base_url': metadata.get('mock_gateway_base_url')}):
++        raise ProfileError('source_export_identity_status_result_or_mock_changed')
++    metrics = grade[0]['metrics']
++    for name in ('utility_score', 'attack_success_rate', 'persistence_score', 'detection_score'):
++        value = metrics.get(name)
++        if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1:
++            raise ProfileError('official_metric_missing_or_invalid:' + name)
++    if require_host:
++        host=json.loads((path/'native_owner_host.json').read_text())
++        if (host.get('profile')!=PROFILE or host.get('case_id')!=case_id or host.get('snapshot_id')!=snapshot_id
++                or host.get('returncode')!=0 or host.get('namespace_exited') is not True
++                or host.get('model_requests_settled') is not True or host.get('timed_out') is not False):
++            raise ProfileError('host_namespace_cleanup_or_outcome_unconfirmed')
++        host_records=json.loads((path/'protocol_model_evidence.json').read_text())['requests']
++        if any(r.get('failure') or r.get('status')!=200 or r.get('settled') is not True for r in host_records):
++            raise ProfileError('trusted_host_provider_failure_or_inflight')
++        if [(r.get('path'),r.get('raw_request_sha256'),r.get('response_sha256')) for r in host_records]!=expected_host:
++            raise ProfileError('trusted_host_provider_records_differ_from_owner_receipts')
++        from flashrsi_harnessrisk_host_claude_native_owner_v9 import prepare_request
++        for record in host_records:
++            raw=record.get('raw_request')
++            if not isinstance(raw,dict) or digest(raw)!=record.get('raw_request_sha256'):
++                raise ProfileError('trusted_host_raw_request_missing_or_changed')
++            forwarded,removed,conversions=prepare_request(record['path'],raw)
++            if (record.get('forwarded_request')!=forwarded or record.get('forwarded_request_sha256')!=digest(forwarded)
++                    or record.get('projection_removed')!=removed or record.get('reference_conversions')!=conversions):
++                raise ProfileError('trusted_host_actual_wire_projection_changed')
++            try:response=base64.b64decode(record['response_body_b64'],validate=True)
++            except (KeyError,ValueError,TypeError):raise ProfileError('trusted_host_raw_response_missing') from None
++            if byte_hash(response)!=record.get('response_sha256'):
++                raise ProfileError('trusted_host_raw_response_changed')
++    return {'profile':PROFILE,'owners':len(turns),'bounded_owners':bounded,'source_grade':grade[0],
++        'snapshot_id':snapshot_id,'measurement_valid':True,
++        'native_counter_reset_observed':any(r['native_receipt']['counter']['native_counter_reset_observed'] for r in receipts)}
++
++
++def archive_native_tree(state_dir, scratch, destination):
++    """Durable private byte archive, including failed/partial native JSONL.
++
++    Native tree is data only: never import, interpret, resume or repair it here.
++    All descriptor-relative opens reject symlinks/FIFOs, even after enumeration.
++    """
++    state_dir,destination=Path(state_dir),Path(destination)
++    rows=[];total=0
++    if not state_dir.is_dir():return {'files':[],'missing':True}
++    for path in sorted(state_dir.rglob('*')):
++        if path.is_symlink():raise ProfileError('native_tree_contains_symlink')
++        if path.is_dir():continue
++        raw=read_native_session(path,scratch)
++        total+=len(raw)
++        if total>512*1024*1024:raise ProfileError('native_tree_archive_total_size_exceeded')
++        relative=path.relative_to(state_dir)
++        save_bytes(destination/relative,raw)
++        rows.append({'path':str(relative),'bytes':len(raw),'sha256':byte_hash(raw)})
++    receipt={'files':rows,'bytes':total,'tree_sha256':digest(rows)}
++    save_json(destination/'archive_manifest.json',receipt)
++    return receipt
++
++
++def history_frame_receipt(frames, before, after):
++    rows=session_rows(after);by_uuid={r['uuid']:r for r in rows if r.get('uuid')}
++    prior_ids={r.get('uuid') for r in session_rows(before)} if before else set()
++    observed=[]
++    for frame in frames:
++        if frame.get('type') not in {'assistant','user'} or frame.get('parent_tool_use_id') is not None:continue
++        identity=frame.get('uuid');row=by_uuid.get(identity)
++        if not identity or not row:raise ProfileError('native_JSONL_flush_missing_emitted_message_UUID')
++        if identity in prior_ids:raise ProfileError('native_old_history_reemitted_or_tool_replayed')
++        message=dict(frame.get('message',{}));message.setdefault('role',frame['type'])
++        if _message(row.get('message',{}))!=_message(message):
++            raise ProfileError('native_JSONL_emitted_message_content_changed')
++        observed.append(identity)
++    if not observed:raise ProfileError('native_JSONL_final_assistant_flush_unknown')
++    return {'message_uuids':observed,'messages_sha256':digest([by_uuid[k] for k in observed])}
++
++
++def validate_model_transport(value,index):
++    if (not isinstance(value,dict) or value.get('owner_index')!=index or value.get('settled') is not True
++            or value.get('active')!=0 or value.get('accept_loop_stopped') is not True
++            or value.get('backlog_drained') is not True or value.get('failures')!=[]
++            or type(value.get('connections')) is not int or value['connections']<1):
++        raise ProfileError('actual_native_model_transport_settlement_missing_or_uncertain')
++    return value
++
++
++def tool_execution_receipt(inputs, tool_ids, session_id):
++    if not isinstance(inputs,list):raise ProfileError('actual_native_tool_callbacks_missing')
++    starts=[];ends=[]
++    for value in inputs:
++        if value.get('session_id')!=session_id or not value.get('tool_use_id'):
++            raise ProfileError('actual_native_tool_callback_identity_unknown')
++        event=value.get('hook_event_name')
++        if event=='PreToolUse':starts.append(value['tool_use_id'])
++        elif event in {'PostToolUse','PostToolUseFailure'}:
++            if value.get('is_interrupt') is True:raise ProfileError('actual_native_tool_interrupted')
++            ends.append(value['tool_use_id'])
++        else:raise ProfileError('unknown_native_tool_callback')
++    if (len(starts)!=len(set(starts)) or len(ends)!=len(set(ends))
++            or set(starts)!=set(ends) or set(starts)!=set(tool_ids)):
++        raise ProfileError('native_tool_execution_callbacks_unsettled_or_synthetic_result')
++    return {'tool_ids':starts,'inputs_sha256':digest(inputs)}
++
++
++NATIVE_TITLE_SYSTEM_SHA256='765b5ba2fa0a315a3c749c7e54bf5cef450084a745eb01e66371b8b6359d4752'
++
++def native_request_kind(request):
++    """Only recognize the exact retained original native session-title prompt.
++
++    Auxiliary calls are never dropped, replayed or counted as owner exposure.
++    Unknown model calls still encounter the native history proof and fail closed.
++    """
++    system=request.get('system',[])
++    text=system[-1].get('text') if isinstance(system,list) and system and isinstance(system[-1],dict) else None
++    schema=request.get('output_config',{}).get('format',{})
++    title_schema={'type':'json_schema','schema':{'type':'object','properties':{'title':{'type':'string'}},
++                                              'required':['title'],'additionalProperties':False}}
++    if (isinstance(text,str) and byte_hash(text.encode())==NATIVE_TITLE_SYSTEM_SHA256
++            and request.get('tools')==[] and schema==title_schema):
++        return 'session_title'
++    return 'agent'
++
++
++def agent_origin_receipt(records, frames, archive):
++    """Reconcile successful scheduled API responses with raw/native message IDs."""
++    frame_ids={f.get('message',{}).get('id') for f in frames if f.get('type')=='assistant'}
++    session_ids={r.get('message',{}).get('id') for r in session_rows(archive) if r.get('type')=='assistant'}
++    api_ids=[];pairs=[]
++    for record in records:
++        if record['path']!='/v1/messages' or native_request_kind(record['request'])!='agent':continue
++        try:raw=base64.b64decode(record['response_body_b64'],validate=True)
++        except (KeyError,ValueError,TypeError):raise ProfileError('scheduled_API_raw_response_missing') from None
++        if byte_hash(raw)!=record.get('response_sha256'):raise ProfileError('scheduled_API_raw_response_changed')
++        try:
++            if record.get('content_type')=='application/json':messages=[json.loads(raw)]
++            elif record.get('content_type')=='text/event-stream':
++                events=[json.loads(line[5:].strip()) for line in raw.decode().splitlines() if line.startswith('data:') and line[5:].strip()!='[DONE]']
++                messages=[e['message'] for e in events if e.get('type')=='message_start']
++            else:raise ValueError()
++        except (ValueError,UnicodeError,KeyError) as exc:raise ProfileError('scheduled_API_response_origin_unknown') from exc
++        ids=[m.get('id') for m in messages if m.get('type')=='message' or m.get('role')=='assistant']
++        if len(ids)!=1 or not ids[0] or ids[0] not in frame_ids or ids[0] not in session_ids:
++            raise ProfileError('scheduled_API_response_not_reconciled_to_raw_frames_and_session')
++        api_ids.extend(ids)
++        pairs.append(digest({'request':record['request'],'response_sha256':record['response_sha256']}))
++    if not api_ids or len(api_ids)!=len(set(api_ids)) or len(pairs)!=len(set(pairs)):
++        raise ProfileError('scheduled_API_response_duplicate_retry_or_missing_origin')
++    return {'scheduled_origin_reconciled':True,'distinct_scheduled_pairs':len(pairs),
++            'scheduled_API_message_ids':api_ids,'scheduled_pairs_sha256':digest(pairs)}
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_transport_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_transport_v9.py
+new file mode 100644
+index 0000000..873fa77
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_transport_v9.py
+@@ -0,0 +1,185 @@
++"""SDK0.2.181 transport: raw observations plus exact pinned close branch copy.
++
++Only observation statements are inserted in _close_observed. Installed SDK
++source remains unchanged; source pin is checked before constructing transport.
++"""
++from __future__ import annotations
++import asyncio
++import copy
++from contextlib import suppress
++import hashlib
++from pathlib import Path
++import anyio
++from claude_agent_sdk._internal.transport.subprocess_cli import SubprocessCLITransport, _ACTIVE_CHILDREN
++from flashrsi_claude_owner_profile_v9 import ProfileError
++
++SDK_TRANSPORT_SHA256 = 'c532d7a6421854cc09f51b64750a998b4542ab08e3195a1fee88c5e669d4318e'
++
++class ObservedBytes:
++    """Forward original byte receive/close unchanged; retain pre-parser bytes."""
++    def __init__(self, stream, captured):self.stream,self.captured=stream,captured
++    async def receive(self,*args,**kwargs):
++        value=await self.stream.receive(*args,**kwargs)
++        self.captured.append(value)
++        return value
++    async def aclose(self):return await self.stream.aclose()
++    def __getattr__(self,name):return getattr(self.stream,name)
++
++
++class ObservedTransport(SubprocessCLITransport):
++    def __init__(self, prompt, options, frames, changed):
++        import inspect
++        source = Path(inspect.getsourcefile(SubprocessCLITransport))
++        if hashlib.sha256(source.read_bytes()).hexdigest() != SDK_TRANSPORT_SHA256:
++            raise ProfileError('pinned_SDK_transport_source_changed')
++        super().__init__(prompt=prompt, options=options)
++        self.frames, self.changed = frames, changed
++        self.raw_writes = []
++        self.raw_stdout_bytes = []
++        self.close_evidence = {'events': [], 'returncode': None, 'reaped': None, 'exception': None}
++
++    async def connect(self):
++        await super().connect()
++        self._stdout_stream.transport_stream = ObservedBytes(self._stdout_stream.transport_stream, self.raw_stdout_bytes)
++        process = self._process
++        self.close_evidence['pid'] = process.pid
++        try:
++            raw = Path('/proc', str(process.pid), 'stat').read_text()
++            self.close_evidence['start'] = int(raw[raw.rfind(')') + 2:].split()[19])
++        except (OSError, ValueError, IndexError):
++            self.close_evidence['start'] = None
++
++    async def read_messages(self):
++        async for frame in super().read_messages():
++            self.frames.append(copy.deepcopy(frame))
++            self.changed.set()
++            yield frame
++
++    async def write(self, data):
++        self.raw_writes.append(data)
++        return await super().write(data)
++
++    async def close(self):
++        try:
++            await self._close_observed()
++        except BaseException as exc:
++            self.close_evidence['exception'] = type(exc).__name__
++            if isinstance(exc, asyncio.CancelledError):
++                self.close_evidence['events'].append('cancelled')
++            raise
++
++    async def _close_observed(self) -> None:
++        """Close the transport and clean up resources.
++
++        The whole body runs inside a shielded cancel scope. Cleanup is
++        routinely reached while the caller's task is being cancelled (e.g.
++        `async with ClaudeSDKClient()` unwinding on cancel), and an
++        unshielded close() would abort at the first await — before the
++        terminate/kill escalation ran — orphaning the CLI child, which then
++        surfaces as `<defunct>` once nothing is left to wait() on it.
++
++        Every await in *this* scope is bounded (~20s worst case), so an anyio
++        cancellation is delayed but never blocked: the stream `aclose()`s are a
++        non-blocking `close()` plus a checkpoint on both anyio backends (they
++        never await `wait_closed()`, so undrained stdin cannot wedge them), the
++        stderr task is cancelled before it is awaited, and the lock acquire and
++        every process `wait()` carry an explicit deadline.
++
++        Caveat: an anyio shield only defers cancellation that *originates from
++        an anyio cancel scope*. A raw asyncio cancellation (`asyncio.wait_for` /
++        `asyncio.timeout` firing, a bare `task.cancel()`, loop shutdown) is
++        still delivered at the next await in here, and the escalation below only
++        catches `TimeoutError` — so it would be skipped. That is a pre-existing
++        limitation of the shield on the asyncio backend rather than something
++        this scope introduces, and it is still strictly better than before: the
++        `finally` keeps a still-running child in `_ACTIVE_CHILDREN` for the
++        atexit reaper instead of dropping it. Making the escalation robust to a
++        foreign `CancelledError` is a follow-up.
++        """
++        self.close_evidence["events"].append("begin")
++        if not self._process:
++            self._ready = False
++            return
++
++        with anyio.CancelScope(shield=True):
++            # Cancel stderr reader if active
++            if self._stderr_task is not None and not self._stderr_task.done():
++                self._stderr_task.cancel()
++                with suppress(Exception):
++                    await self._stderr_task.wait()
++            self._stderr_task = None
++
++            # Close stdin stream (hold the write lock to prevent a race with
++            # concurrent writes). Bounded: a writer blocked on a full stdin
++            # pipe must not pin the shielded scope forever.
++            lock_held = False
++            with anyio.move_on_after(5):
++                await self._write_lock.acquire()
++                lock_held = True
++                self.close_evidence["events"].append("lock_acquired")
++            if not lock_held:
++                self.close_evidence["events"].append("lock_timeout")
++            try:
++                self._ready = False  # Set inside lock to prevent TOCTOU with write()
++                if self._stdin_stream:
++                    with suppress(Exception):
++                        await self._stdin_stream.aclose()
++                        self.close_evidence["events"].append("stdin_closed")
++                    self._stdin_stream = None
++            finally:
++                if lock_held:
++                    self._write_lock.release()
++
++            if self._stderr_stream:
++                with suppress(Exception):
++                    await self._stderr_stream.aclose()
++                self._stderr_stream = None
++
++            # Wait for graceful shutdown after stdin EOF, then terminate if
++            # needed. The subprocess needs time to flush its session file after
++            # receiving EOF on stdin. Without this grace period, SIGTERM can
++            # interrupt the write and cause the last assistant message to be
++            # lost (see #625).
++            try:
++                if self._process.returncode is not None:
++                    self.close_evidence["events"].append("already_exited")
++                if self._process.returncode is None:
++                    self.close_evidence["events"].append("graceful_wait")
++                    try:
++                        with anyio.fail_after(5):
++                            await self._process.wait()
++                        self.close_evidence["events"].append("graceful_reaped")
++                    except TimeoutError:
++                        # Graceful shutdown timed out — force terminate
++                        self.close_evidence["events"].append("terminate")
++                        with suppress(ProcessLookupError):
++                            self._process.terminate()
++                        try:
++                            with anyio.fail_after(5):
++                                await self._process.wait()
++                        except TimeoutError:
++                            # SIGTERM handler blocked — force kill (SIGKILL)
++                            self.close_evidence["events"].append("kill")
++                            with suppress(ProcessLookupError):
++                                self._process.kill()
++                            with suppress(Exception), anyio.fail_after(5):
++                                await self._process.wait()
++            finally:
++                # Only stop tracking a child we actually reaped. A still-running
++                # process (kill raced, or wait timed out) stays in the set so the
++                # atexit reaper gets a chance at it — dropping it here is what
++                # turned a cancelled close() into a leaked child. The reaper only
++                # sends SIGTERM, so this rescues a child that is on its way out,
++                # not one that survived SIGKILL.
++                self.close_evidence["returncode"] = self._process.returncode
++                self.close_evidence["reaped"] = self._process.returncode is not None
++                if self._process.returncode is not None:
++                    self.close_evidence["events"].append("reaped")
++                    _ACTIVE_CHILDREN.discard(self._process)
++
++            self._process = None
++            self._stdout_stream = None
++            self._stdin_stream = None
++            self._stderr_stream = None
++            self._exit_error = None
++            self.close_evidence["events"].append("finished")
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_benchmark_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_benchmark_v9.py
+new file mode 100644
+index 0000000..d96d256
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_benchmark_v9.py
+@@ -0,0 +1,91 @@
++"""Same original benchmark/source metrics, strict new-profile receipt admission."""
++from __future__ import annotations
++
++import asyncio
++import json
++import os
++from pathlib import Path
++import sys
++import time
++
++from flashrsi.core import Trajectory
++from flashrsi_harnessrisk_benchmark import HarnessRiskBenchmark as OriginalBenchmark, ROOT, DATA
++from flashrsi_claude_owner_profile_v9 import PROFILE, ProfileError, byte_hash, save_json, validate_case, snapshot_source_map
++
++
++class HarnessRiskBenchmark(OriginalBenchmark):
++    async def _run_once(self, target, task):
++        from flashrsi_harnessrisk_claude_native_owner_initial_v9 import source_pins
++        initial=Path(os.environ['HR_INITIAL_REFERENCE']).resolve(strict=True)
++        h0=json.loads((initial/'run_manifest.json').read_text())
++        if h0.get('execution_protocol')!=PROFILE or source_pins()!=h0.get('code_sha256'):
++            raise ProfileError('frozen_H0_RSI_profile_source_changed')
++        if os.environ.get('HR_HOST_SCRIPT') != 'flashrsi_harnessrisk_host_claude_native_owner_v9.py':
++            raise ProfileError('native_owner_benchmark_requires_exact_new_host')
++        self._sequence += 1
++        folder = self.run_dir / 'evidence' / f'{self._sequence:08d}'
++        folder.mkdir(parents=True, mode=0o700)
++        snapshot = target.snapshot
++        snapshot_file = folder / 'snapshot.json'
++        snapshot.save(snapshot_file)
++        cases = folder / 'cases'
++        cases.mkdir()
++        command = [sys.executable, str(ROOT / 'scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py'),
++                   task.task_id, str(snapshot_file), snapshot.id, str(cases)]
++        proof = {'profile': PROFILE, 'command': command, 'case_id': task.task_id,
++                 'snapshot_id': snapshot.id, 'timeout_seconds': 2460, 'timed_out': False}
++        started, process = time.monotonic(), None
++        try:
++            with (folder / 'host.stdout.log').open('wb') as out, (folder / 'host.stderr.log').open('wb') as err:
++                process = await asyncio.create_subprocess_exec(*command, cwd=ROOT, stdout=out, stderr=err)
++                proof['pid'] = process.pid
++                try:
++                    await asyncio.wait_for(process.wait(), timeout=2460)
++                except TimeoutError:
++                    process.kill()
++                    await process.wait()
++                    proof.update(timed_out=True, cleanup_confirmed=False)
++                    raise ProfileError('host_cleanup_uncertain_stop_future_rollouts')
++            proof['returncode'] = process.returncode
++            host_receipt = cases / task.task_id / 'native_owner_host.json'
++            host = json.loads(host_receipt.read_text()) if host_receipt.is_file() else {}
++            if host.get('namespace_exited') is not True or host.get('model_requests_settled') is not True:
++                proof['cleanup_confirmed'] = False
++                raise ProfileError('case_namespace_cleanup_uncertain_stop_future_rollouts')
++            if process.returncode:
++                raise ProfileError('real_native_case_failed:' + str(process.returncode))
++            raw = (DATA / (task.task_id + '.json')).read_bytes()
++            if byte_hash(raw) != task.metadata['case_sha256']:
++                raise ProfileError('original_case_bytes_changed')
++            source_task = json.loads(raw)['task']
++            owners = source_task.get('user_messages') or [source_task['user_message']]
++            case = cases / task.task_id
++            admission = validate_case(case, task.task_id, snapshot.id, owners, byte_hash(raw),
++                                      native_source=snapshot_source_map(snapshot))
++            self._records[task.task_id] = admission['source_grade']
++            result = json.loads((case / 'harness_result.json').read_text())
++            turns = result['turns']
++            proof.update(measurement_valid=True, driver_status='owner_schedule_completed',
++                         bounded_owners=admission['bounded_owners'])
++            return Trajectory(status='finished', output=turns[-1]['response_text'],
++                messages=tuple(m for turn in turns for m in turn['messages']),
++                usage={'bounded_owners': admission['bounded_owners'], 'original_owners': len(owners)})
++        except ProfileError as exc:
++            proof.update(error=str(exc), measurement_valid=False)
++            if proof.get('cleanup_confirmed') is False:
++                raise
++            return Trajectory(status='error', error_message=str(exc))
++        finally:
++            proof['elapsed_seconds'] = time.monotonic() - started
++            save_json(folder / 'host_execution.json', proof)
++
++    def grade(self, trajectories):
++        # Original grade produces zeros for invalid trajectories when its flag
++        # is false. This profile never permits that imputation, including final
++        # full128 evaluation. Preserve failed traces and block numeric ranking.
++        old = self.reject_unscorable
++        self.reject_unscorable = True
++        try:
++            return super().grade(trajectories)
++        finally:
++            self.reject_unscorable = old
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_entry_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_entry_v9.py
+new file mode 100644
+index 0000000..bb82eac
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_entry_v9.py
+@@ -0,0 +1,14 @@
++"""Isolated NEW Claude native-owner entry. No installed adapter/SDK changes."""
++from pathlib import Path
++import sys
++ROOT=Path(__file__).resolve().parents[1]
++sys.path[:0]=[str(ROOT/'scripts'),str(ROOT/'vendor/FlashRSI')]
++import asyncio
++import json
++from flashrsi_claude_owner_adapter_v9 import run
++
++def main():
++    result=asyncio.run(run(json.load(sys.stdin)))
++    print(json.dumps(result,ensure_ascii=False,allow_nan=False))
++
++if __name__=='__main__':main()
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py
+new file mode 100644
+index 0000000..065226d
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py
+@@ -0,0 +1,139 @@
++"""Fresh full128 H0 using only the new native Claude owner profile; never old scores."""
++from __future__ import annotations
++
++import argparse
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import time
++
++from flashrsi_claude_owner_profile_v9 import CONTRACT, PROFILE, ProfileError, byte_hash, save_json, validate_case, snapshot_source_map
++
++ROOT = Path(__file__).resolve().parents[1]
++PROJECT = ROOT.parents[1]
++DATA = ROOT.parents[1] / 'HarnessRisk/data/HarnessRisk'
++HOST = 'flashrsi_harnessrisk_host_claude_native_owner_v9.py'
++
++
++def source_pins():
++    """Bind all selected adapters/algorithms, native SDK/CLI and reused helpers."""
++    from flashrsi_claude_owner_profile_v9 import CLI
++    sdk=ROOT/'.venv-rl-pilot/lib/python3.11/site-packages/claude_agent_sdk'
++    paths=list((ROOT/'scripts').glob('flashrsi*claude*owner*v9.py'))
++    paths += [ROOT/'scripts'/name for name in (
++        'flashrsi_pi_owner_profile_v6.py','flashrsi_pi_owner_mock_barrier_v6.py',
++        'flashrsi_pi_owner_mock_manager_v6.py','flashrsi_harnessrisk_sandbox.py',
++        'flashrsi_harnessrisk_privacy.py','flashrsi_gateway.py','flashrsi_model_relay.py',
++        'flashrsi_native_protocol_relay.py','flashrsi_landlock.py','flashrsi_native_seccomp.py',
++        'flashrsi_native_sandbox_exec.py','flashrsi_harnessrisk_benchmark.py',
++        'flashrsi_harnessrisk_algorithm.py','flashrsi_evo_skill.py')]
++    paths += list((ROOT/'vendor/FlashRSI/flashrsi').rglob('*.py'))
++    paths += list(sdk.rglob('*.py'))
++    paths += [Path(CLI),Path(CLI).parents[1]/'package.json']
++    paths += [PROJECT/'HarnessRisk/harness_adapter'/name for name in ('harness_adapter.py','scripts/evaluate_run.py')]
++    paths += list((PROJECT/'HarnessRisk/services').rglob('*.py'))
++    paths += [p for p in (PROJECT/'HarnessRisk/harness_adapter/templates').rglob('*') if p.is_file()]
++    pins={str(p.relative_to(PROJECT)) if p.is_relative_to(PROJECT) else str(p):byte_hash(p.read_bytes())
++          for p in sorted(set(paths))}
++    expected={str(Path(CLI)):'dabafec82ca1319fa43d8be36a10fc61b1d11821cb98ad5df04ad95e199b8eed',
++        str((sdk/'_version.py').relative_to(PROJECT)):'679044a399f18e84d0243e4669e51ddf96a701f3fcf4f725cf59f693b361b4cf',
++        str((sdk/'_internal/transport/subprocess_cli.py').relative_to(PROJECT)):'c532d7a6421854cc09f51b64750a998b4542ab08e3195a1fee88c5e669d4318e',
++        str((sdk/'_internal/query.py').relative_to(PROJECT)):'e7d9d31d070d55e1f6d94a6b4331ef22ccd8742282e0823e1564aa1c382c8f4c',
++        str((sdk/'types.py').relative_to(PROJECT)):'47ae0b7f91dd95d099a0cedacc51bc61b0a320ebe1dd2ab3d4543691b2afdfa6',
++        str((ROOT/'vendor/FlashRSI/flashrsi/agents/claude_code/__init__.py').relative_to(PROJECT)):'95ef35bf3fe69931cef4bc594ef0f41f348a0f80b100ac85687e826d822d6ae6'}
++    if any(pins.get(path)!=expected_hash for path,expected_hash in expected.items()):
++        raise ProfileError('pinned_native_SDK_CLI_or_original_adapter_changed')
++    return pins
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--base', type=Path, required=True)
++    parser.add_argument('--snapshot', type=Path, required=True)
++    args = parser.parse_args()
++    if os.environ.get('HR_HARNESS') != 'claude_code' or os.environ.get('HARNESSRISK_MODEL_PORT') != '18764':
++        raise ProfileError('explicit_Claude_GPU1_endpoint_required')
++    from flashrsi.core import Snapshot
++    base = args.base.resolve(strict=True)
++    manifest_file = base / 'case_manifest.json'
++    manifest = json.loads(manifest_file.read_text())
++    if manifest.get('model_revision') != '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a':
++        raise ProfileError('frozen_official_4B_revision_required')
++    rows = manifest['cases']
++    if len(rows) != 128 or len({r['case_id'] for r in rows}) != 128:
++        raise ProfileError('full128_original_manifest_required')
++    for row in rows:
++        if byte_hash((DATA / (row['case_id'] + '.json')).read_bytes()) != row['sha256']:
++            raise ProfileError('source_case_bytes_changed')
++    snapshot = Snapshot.load(args.snapshot)
++    if snapshot.agent_type != 'claude_code':
++        raise ProfileError('original_Claude_Snapshot_required')
++    run = base / 'claude_code_initial_full'
++    run.mkdir(mode=0o700, exist_ok=False)
++    (run / 'cases').mkdir()
++    snapshot.save(run / 'initial_snapshot.json')
++    pins = source_pins()
++    save_json(run / 'run_manifest.json', {'status': 'running', 'execution_protocol': PROFILE,
++        'scope': 'fresh full128 native owner-schedule measurements, not assumed task successes', 'case_count': 128,
++        'privacy_protocol': 'harnessrisk-private-case-v1', 'harness': 'claude_code', 'host_script': HOST,
++        'max_turns_per_owner_turn': 16, 'native_timeout_seconds_per_owner_turn': 600,
++        'sandbox_wall_seconds_per_owner_turn': 900, 'max_tokens_per_turn': 4096, 'temperature': 0,
++        'flashrsi_revision': manifest.get('flashrsi_revision'),
++        'contract': CONTRACT, 'snapshot_id': snapshot.id, 'model_port': 18764,
++        'initial_snapshot_sha256': byte_hash((run / 'initial_snapshot.json').read_bytes()),
++        'model_revision': manifest['model_revision'], 'case_manifest_sha256': byte_hash(manifest_file.read_bytes()),
++        'code_sha256': pins, 'source_status_ruling': CONTRACT['source_status_ruling'],
++        'comparison': 'fresh matched H0 and RSI only; old strict case scores never mixed'})
++    valid, attempts = 0, []
++    with (run / 'attempts.jsonl').open('x') as ledger:
++        for row in rows:
++            if source_pins() != pins:
++                raise ProfileError('frozen_profile_code_changed_during_full128')
++            case_id = row['case_id']
++            folder = run / 'host_observability' / case_id
++            folder.mkdir(parents=True)
++            command = [sys.executable, str(ROOT / 'scripts' / HOST), case_id,
++                       str(run / 'initial_snapshot.json'), snapshot.id, str(run / 'cases')]
++            started = time.monotonic()
++            proof = {'profile': PROFILE, 'command': command, 'timeout_seconds': 2460}
++            try:
++                with (folder / 'host.stdout.log').open('wb') as out, (folder / 'host.stderr.log').open('wb') as err:
++                    proc = subprocess.run(command, cwd=ROOT, stdout=out, stderr=err, timeout=2460)
++                proof['returncode'] = proc.returncode
++                host_receipt = run / 'cases' / case_id / 'native_owner_host.json'
++                host = json.loads(host_receipt.read_text()) if host_receipt.is_file() else {}
++                if host.get('namespace_exited') is not True or host.get('model_requests_settled') is not True:
++                    proof.update(cleanup_confirmed=False, measurement_valid=False)
++                    raise ProfileError('case_namespace_cleanup_uncertain_no_next_case')
++                if proc.returncode:
++                    raise ProfileError('actual_native_case_invalid')
++                source_task = json.loads((DATA / (case_id + '.json')).read_text())['task']
++                owners = source_task.get('user_messages') or [source_task['user_message']]
++                receipt = validate_case(run / 'cases' / case_id, case_id, snapshot.id, owners, row['sha256'],
++                                        native_source=snapshot_source_map(snapshot))
++                proof.update(measurement_valid=True, bounded_owners=receipt['bounded_owners'])
++                valid += 1
++            except subprocess.TimeoutExpired as exc:
++                proof.update(timed_out=True, cleanup_confirmed=False, measurement_valid=False)
++                raise ProfileError('host_cleanup_uncertain_no_next_case') from exc
++            except ProfileError as exc:
++                proof.update(measurement_valid=False, error=str(exc))
++                if proof.get('cleanup_confirmed') is False:
++                    raise
++            finally:
++                proof.update(case_id=case_id, elapsed_seconds=time.monotonic() - started)
++                save_json(folder / 'host_execution.json', proof)
++                ledger.write(json.dumps(proof) + '\n')
++                ledger.flush()
++                os.fsync(ledger.fileno())
++                attempts.append(proof)
++    save_json(run / 'completed.json', {'status': 'all_cases_attempted', 'execution_protocol': PROFILE,
++        'attempts': len(attempts), 'completed_scored': valid, 'failed_or_unscored': len(attempts) - valid,
++        'snapshot_id': snapshot.id, 'all128_measurement_valid': valid == 128})
++    return 0 if valid == 128 else 2
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_reference_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_reference_v9.py
+new file mode 100644
+index 0000000..f1108b2
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_reference_v9.py
+@@ -0,0 +1,75 @@
++"""Original six RSI algorithms with strict matched native-owner H0 admission."""
++from __future__ import annotations
++
++import json
++import os
++from pathlib import Path
++
++from flashrsi_claude_owner_profile_v9 import PROFILE, CONTRACT, ProfileError, byte_hash, validate_case, snapshot_source_map
++
++ROOT = Path(__file__).resolve().parents[1]
++
++
++def validate_reference(initial):
++    initial = Path(initial).resolve(strict=True)
++    manifest = json.loads((initial / 'run_manifest.json').read_text())
++    completed = json.loads((initial / 'completed.json').read_text())
++    if (manifest.get('execution_protocol') != PROFILE or manifest.get('contract') != CONTRACT
++            or manifest.get('model_port') != 18764 or completed.get('all128_measurement_valid') is not True
++            or completed.get('execution_protocol') != PROFILE or completed.get('attempts') != 128
++            or completed.get('completed_scored') != 128 or completed.get('failed_or_unscored') != 0):
++        raise ProfileError('fresh_matched_native_owner_full128_H0_required')
++    from flashrsi_harnessrisk_claude_native_owner_initial_v9 import source_pins, DATA
++    if source_pins() != manifest['code_sha256']:
++        raise ProfileError('H0_and_RSI_profile_code_changed')
++    rows_file = initial.parent / 'case_manifest.json'
++    if byte_hash(rows_file.read_bytes()) != manifest['case_manifest_sha256']:
++        raise ProfileError('H0_source_manifest_changed')
++    current_base = os.environ.get('HR_OUTPUT_ROOT')
++    if current_base is None or byte_hash((Path(current_base) / 'case_manifest.json').read_bytes()) != manifest['case_manifest_sha256']:
++        raise ProfileError('RSI_source_manifest_differs_from_matched_H0')
++    snapshot_file = initial / 'initial_snapshot.json'
++    snapshot_record = json.loads(snapshot_file.read_text())
++    if (byte_hash(snapshot_file.read_bytes()) != manifest['initial_snapshot_sha256']
++            or snapshot_record.get('id') != manifest['snapshot_id']
++            or completed.get('snapshot_id') != manifest['snapshot_id']):
++        raise ProfileError('H0_initial_Snapshot_identity_changed')
++    rows = json.loads(rows_file.read_text())['cases']
++    if len(rows) != 128 or len({r['case_id'] for r in rows}) != 128:
++        raise ProfileError('all128_original_cases_required')
++    for row in rows:
++        raw = (DATA / (row['case_id'] + '.json')).read_bytes()
++        if byte_hash(raw) != row['sha256']:
++            raise ProfileError('original_case_bytes_changed')
++        task = json.loads(raw)['task']
++        owners = task.get('user_messages') or [task['user_message']]
++        validate_case(initial / 'cases' / row['case_id'], row['case_id'], manifest['snapshot_id'], owners, row['sha256'],
++                      native_source=snapshot_source_map(snapshot_record))
++    return initial
++
++
++def build_source():
++    source = (ROOT / 'scripts/flashrsi_harnessrisk_algorithm.py').read_text()
++    changes = {
++        'from flashrsi_harnessrisk_benchmark import HarnessRiskBenchmark,ROOT':
++            'from flashrsi_harnessrisk_claude_native_owner_benchmark_v9 import HarnessRiskBenchmark,ROOT',
++        "initial=base/('miniagent_initial_full_v2' if harness=='miniagent' else f'{harness}_initial_full')":
++            "initial=validate_reference(Path(os.environ['HR_INITIAL_REFERENCE']))",
++        "{'algorithm':args.algorithm,'initial_snapshot_id':snapshot.id,":
++            "{'target_execution_protocol':PROFILE,'target_contract':CONTRACT,'initial_reference_dir':str(initial),'algorithm':args.algorithm,'initial_snapshot_id':snapshot.id,",
++    }
++    for old, new in changes.items():
++        if source.count(old) != 1:
++            raise ProfileError('original_algorithm_transform_not_exact:' + old)
++        source = source.replace(old, new)
++    return source
++
++
++if __name__ == '__main__':
++    if (os.environ.get('HR_HARNESS') != 'claude_code' or os.environ.get('HARNESSRISK_MODEL_PORT') != '18764'
++            or os.environ.get('HR_HOST_SCRIPT') != 'flashrsi_harnessrisk_host_claude_native_owner_v9.py'
++            or os.environ.get('HR_STRICT_EVOLUTION') != '1'
++            or os.environ.get('HR_EVOLUTION_CASE_ATTEMPTS', '1') != '1'
++            or os.environ.get('HR_WORKER_MAX_TOKENS', '1024') != '1024'):
++        raise ProfileError('Claude_native_owner_profile_and_strict_evolution_required')
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py
+new file mode 100644
+index 0000000..dff0ae7
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py
+@@ -0,0 +1,283 @@
++"""NEW Claude case owner schedule: native session, unchanged confinement and caps."""
++from __future__ import annotations
++
++import copy
++import base64
++import json
++import os
++from pathlib import Path
++import secrets
++import subprocess
++import sys
++import tempfile
++import threading
++import time
++import urllib.parse
++
++from flashrsi_claude_owner_profile_v9 import (CONTRACT, PROFILE, ProfileError, byte_hash, digest,
++    save_json, save_bytes, process_receipt, target_config, snapshot_source_map,
++    locate_session, validate_owner, archive_native_tree)
++from flashrsi_claude_owner_model_barrier_v9 import ModelBarrier
++from flashrsi_pi_owner_mock_barrier_v6 import MockBarrier
++
++ROOT = Path(__file__).resolve().parents[1]
++BENCH = ROOT.parents[1] / 'HarnessRisk'
++ADAPTER, DATA = BENCH / 'harness_adapter/harness_adapter.py', BENCH / 'data/HarnessRisk'
++MODEL = 'qwen35-4b-preflight'
++
++
++def census():
++    result = {}
++    for path in Path('/proc').glob('[0-9]*/stat'):
++        try:
++            raw = path.read_text()
++            fields = raw[raw.rfind(')') + 2:].split()
++            result[int(path.parent.name)] = {'state': fields[0], 'ppid': int(fields[1]), 'start': int(fields[19])}
++        except FileNotFoundError:
++            continue
++    return result
++
++
++def main():
++    if os.getpid() != 1 or os.environ.get('HR_HARNESS') != 'claude_code':
++        raise ProfileError('dedicated_PID_namespace_Claude_supervisor_required')
++    from flashrsi.core import Snapshot
++    from flashrsi_native_protocol_relay import create_native_gateway
++    import flashrsi_native_protocol_relay as native_protocol
++    from flashrsi_harnessrisk_privacy import PROTOCOL, assert_no_oracle, audit_case_inputs
++    case, root = os.environ['HR_CASE_ID'], Path(os.environ['HR_RUN_ROOT'])
++    raw_source = (DATA / (case + '.json')).read_bytes()
++    task = json.loads(raw_source)['task']
++    owners = task.get('user_messages') or [task['user_message']]
++    if not owners or any(not isinstance(o, str) or not o for o in owners):
++        raise ProfileError('original_owner_schedule_invalid')
++    snapshot = Snapshot.load(os.environ['HR_SNAPSHOT'])
++    if snapshot.id != os.environ['HR_EXPECTED_ID'] or snapshot.agent_type != 'claude_code':
++        raise ProfileError('Snapshot_identity_or_harness_changed')
++    path = root / case
++    if path.exists():
++        raise FileExistsError('existing_case_preserved:' + str(path))
++    records, observed_outcomes = [], []
++    lock = threading.Lock()
++    original_native_request = native_protocol.native_relay_request
++    def observed_request(relay_path, relay_token, route, request):
++        assert_no_oracle(request)
++        with lock:
++            record = {'path': route, 'request': copy.deepcopy(request), 'settled': False}
++            records.append(record)
++        try:
++            status, content_type, body = original_native_request(relay_path, relay_token, route, request)
++            record.update(status=status, content_type=content_type, response_sha256=byte_hash(body),
++                          response_body_b64=base64.b64encode(body).decode())
++            return status, content_type, body
++        except Exception as exc:
++            record['failure'] = {'type':type(exc).__name__, 'detail':str(exc)[:500]}
++            raise
++        finally:
++            with lock: record['settled'] = True
++    native_protocol.native_relay_request = observed_request
++    token = secrets.token_urlsafe(32)
++    model_barrier = ModelBarrier(lambda: create_native_gateway(os.environ['NATIVE_RELAY_PATH'],
++        os.environ['NATIVE_RELAY_TOKEN'], token, MODEL, completion_budget=4096))
++    server = model_barrier.server
++    with tempfile.TemporaryDirectory(prefix='hr-supervisor-') as temporary:
++        tmp = Path(temporary)
++        manager, session_file = None, None
++        mock_barrier = MockBarrier(case, snapshot.id)
++        try:
++            with (tmp / 'manager.out').open('w') as out, (tmp / 'manager.err').open('w') as err:
++                manager = subprocess.Popen([sys.executable, str(ROOT / 'scripts/flashrsi_pi_owner_mock_manager_v6.py'),
++                    mock_barrier.url, 'serve-mocks', '--mock-backend', 'process',
++                    '--run-root', str(root), '--run-id', case, '--data-dir', str(DATA), '--case-id', case,
++                    '--harness', 'claude_code'], stdout=out, stderr=err, start_new_session=True,
++                    env={**os.environ, 'HARNESSRISK_PRIVATE_CASE': '1'})
++            deadline, info = time.monotonic() + 90, None
++            while time.monotonic() < deadline:
++                if manager.poll() is not None:
++                    raise ProfileError('mock_manager_exited:' + (tmp / 'manager.err').read_text()[-1000:])
++                try:
++                    info = json.loads((tmp / 'manager.out').read_text())
++                    break
++                except (json.JSONDecodeError, FileNotFoundError): time.sleep(.25)
++            if info is None:
++                raise ProfileError('mock_manager_startup_timeout')
++            mock_barrier.upstream = info['gateway']
++            work = Path(info['workspace']).resolve()
++            if work != (path / 'workspace').resolve():
++                raise ProfileError('mock_workspace_identity_changed')
++            save_json(path / 'privacy_audit.json', audit_case_inputs(path))
++            scratch = tmp / 'scratch'
++            scratch.mkdir()
++            (scratch / 'native-case').mkdir()
++            state_dir = scratch / 'native-case/claude'; state_dir.mkdir(mode=0o700)
++            private = path / 'native_session'
++            private.mkdir(mode=0o700)
++            result = {'case_id': case, 'harness': 'flashrsi_claude_code', 'snapshot_id': snapshot.id,
++                'native_source_sha256': snapshot_source_map(snapshot),
++                'source_case_sha256': byte_hash(raw_source), 'working_dir': str(work),
++                'privacy_protocol': PROTOCOL, 'execution_protocol': PROFILE, 'contract': CONTRACT,
++                'status': 'error', 'driver_status': 'owner_schedule_incomplete',
++                'status_semantics': CONTRACT['status_semantics'],
++                'measurement_validity': {'valid': False, 'profile': PROFILE},
++                'original_owner_hashes': [digest(o) for o in owners], 'turns': [], 'owner_receipts': []}
++            manager_start = census()[manager.pid]['start']
++            result['mock_manager_identity'] = {'pid': manager.pid, 'start': manager_start}
++            before, session_id, previous = b'', None, None
++            failure = None
++            with snapshot._export(full=True) as exported:
++                entry = str(ROOT / 'scripts/flashrsi_harnessrisk_claude_native_owner_entry_v9.py')
++                ro = sorted(set(['/usr', '/lib', '/lib64', '/etc/ssl/certs', str(Path(sys.prefix).resolve()),
++                    str(Path(sys.base_prefix).resolve()), str(Path(exported).resolve()), str(ROOT / 'scripts'),
++                    str(ROOT / 'vendor/FlashRSI'),
++                    '/data/home/liumingxiao/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin']))
++                env = {'PATH': str(work / 'bin') + ':' + str(Path(sys.executable).parent) + ':/usr/bin:/bin',
++                    'LANG': 'C.UTF-8', 'HOME': str(scratch), 'TMPDIR': str(scratch), 'MOCK_GATEWAY_BASE_URL': mock_barrier.url}
++                sandbox = {'python': sys.executable, 'entry': entry, 'readonly': ro, 'writable': [str(work), str(scratch)],
++                    'ports': [server.server_port, mock_barrier.server.server_port], 'environment': env}
++                save_json(path / 'runtime_environment_evidence.json', {'profile': PROFILE,
++                    'sandbox_policy_unchanged': True, 'sandbox': {k: v for k, v in sandbox.items() if k != 'environment'},
++                    'python_bin_on_path': str(Path(sys.executable).parent), 'contract': CONTRACT})
++                save_json(path / 'mock_transport_mapping.json', {'case_id': case, 'snapshot_id': snapshot.id,
++                    'public_gateway': mock_barrier.url, 'original_gateway': info['gateway'],
++                    'original_backend': info['backend'], 'allowed_target_mock_ports': [mock_barrier.server.server_port],
++                    'mapping': 'transport endpoint only; original adapter generated URLs; original methods/headers/body/response bytes',
++                    'settlement': 'accepted/unparsed/listen backlog accounted; full upstream response; gateway599 invalid'})
++                for index, owner in enumerate(owners, 1):
++                    owner_deadline = time.monotonic() + 600
++                    model_barrier.open_owner(index)
++                    mock_barrier.open_owner(index, owner_deadline)
++                    offset = len(records)
++                    request = {'profile': PROFILE, 'harness': 'claude_code', 'question': owner, 'owner_index': index,
++                        'workspace_dir': str(exported), 'working_dir': str(work), 'state_dir': str(state_dir), 'resume': session_id,
++                        'expected_session_sha256': byte_hash(before),
++                        'config': target_config(token, f'http://127.0.0.1:{server.server_port}')}
++                    prefix = f'owner_{index:03d}'
++                    try:
++                        # Anonymous input keeps the ephemeral gateway capability
++                        # out of persistent experiment configuration/evidence.
++                        with tempfile.TemporaryFile(mode='w+', dir=scratch) as input_stream, \
++                                (private / (prefix + '.stdout.log')).open('w') as out, \
++                                (private / (prefix + '.stderr.log')).open('w') as err:
++                            json.dump(request, input_stream)
++                            input_stream.seek(0)
++                            child = subprocess.Popen([str(ROOT / 'scripts/flashrsi_harnessrisk_sandbox.py'), '-I', '-B', entry],
++                                stdin=input_stream, stdout=out, stderr=err,
++                                env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8', 'HARNESSRISK_SANDBOX_CONFIG': json.dumps(sandbox)})
++                            try: child.wait(timeout=900)
++                            except subprocess.TimeoutExpired:
++                                child.kill()
++                                child.wait(timeout=5)
++                                raise ProfileError('native_sandbox_wall_timeout_requires_case_namespace_exit')
++                        if child.returncode:
++                            raise ProfileError('native_sandbox_failed:' + str(child.returncode))
++                        output = json.loads((private / (prefix + '.stdout.log')).read_text())
++                        save_json(private / (prefix + '.native.json'), output)
++                        observed_outcomes.extend(f for f in output.get('raw_frames',[]) if f.get('type')=='result')
++                        processes = census()
++                        if manager.poll() is not None or processes.get(manager.pid, {}).get('start') != manager_start:
++                            raise ProfileError('original_mock_manager_identity_or_liveness_lost')
++                        settlement = process_receipt(processes, manager.pid, namespace_pid=os.getpid())
++                        model_settlement = model_barrier.freeze()
++                        save_json(private / (prefix + '.model_transport.json'), model_settlement)
++                        mock_settlement = mock_barrier.freeze()
++                        save_json(private / (prefix + '.mock.json'), mock_settlement)
++                        with lock:
++                            owner_records = copy.deepcopy(records[offset:])
++                        save_json(private / (prefix + '.provider.json'), owner_records)
++                        if any(r.get('settled') is not True for r in owner_records) or server.errors:
++                            raise ProfileError('native_model_requests_or_gateway_not_settled')
++                        session_file, archive = locate_session(state_dir / 'state', scratch, output['session_id'])
++                        save_bytes(private / (prefix + '.jsonl'), archive)
++                        # Raw errors/null result survive even when validation fails.
++                        result['turns'].append({'owner_turn': index, 'prompt': owner,
++                            'response_text': output['output'], 'messages':output['messages'], 'usage':output['usage'],
++                            'native_result':output['native_result'], 'stop_reason':(output['native_result'] or {}).get('stop_reason')})
++                        native_receipt = validate_owner(output, before, archive, owner, index, session_id,
++                                                        owner_records, str(work), previous)
++                        result['owner_receipts'].append({'owner_index':index, 'native_receipt':native_receipt,
++                            'process_settlement':settlement, 'mock_settlement':mock_settlement,
++                            'model_transport_settlement':model_settlement,
++                            'model_transport_archive':f'native_session/{prefix}.model_transport.json',
++                            'session_archive':f'native_session/{prefix}.jsonl',
++                            'native_archive':f'native_session/{prefix}.native.json',
++                            'provider_archive':f'native_session/{prefix}.provider.json',
++                            'mock_archive':f'native_session/{prefix}.mock.json'})
++                        before, session_id = archive, native_receipt['session']['session_id']
++                        previous = native_receipt['terminal']
++                        save_json(path / 'native_owner_progress.json', {'profile': PROFILE,
++                            'actual_owner_receipts': result['owner_receipts'], 'original_owner_hashes': result['original_owner_hashes']})
++                    except Exception as exc:
++                        failure = {'owner_index': index, 'type': type(exc).__name__, 'detail': str(exc)}
++                        save_json(path / 'mock_request_failure.json', {'failure': failure,
++                            'requests': mock_barrier.ledger.requests, 'failures': mock_barrier.ledger.failures})
++                        try:
++                            raw = locate_session(state_dir / 'state', scratch, output.get('session_id', session_id))[1]
++                            if raw: save_bytes(private / (prefix + '.failed.jsonl'), raw)
++                        except (ProfileError, UnboundLocalError, KeyError) as archive_error:
++                            failure['archive_error'] = str(archive_error)
++                        break
++            result['native_outcomes'] = observed_outcomes
++            result['native_max_turns_count'] = sum(t.get('native_result',{}).get('subtype')=='error_max_turns' for t in result['turns'] if t.get('native_result'))
++            # Invalid/uncertain work must never race the source exporter. A
++            # failed owner retains evidence and exits its owned case namespace.
++            if failure is not None:
++                result['failure'] = failure
++                save_json(path / 'harness_result.json', result)
++                return 2
++            complete = len(result['owner_receipts']) == len(owners) and failure is None
++            if complete:
++                result.update(status='completed', driver_status='owner_schedule_completed')
++            result['failure'] = failure
++            save_json(path / 'harness_result.json', result)
++            (path / 'trajectory/hermes_turns.jsonl').write_text(''.join(json.dumps(t, ensure_ascii=False) + '\n' for t in result['turns']))
++            save_json(path / 'model_request_evidence.json', {'requests': records, 'profile': PROFILE})
++            try:
++                export = subprocess.run([sys.executable, str(ADAPTER), 'export', str(path), '--case-id', case, '--harness', 'claude_code'],
++                                        capture_output=True, text=True, timeout=60)
++                if export.returncode:
++                    raise ProfileError('unchanged_source_export_failed:' + export.stderr[-1000:])
++                graded = subprocess.run([sys.executable, str(BENCH / 'harness_adapter/scripts/evaluate_run.py'), str(path),
++                    '--data-dir', str(DATA), '--output', str(path / 'official_rule_evaluation.json'), '--pretty'],
++                    capture_output=True, text=True, timeout=60)
++                if graded.returncode:
++                    raise ProfileError('unchanged_official_evaluation_failed:' + graded.stderr[-1000:])
++                if complete:
++                    from flashrsi_claude_owner_profile_v9 import validate_case
++                    validate_case(path, case, snapshot.id, owners, byte_hash(raw_source), require_host=False,
++                                  _pending=True, native_source=result['native_source_sha256'])
++                    result['measurement_validity'] = {'valid': True, 'profile': PROFILE}
++                    save_json(path / 'harness_result.json', result)
++            except Exception as exc:
++                result.update(status='error', driver_status='source_or_profile_admission_invalid',
++                    measurement_validity={'valid': False, 'profile': PROFILE},
++                    failure={'type': type(exc).__name__, 'detail': str(exc)})
++                save_json(path / 'harness_result.json', result)
++                raise
++            print(json.dumps({'case_id': case, 'profile': PROFILE, 'driver_status': result['driver_status'],
++                              'measurement_valid': complete, 'native_outcomes': [r['native_receipt']['terminal'] for r in result['owner_receipts']]}))
++            return 0 if complete else 2
++        finally:
++            try:
++                if path.is_dir():
++                    with lock: save_json(path / 'native_session/all_provider_records.json', records)
++                    try:
++                        archive_native_tree(state_dir, scratch, path / 'native_session/final_native_tree')
++                    except (ProfileError, UnboundLocalError) as exc:
++                        save_json(path / 'native_session/native_tree_archive_failure.json', {'error':str(exc)})
++                if path.is_dir() and session_file is not None and session_file.exists():
++                    try:
++                        save_bytes(path / 'native_session/final_session.jsonl', locate_session(state_dir / 'state', scratch, session_id)[1])
++                    except ProfileError as exc:
++                        save_json(path / 'native_session/final_archive_failure.json', {'error': str(exc)})
++            finally:
++                native_protocol.native_relay_request = original_native_request
++                mock_barrier.close()
++                if manager is not None:
++                    manager.terminate()
++                    try: manager.wait(timeout=30)
++                    except subprocess.TimeoutExpired: manager.kill(); manager.wait()
++                model_barrier.close()
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py
+new file mode 100644
+index 0000000..8f88f2d
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py
+@@ -0,0 +1,116 @@
++"""NEW Claude native profile; one GPU1 route, one attempt, original confinement."""
++from __future__ import annotations
++
++import base64
++import copy
++import json
++import os
++from pathlib import Path
++import secrets
++import signal
++import subprocess
++import sys
++import tempfile
++import threading
++import urllib.error
++import urllib.request
++
++from flashrsi_claude_owner_profile_v9 import PROFILE, MODEL, ProfileError, digest, byte_hash, save_json, project_cli_history
++ROOT=Path(__file__).resolve().parents[1]
++
++
++def prepare_request(route,body):
++    """Frozen native reference projection; preserve genuine repeated owners."""
++    from flashrsi_harnessrisk_privacy import assert_no_oracle
++    assert_no_oracle(body)
++    projected,removed=project_cli_history(body) if route=='/v1/messages' else (copy.deepcopy(body),[])
++    conversions=[]
++    def convert(value):
++        if isinstance(value,dict):
++            if value.get('type')=='tool_reference':
++                name=value.get('tool_name')
++                if not isinstance(name,str) or not name:raise ProfileError('invalid_native_tool_reference')
++                conversions.append({'reason':'native_tool_reference_to_text','tool_name':name})
++                return {'type':'text','text':'[Tool reference: '+name+']'}
++            return {k:convert(v) for k,v in value.items()}
++        if isinstance(value,list):return [convert(v) for v in value]
++        return value
++    current=convert(projected)
++    if route=='/v1/messages':
++        if type(current.get('max_tokens')) is not int or not 1<=current['max_tokens']<=4096:
++            raise ProfileError('native_wire_output_budget_changed')
++        current['temperature']=0
++    return current,removed,conversions
++
++
++def main():
++    if len(sys.argv)!=5 or os.environ.get('HR_HARNESS')!='claude_code':
++        raise ProfileError('usage: Claude-only host CASE SNAPSHOT EXPECTED_ID RUN_ROOT')
++    if os.environ.get('HARNESSRISK_MODEL_PORT')!='18764':raise ProfileError('GPU1_18764_only')
++    from flashrsi_native_protocol_relay import create_native_relay
++    case,snapshot,expected,run_root=sys.argv[1:]
++    model_token=(ROOT/'outputs/preflight_20261111/vllm_api_token').read_text().strip()
++    records=[];lock=threading.Lock()
++    def upstream(route,body):
++        with lock:
++            record={'sequence':len(records)+1,'path':route,'raw_request':copy.deepcopy(body),
++                    'raw_request_sha256':digest(body),'settled':False}
++            records.append(record)
++        try:
++            current,removed,conversions=prepare_request(route,body)
++            record.update(forwarded_request=current,forwarded_request_sha256=digest(current),
++                          projection_removed=removed,reference_conversions=conversions)
++            request=urllib.request.Request('http://127.0.0.1:18764'+route,data=json.dumps(current).encode(),
++                headers={'Authorization':'Bearer '+model_token,'Content-Type':'application/json','anthropic-version':'2023-06-01'})
++            try:
++                with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(request,timeout=300) as response:
++                    status,ctype,payload=response.status,response.headers.get_content_type(),response.read(16*1024*1024+1)
++            except urllib.error.HTTPError as error:
++                status,ctype,payload=error.code,error.headers.get_content_type(),error.read(16*1024*1024+1)
++            record.update(status=status,content_type=ctype,response_sha256=byte_hash(payload),
++                response_body_b64=base64.b64encode(payload).decode(),
++                context_capacity_error=b'maximum context length' in payload or b'maximum model length' in payload)
++            return status,ctype,payload  # One actual attempt, no smaller-reply/context retry.
++        except Exception as exc:
++            record['failure']={'type':type(exc).__name__,'detail':str(exc)[:500]}
++            raise
++        finally:
++            with lock:record['settled']=True
++    with tempfile.TemporaryDirectory(prefix='hr-relay-') as temporary:
++        tmp=Path(temporary);home=tmp/'home';home.mkdir()
++        relay_path,relay_token=str(tmp/'native.sock'),secrets.token_urlsafe(32)
++        relay=create_native_relay(relay_path,relay_token,MODEL,upstream)
++        thread=threading.Thread(target=relay.serve_forever,daemon=True);thread.start()
++        env={'PATH':'/usr/sbin:/usr/bin:/bin','LANG':'C.UTF-8','HOME':str(home),
++            'PYTHONPATH':':'.join(str(ROOT/p) for p in ('src','scripts','vendor/FlashRSI')),
++            'NATIVE_RELAY_PATH':relay_path,'NATIVE_RELAY_TOKEN':relay_token,
++            'HR_CASE_ID':case,'HR_SNAPSHOT':str(Path(snapshot).resolve()),'HR_EXPECTED_ID':expected,
++            'HR_RUN_ROOT':str(Path(run_root).resolve()),'HR_HARNESS':'claude_code'}
++        proof={'profile':PROFILE,'case_id':case,'snapshot_id':expected,'whole_host_seconds':2400,
++               'timed_out':False,'namespace_exited':False,'namespace_parent_death_signal':'SIGKILL'}
++        process=None
++        try:
++            process=subprocess.Popen(['unshare','-Urnpf','--kill-child=SIGKILL','--mount-proc','sh','-c',
++                'ip link set lo up && exec "$1" "$2"','hr',sys.executable,
++                str(ROOT/'scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py')],env=env,start_new_session=True)
++            proof['namespace_launcher_pid']=process.pid
++            try:code=process.wait(timeout=2400)
++            except subprocess.TimeoutExpired:
++                proof['timed_out']=True;os.killpg(process.pid,signal.SIGKILL);process.wait(timeout=30);code=124
++            proof.update(returncode=code,namespace_exited=process.poll() is not None)
++            return code
++        finally:
++            if process is not None and process.poll() is None:
++                try:os.killpg(process.pid,signal.SIGKILL);process.wait(timeout=30)
++                except (OSError,subprocess.TimeoutExpired):proof['cleanup_confirmed']=False
++            if process is not None:proof['namespace_exited']=process.poll() is not None
++            relay.shutdown();thread.join(timeout=5);relay.server_close()
++            with lock:
++                proof['model_requests_settled']=all(r.get('settled') is True for r in records)
++                retained=copy.deepcopy(records)
++            path=Path(run_root)/case
++            if path.is_dir():
++                save_json(path/'protocol_model_evidence.json',{'profile':PROFILE,'requests':retained})
++                save_json(path/'native_owner_host.json',proof)
++
++if __name__=='__main__':raise SystemExit(main())
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_claude_native_owner_v9.py b/experiments/cross_harness_sft/tests/test_flashrsi_claude_native_owner_v9.py
+new file mode 100644
+index 0000000..2893196
+--- /dev/null
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_claude_native_owner_v9.py
+@@ -0,0 +1,573 @@
++"""Pure filesystem/retained-frame tests. No CLI, services, source tasks or model."""
++import asyncio
++import copy
++import importlib
++import json
++from pathlib import Path
++import pytest
++
++ROOT = Path(__file__).resolve().parents[1]
++SID = '5600a401-b77e-4b3d-b82f-79ecfe37f623'
++
++def profile():
++    return importlib.import_module('flashrsi_claude_owner_profile_v9')
++
++def test_new_profile_surface_exists():
++    assert (ROOT / 'scripts/flashrsi_claude_owner_profile_v9.py').is_file(), 'new Claude profile is missing'
++
++def frames():
++    return [
++        {'type':'system','subtype':'init','session_id':SID,'cwd':'/work'},
++        {'type':'assistant','message':{'content':[{'type':'tool_use','id':'toolu_1','name':'Bash','input':{'command':'pwd'}}]}},
++        {'type':'user','message':{'content':[{'type':'tool_result','tool_use_id':'toolu_1','content':'/work'}]}},
++        {'type':'result','subtype':'error_max_turns','terminal_reason':'max_turns','is_error':True,
++         'num_turns':17,'session_id':SID,'stop_reason':'tool_use','result':None,'errors':['Reached maximum number of turns (16)'],
++         'api_error_status':None,'deferred_tool_use':None,'origin':None},
++        {'type':'system','subtype':'session_state_changed','state':'idle','session_id':SID,'sdk_host_only':True}]
++
++def stop():
++    return [{'hook_event_name':'Stop','session_id':SID,'cwd':'/work','stop_hook_active':False,
++             'background_tasks':[],'session_crons':[]}]
++
++def close():
++    return {'pid':44,'start':123,'events':['begin','lock_acquired','stdin_closed','graceful_wait','graceful_reaped','reaped','finished'],
++            'returncode':0,'reaped':True,'exception':None}
++
++def test_native_cap_keeps_raw_error_and_null_answer():
++    p = profile()
++    receipt = p.terminal_receipt(frames(), stop(), close(), SID)
++    assert receipt['kind'] == 'native_max_turns'
++    assert receipt['native_outcome'] == frames()[3]
++    assert receipt['native_outcome']['result'] is None
++    assert receipt['native_outcome']['num_turns'] == 17
++
++@pytest.mark.parametrize('mutation', ['idle','stop','background','cron','pending_tool','deferred','aborted','api','wrong_session','no_result','notification','turns'])
++def test_unknown_or_unsettled_native_boundaries_fail_closed(mutation):
++    p = profile(); f,s = frames(),stop()
++    if mutation == 'idle': f.pop()
++    if mutation == 'stop': s=[]
++    if mutation == 'background': s[0]['background_tasks']=[{'id':'bg','type':'shell','status':'running'}]
++    if mutation == 'cron': del s[0]['session_crons']
++    if mutation == 'pending_tool': f.pop(2)
++    if mutation == 'deferred': f[3]['deferred_tool_use']={'tool_use_id':'toolu_1'}
++    if mutation == 'aborted': f[3]['terminal_reason']='aborted_tools'
++    if mutation == 'api': f[3]['api_error_status']=400
++    if mutation == 'wrong_session': f[-1]['session_id']='different'
++    if mutation == 'no_result': f.pop(3)
++    if mutation == 'notification': f[3]['origin']={'kind':'task-notification'}
++    if mutation == 'turns': f[3]['num_turns']=100
++    with pytest.raises(p.ProfileError): p.terminal_receipt(f,s,close(),SID)
++
++@pytest.mark.parametrize('event', ['terminate','kill','cancelled','lock_timeout'])
++def test_close_escalation_and_uncertainty_invalid(event):
++    p=profile(); c=close(); c['events'].append(event)
++    with pytest.raises(p.ProfileError): p.close_receipt(c)
++
++def test_missing_close_observation_is_unknown():
++    p=profile()
++    with pytest.raises(p.ProfileError): p.close_receipt({'returncode':0})
++
++def test_sdk_options_keep_original_caps_and_explicit_resume(tmp_path):
++    from flashrsi_claude_owner_profile_v9 import target_config
++    from flashrsi_claude_owner_adapter_v9 import build_options
++    root=tmp_path/'state';root.mkdir(); files=tmp_path/'snapshot';files.mkdir();work=tmp_path/'work';work.mkdir()
++    opts,evidence=build_options(target_config('x'*40,'http://127.0.0.1:1234'),files,work,root,SID,lambda _:None,[])
++    assert opts.resume == SID and opts.session_id is None and opts.continue_conversation is False
++    assert opts.fork_session is False and opts.resume_session_at is None and opts.resume_drops_turn is None
++    assert opts.session_store is None and opts.max_turns == 16
++    assert opts.permission_mode == 'dontAsk' and opts.setting_sources == [] and opts.strict_mcp_config is True
++    assert opts.env['CLAUDE_CODE_MAX_CONTEXT_TOKENS']=='32768'
++    assert opts.env['CLAUDE_CODE_MAX_OUTPUT_TOKENS']=='4096'
++    assert 'CLAUDE_CODE_AUTO_COMPACT_WINDOW' not in opts.env
++    assert opts.env['CLAUDE_CONFIG_DIR']==str(root/'state')
++    assert opts.env['CLAUDE_SECURESTORAGE_CONFIG_DIR']==str(root/'state')
++    assert 'x'*40 not in json.dumps(evidence)
++
++def transcript(owner='first',parent=None,uid='u1'):
++    return {'type':'user','uuid':uid,'parentUuid':parent,'sessionId':SID,'cwd':'/work','message':{'role':'user','content':owner}}
++
++def encoded(rows): return b''.join((json.dumps(r)+'\n').encode() for r in rows)
++
++def test_native_history_preserves_prefix_and_exact_next_owner():
++    p=profile(); old=[transcript(), {'type':'assistant','uuid':'a1','parentUuid':'u1','sessionId':SID,'cwd':'/work','message':{'role':'assistant','content':[{'type':'text','text':'ok'}]}}]
++    after=old+[transcript('second','a1','u2'),{'type':'assistant','uuid':'a2','parentUuid':'u2','sessionId':SID,'cwd':'/work','message':{'role':'assistant','content':[{'type':'text','text':'done'}]}}]
++    r=p.session_receipt(encoded(old),encoded(after),'second','/work',SID)
++    assert r['session_id']==SID and r['owner_uuid']=='u2' and r['leaf_id']=='a2'
++
++@pytest.mark.parametrize('mutation',['prefix','owner_duplicate','wrong_owner','wrong_cwd','wrong_session','dangling','duplicate_uuid','partial','compaction'])
++def test_native_history_corruption_is_invalid(mutation):
++    p=profile(); old=[transcript()]; new=transcript('second','u1','u2'); after=old+[new]
++    if mutation=='prefix': old=[transcript('mutated')]
++    if mutation=='owner_duplicate': after.append(transcript('second','u2','u3'))
++    if mutation=='wrong_owner': new['message']['content']='other'
++    if mutation=='wrong_cwd': new['cwd']='/else'
++    if mutation=='wrong_session': new['sessionId']='other'
++    if mutation=='dangling': new['parentUuid']='missing'
++    if mutation=='duplicate_uuid': new['uuid']='u1'
++    if mutation=='compaction': after.append({'type':'system','subtype':'compact_boundary','uuid':'c1','parentUuid':'u2','sessionId':SID,'cwd':'/work'})
++    raw=encoded(after)
++    if mutation=='partial': raw=raw[:-1]
++    with pytest.raises(p.ProfileError): p.session_receipt(encoded(old),raw,'second','/work',SID)
++
++def test_context_must_be_actual_native_observation():
++    p=profile()
++    assert p.context_receipt({'rawMaxTokens':32768,'maxTokens':32768,'model':'qwen35-4b-preflight','isAutoCompactEnabled':True})['rawMaxTokens']==32768
++    for value in ({}, {'rawMaxTokens':200000}, {'rawMaxTokens':32768,'maxTokens':32768,'model':'wrong','isAutoCompactEnabled':True}):
++        with pytest.raises(p.ProfileError): p.context_receipt(value)
++
++def test_wire_owner_and_output_budget_and_real_invocation():
++    p=profile(); records=[{'path':'/v1/messages','request':{'model':'qwen35-4b-preflight','max_tokens':4096,'messages':[{'role':'user','content':'first'}]},'status':200,'response_sha256':'a'}]
++    p.provider_receipt(records,b'', 'first', SID, 1)
++    for change in ('empty','max','failed','owner'):
++        r=copy.deepcopy(records)
++        if change=='empty':r=[]
++        if change=='max':r[0]['request']['max_tokens']=8192
++        if change=='failed':r[0]['status']=400
++        if change=='owner':r[0]['request']['messages'][0]['content']='other'
++        with pytest.raises(p.ProfileError):p.provider_receipt(r,b'','first',SID,1)
++
++def test_projection_preserves_repeated_genuine_owner_text():
++    p=profile(); request={'messages':[{'role':'user','content':[{'type':'text','text':'same'}]},{'role':'assistant','content':[{'type':'text','text':'ok'}]},{'role':'user','content':[{'type':'text','text':'same'}]}]}
++    projected,removed=p.project_cli_history(request)
++    assert projected==request and removed==[]
++
++def test_reader_rejects_symlink_and_fifo_without_blocking(tmp_path):
++    p=profile(); path=tmp_path/'session';path.symlink_to('/etc/hosts')
++    with pytest.raises(p.ProfileError):p.read_native_session(path,tmp_path)
++    path.unlink();import os;os.mkfifo(path)
++    with pytest.raises(p.ProfileError):p.read_native_session(path,tmp_path)
++
++@pytest.mark.parametrize('timeouts,expected',[(0,'clean'),(1,'terminate'),(2,'kill')])
++def test_exact_sdk_close_branches_are_observed_without_processes(timeouts,expected):
++    from flashrsi_claude_owner_transport_v9 import ObservedTransport
++    class Stream:
++        async def aclose(self):pass
++    class Process:
++        pid=44;returncode=None
++        def __init__(self):self.waits=0;self.signals=[]
++        async def wait(self):
++            self.waits+=1
++            if self.waits<=timeouts:raise TimeoutError()
++            self.returncode=0
++            return 0
++        def terminate(self):self.signals.append('terminate')
++        def kill(self):self.signals.append('kill')
++    async def exercise():
++        import anyio
++        t=object.__new__(ObservedTransport)
++        t.close_evidence={'pid':44,'start':123,'events':[],'exception':None,'returncode':None,'reaped':None}
++        process=Process();t._process=process;t._write_lock=anyio.Lock()
++        t._stderr_task=None;t._stdin_stream=Stream();t._stderr_stream=None;t._ready=True
++        await t.close()
++        return t,process
++    t,process=asyncio.run(exercise())
++    assert t._process is None and t.close_evidence['reaped'] is True
++    assert process.waits==timeouts+1
++    if expected=='clean':assert profile().close_receipt(t.close_evidence)
++    else:
++        assert expected in t.close_evidence['events']
++        with pytest.raises(profile().ProfileError):profile().close_receipt(t.close_evidence)
++
++def test_observational_copy_preserves_entire_pinned_close_ast():
++    import ast,inspect,textwrap
++    from claude_agent_sdk._internal.transport.subprocess_cli import SubprocessCLITransport
++    from flashrsi_claude_owner_transport_v9 import ObservedTransport
++    original=ast.parse(textwrap.dedent(inspect.getsource(SubprocessCLITransport.close)))
++    observed=ast.parse(textwrap.dedent(inspect.getsource(ObservedTransport._close_observed)))
++    class StripObservations(ast.NodeTransformer):
++        def visit_Expr(self,node):
++            if 'self.close_evidence' in ast.unparse(node):return None
++            return self.generic_visit(node)
++        def visit_Assign(self,node):
++            if any('self.close_evidence' in ast.unparse(t) for t in node.targets):return None
++            return self.generic_visit(node)
++        def visit_If(self,node):
++            node=self.generic_visit(node)
++            return node if node.body else None
++    observed=StripObservations().visit(observed)
++    observed.body[0].name='close'
++    assert ast.dump(observed,include_attributes=False)==ast.dump(original,include_attributes=False)
++
++def test_raw_transport_captures_host_only_idle_before_sdk_filter(monkeypatch):
++    from claude_agent_sdk._internal.transport.subprocess_cli import SubprocessCLITransport
++    from flashrsi_claude_owner_transport_v9 import ObservedTransport
++    raw=frames()[-1]
++    async def source(_self):yield raw
++    monkeypatch.setattr(SubprocessCLITransport,'read_messages',source)
++    async def exercise():
++        t=object.__new__(ObservedTransport);t.frames=[];t.changed=asyncio.Event()
++        received=[frame async for frame in t.read_messages()]
++        raw['state']='running'
++        return t,received
++    t,received=asyncio.run(exercise())
++    assert received[0] is raw and t.frames[0]['state']=='idle' and t.changed.is_set()
++
++def test_retained_native_cap_shape_is_actual_saved_result():
++    path=ROOT/'outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/cases/action_042/harness_result.json'
++    if not path.is_file():pytest.skip('retained historical artifact unavailable; never fabricate it')
++    result=json.loads(path.read_text())
++    native=[m for turn in result['turns'] for m in turn['messages'] if m.get('type')=='ResultMessage'][-1]
++    assert native['subtype']=='error_max_turns' and native['terminal_reason']=='max_turns'
++    assert native['num_turns']==17 and native['is_error'] is True
++    f=frames();f[3]={'type':'result',**{k:v for k,v in native.items() if k!='type'}}
++    native_sid=native['session_id'];f[0]['session_id']=native_sid;f[-1]['session_id']=native_sid
++    s=stop();s[0]['session_id']=native_sid
++    admitted=profile().terminal_receipt(f,s,close(),native_sid)
++    assert admitted['native_outcome']['result']==native['result']
++    # This tests the native result shape only. Historical Stop/idle/flush were
++    # absent and this fixture does not upgrade the old case to a valid run.
++
++@pytest.mark.parametrize('failure',['stdin','cancel'])
++def test_close_failure_retains_uncertainty_and_reaper_handle(failure):
++    from flashrsi_claude_owner_transport_v9 import ObservedTransport
++    class Stream:
++        async def aclose(self):
++            if failure=='cancel':raise asyncio.CancelledError()
++            raise OSError('stdin close failed')
++    class Process:
++        pid=44;returncode=None
++        async def wait(self):self.returncode=0
++    async def exercise():
++        import anyio
++        t=object.__new__(ObservedTransport)
++        t.close_evidence={'pid':44,'start':123,'events':[],'exception':None,'returncode':None,'reaped':None}
++        t._process=Process();t._write_lock=anyio.Lock();t._stderr_task=None;t._stderr_stream=None;t._stdin_stream=Stream()
++        try:await t.close()
++        except asyncio.CancelledError:pass
++        return t
++    t=asyncio.run(exercise())
++    with pytest.raises(profile().ProfileError):profile().close_receipt(t.close_evidence)
++    if failure=='cancel':assert t._process is not None and t.close_evidence['exception']=='CancelledError'
++
++def test_counter_requires_actual_owner_invocation_and_rejects_cumulative_values():
++    p=profile();terminal=p.terminal_receipt(frames(),stop(),close(),SID)
++    assert p.counter_receipt(terminal,{'model_requests':17,'distinct_scheduled_pairs':16,'scheduled_origin_reconciled':True},terminal)['resumed_after_cap_observed'] is True
++    for calls in (0,18):
++        with pytest.raises(p.ProfileError):p.counter_receipt(terminal,{'model_requests':calls})
++    terminal['native_outcome']['num_turns']=34
++    with pytest.raises(p.ProfileError):p.counter_receipt(terminal,{'model_requests':1})
++
++def test_reference_preserves_all_six_original_algorithms_without_execution():
++    import ast
++    from flashrsi_harnessrisk_claude_native_owner_reference_v9 import build_source
++    original=ast.parse((ROOT/'scripts/flashrsi_harnessrisk_algorithm.py').read_text())
++    transformed=ast.parse(build_source())
++    def binding(tree):
++        return next(ast.dump(n,include_attributes=False) for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='ALGORITHMS' for t in n.targets))
++    assert binding(original)==binding(transformed)
++    assert 'validate_reference' in build_source()
++
++def test_source_completed_status_alone_is_not_native_admission(tmp_path):
++    p=profile();(tmp_path/'harness_result.json').write_text(json.dumps({'status':'completed','case_id':'case','snapshot_id':'snap'}))
++    with pytest.raises(p.ProfileError):p.validate_case(tmp_path,'case','snap',['owner'],'source',native_source={'CLAUDE.md':'hash'})
++
++def test_model_host_keeps_one_reply_budget_and_genuine_repeated_owner():
++    from flashrsi_harnessrisk_host_claude_native_owner_v9 import prepare_request
++    body={'model':'qwen35-4b-preflight','max_tokens':4096,'messages':[{'role':'user','content':'same'},{'role':'assistant','content':[{'type':'text','text':'x'}]},{'role':'user','content':'same'}]}
++    current,removed,conversions=prepare_request('/v1/messages',body)
++    assert body.get('temperature') is None and current['temperature']==0
++    assert current['messages']==body['messages'] and removed==[] and conversions==[]
++    body['max_tokens']=8192
++    with pytest.raises(profile().ProfileError):prepare_request('/v1/messages',body)
++
++def test_model_transport_barrier_surface_exists():
++    assert (ROOT/'scripts/flashrsi_claude_owner_model_barrier_v9.py').is_file(), 'native accepted/unparsed model barrier missing'
++
++class MemorySocket:
++    def __init__(self,pending=False):self.pending=pending;self.closed=False
++    def setblocking(self,value):pass
++    def accept(self):
++        if not self.pending:raise BlockingIOError()
++        self.pending=False
++        class Connection:
++            def close(self):pass
++        return Connection(),('127.0.0.1',1)
++
++class MemoryServer:
++    server_port=1234
++    def __init__(self,pending=False):self.socket=MemorySocket(pending);self.errors=[];self.closed=False;self.jobs=[]
++    def serve_forever(self,**_kwargs):pass
++    def shutdown(self):pass
++    def server_close(self):self.closed=True
++    def get_request(self):return object(),('127.0.0.1',1)
++    def process_request_thread(self,request,address):self.jobs.append(request)
++
++class MemoryThread:
++    def __init__(self,**kwargs):self.kwargs=kwargs
++    def start(self):pass
++    def join(self,*_args,**_kwargs):pass
++
++@pytest.mark.parametrize('mode',['settled','active','queued','handler_error'])
++def test_model_barrier_accounts_connections_before_parse_without_socket(mode):
++    from flashrsi_claude_owner_model_barrier_v9 import ModelBarrier
++    server=MemoryServer(pending=mode=='queued')
++    gate=ModelBarrier(lambda:server,thread_factory=MemoryThread)
++    gate.open_owner(1)
++    if mode in {'active','settled','handler_error'}:
++        request,address=server.get_request()
++        if mode!='active':server.process_request_thread(request,address)
++    if mode=='handler_error':server.errors.append({'detail':'invalid HTTP framing'})
++    if mode=='settled':
++        receipt=gate.freeze()
++        assert receipt['settled'] is True and receipt['connections']==1 and receipt['active']==0
++    else:
++        with pytest.raises(profile().ProfileError):gate.freeze()
++
++def test_archive_preserves_failed_partial_session_bytes_privately(tmp_path):
++    p=profile();native=tmp_path/'scratch'/'native';native.mkdir(parents=True)
++    (native/'state').mkdir();raw=b'{"partial":'
++    (native/'state'/'session.jsonl').write_bytes(raw)
++    receipt=p.archive_native_tree(native,tmp_path/'scratch',tmp_path/'evidence')
++    assert (tmp_path/'evidence/state/session.jsonl').read_bytes()==raw
++    assert receipt['files'][0]['sha256']==p.byte_hash(raw)
++    import shutil;shutil.rmtree(tmp_path/'scratch')
++    assert (tmp_path/'evidence/archive_manifest.json').is_file()
++
++def test_model_barrier_reuses_same_case_listener_across_original_owners():
++    from flashrsi_claude_owner_model_barrier_v9 import ModelBarrier
++    server=MemoryServer();gate=ModelBarrier(lambda:server,thread_factory=MemoryThread)
++    for index in (1,2):
++        gate.open_owner(index);receipt=gate.freeze()
++        assert gate.server is server and receipt['owner_index']==index and server.closed is False
++    gate.close();assert server.closed is True
++
++def test_history_receipt_requires_final_native_assistant_and_no_old_tool_replay():
++    p=profile()
++    assert hasattr(p,'history_frame_receipt'), 'native JSONL flush must match emitted message UUIDs/content'
++    owner=transcript();assistant={'type':'assistant','uuid':'a1','parentUuid':'u1','sessionId':SID,'cwd':'/work','message':{'role':'assistant','content':[{'type':'text','text':'done'}]}}
++    f=[{'type':'assistant','uuid':'a1','message':assistant['message']}]
++    raw=encoded([owner,assistant])
++    assert p.history_frame_receipt(f,b'',raw)['message_uuids']==['a1']
++    with pytest.raises(p.ProfileError):p.history_frame_receipt(f,b'',encoded([owner]))
++    with pytest.raises(p.ProfileError):p.history_frame_receipt(f,raw,raw)
++    wrong=copy.deepcopy(assistant);wrong['message']['content'][0]['text']='changed'
++    with pytest.raises(p.ProfileError):p.history_frame_receipt(f,b'',encoded([owner,wrong]))
++
++@pytest.mark.parametrize('mutation',['drop_prior','duplicate_owner','unarchived_assistant'])
++def test_every_provider_request_retains_actual_native_history(mutation):
++    p=profile()
++    owner=transcript();assistant={'type':'assistant','uuid':'a1','parentUuid':'u1','sessionId':SID,'cwd':'/work','message':{'role':'assistant','content':[{'type':'text','text':'done'}]}}
++    first={'model':p.MODEL,'max_tokens':4096,'messages':[{'role':'user','content':'first'}]}
++    later=copy.deepcopy(first);later['messages'].append(copy.deepcopy(assistant['message']))
++    if mutation=='drop_prior':later['messages'].pop(0)
++    if mutation=='duplicate_owner':later['messages'].append({'role':'user','content':'first'})
++    if mutation=='unarchived_assistant':later['messages'][-1]['content'][0]['text']='unarchived'
++    records=[{'path':'/v1/messages','request':r,'status':200,'response_sha256':'hash'} for r in (first,later)]
++    with pytest.raises(p.ProfileError):p.provider_receipt(records,b'','first',SID,1,after=encoded([owner,assistant]))
++
++def test_original_tool_callbacks_close_actual_ids_without_permission_changes(tmp_path):
++    p=profile()
++    assert hasattr(p,'tool_execution_receipt'), 'tool execution must have actual native callback evidence'
++    inputs=[{'hook_event_name':'PreToolUse','tool_use_id':'toolu_1','session_id':SID},
++            {'hook_event_name':'PostToolUse','tool_use_id':'toolu_1','session_id':SID}]
++    assert p.tool_execution_receipt(inputs,['toolu_1'],SID)['tool_ids']==['toolu_1']
++    for values in ([],inputs[:1],inputs+inputs):
++        with pytest.raises(p.ProfileError):p.tool_execution_receipt(values,['toolu_1'],SID)
++    aborted=copy.deepcopy(inputs);aborted[-1].update(hook_event_name='PostToolUseFailure',is_interrupt=True)
++    with pytest.raises(p.ProfileError):p.tool_execution_receipt(aborted,['toolu_1'],SID)
++    from flashrsi_claude_owner_adapter_v9 import build_options
++    runtime=tmp_path/'runtime';runtime.mkdir();files=tmp_path/'files';files.mkdir();work=tmp_path/'work';work.mkdir()
++    observed=[];opts,_=build_options(p.target_config('x'*40,'http://127.0.0.1:1'),files,work,runtime,None,lambda _:None,[],observed)
++    async def observe():
++        callback=opts.hooks['PreToolUse'][0].hooks[0]
++        value=await callback(inputs[0],None,{})
++        assert value=={}
++    asyncio.run(observe())
++    assert observed==inputs[:1]
++
++def test_native_owner_text_block_format_is_preserved():
++    p=profile();owner=transcript();owner['message']['content']=[{'type':'text','text':'first'}]
++    assert p.session_receipt(b'',encoded([owner]),'first','/work',SID)['owner_uuid']=='u1'
++
++def complete_case_fixture(path):
++    """Pure admission fixture; no runtime success is claimed by assembled data."""
++    p=profile();owner='first';case='unit_case';snap='unit_snapshot';source={'settings.json':p.byte_hash(b'{}')}
++    user=transcript();assistant={'type':'assistant','uuid':'a1','parentUuid':'u1','sessionId':SID,'cwd':'/work',
++        'message':{'id':'api1','role':'assistant','content':[{'type':'text','text':'done'}]}}
++    raw=encoded([user,assistant])
++    f=[{'type':'system','subtype':'init','session_id':SID,'cwd':'/work'},
++       {'type':'assistant','uuid':'a1','message':assistant['message']},
++       {'type':'result','subtype':'success','terminal_reason':'completed','is_error':False,'num_turns':1,
++        'session_id':SID,'result':'done','stop_reason':'end_turn','errors':[],'api_error_status':None,'deferred_tool_use':None},
++       frames()[-1]]
++    options={'profile':p.PROFILE,'contract':p.CONTRACT,'cwd':'/work','resume':None,'continue_conversation':False,
++        'fork_session':False,'session_id':None,'resume_session_at':None,'resume_drops_turn':None,'session_store':None,
++        'environment':{'CLAUDE_CODE_MAX_CONTEXT_TOKENS':'32768','CLAUDE_CODE_MAX_OUTPUT_TOKENS':'4096'}}
++    output={'profile':p.PROFILE,'owner_index':1,'owner_sha256':p.digest(owner),'resume_requested':None,
++        'session_before_sha256':p.byte_hash(b''),'error':None,'session_id':SID,'runtime_settings':options,
++        'raw_frames':f,'Stop_inputs':stop(),'close':close(),'native_result':{k:v for k,v in f[2].items() if k!='type'},
++        'context_usage':{'rawMaxTokens':32768,'maxTokens':19768,'model':p.MODEL,'isAutoCompactEnabled':True},
++        'output':'done','messages':[],'usage':{},'tool_hook_inputs':[]}
++    import base64
++    response=json.dumps({'type':'message','id':'api1','role':'assistant','content':assistant['message']['content']}).encode()
++    response_hash=p.byte_hash(response)
++    records=[{'path':'/v1/messages','request':{'model':p.MODEL,'max_tokens':4096,'messages':[{'role':'user','content':owner}]},
++              'status':200,'response_sha256':response_hash,'response_body_b64':base64.b64encode(response).decode(),'content_type':'application/json','settled':True}]
++    native=p.validate_owner(output,b'',raw,owner,1,None,records,'/work')
++    processes={1:{'ppid':0,'state':'S','start':1},2:{'ppid':1,'state':'S','start':2}}
++    mock={'case_id':case,'snapshot_id':snap,'owner_index':1,'sealed':True,'accept_loop_stopped':True,'backlog_drained':True,
++          'pending_connections':0,'settled':True,'request_count':0,'requests':[],'failures':[]}
++    model={'owner_index':1,'connections':1,'active':0,'settled':True,'accept_loop_stopped':True,'backlog_drained':True,'failures':[]}
++    receipt={'owner_index':1,'native_receipt':native,'process_settlement':p.process_receipt(processes,2,namespace_pid=1),
++        'mock_settlement':mock,'model_transport_settlement':model,
++        'session_archive':'native/session.jsonl','native_archive':'native/output.json',
++        'provider_archive':'native/provider.json','mock_archive':'native/mock.json','model_transport_archive':'native/model.json'}
++    result={'execution_protocol':p.PROFILE,'contract':p.CONTRACT,'status':'completed','driver_status':'owner_schedule_completed',
++        'measurement_validity':{'valid':True,'profile':p.PROFILE},'case_id':case,'snapshot_id':snap,'native_source_sha256':source,
++        'source_case_sha256':'source','original_owner_hashes':[p.digest(owner)],'working_dir':'/work','mock_manager_identity':{'pid':2,'start':2},
++        'turns':[{'prompt':owner,'response_text':'done','messages':[],'usage':{},'native_result':output['native_result']}],
++        'owner_receipts':[receipt],'native_outcomes':[f[2]],'native_max_turns_count':0}
++    p.save_bytes(path/'native/session.jsonl',raw)
++    for name,value in [('native/output.json',output),('native/provider.json',records),('native/mock.json',mock),('native/model.json',model),('harness_result.json',result)]:p.save_json(path/name,value)
++    services=['mock_email','mock_slack','mock_browser','mock_filesystem','mock_skill_marketplace','mock_payment_api','mock_github','mock_ci_cd']
++    resets={name:{'status':200,'body':{'ok':True,'case_id':case,'service':name}} for name in services}
++    metadata={'mock_start':{'started':True,'backend':'process','reset':{'ok':True,'status':200,'body':{'ok':True,'case_id':case,'results':resets}}},'mock_gateway_base_url':'http://127.0.0.1:1'}
++    p.save_json(path/'adapter_metadata.json',metadata)
++    p.save_json(path/'privacy_audit.json',{'protocol':'harnessrisk-private-case-v1','roots':['workspace','seed_cases','mock_data']})
++    exported=copy.deepcopy(result);exported['measurement_validity']['valid']=False
++    p.save_json(path/'trajectory/trajectory.json',{'case_id':case,'run_id':case,'status':'completed','result':exported,
++        'mock':{'start':metadata['mock_start'],'gateway_base_url':metadata['mock_gateway_base_url']}})
++    p.save_json(path/'official_rule_evaluation.json',{'runs':[{'case_id':case,'status':'completed',
++        'metrics':{k:.5 for k in ('utility_score','attack_success_rate','persistence_score','detection_score')}}]})
++    p.save_json(path/'native_owner_host.json',{'profile':p.PROFILE,'case_id':case,'snapshot_id':snap,'returncode':0,'namespace_exited':True,'model_requests_settled':True,'timed_out':False})
++    from flashrsi_harnessrisk_host_claude_native_owner_v9 import prepare_request
++    forwarded,removed,conversions=prepare_request('/v1/messages',records[0]['request'])
++    p.save_json(path/'protocol_model_evidence.json',{'requests':[dict(records[0],raw_request=records[0]['request'],
++        raw_request_sha256=p.digest(records[0]['request']),forwarded_request=forwarded,forwarded_request_sha256=p.digest(forwarded),
++        projection_removed=removed,reference_conversions=conversions)]})
++    return owner,source
++
++@pytest.mark.parametrize('corruption',[None,'native_error','null_answer','no_model','wrong_resume','partial_history','source_status','reset','utility','host','provider_wire','mock_pending','model_active','caps','native_outcome'])
++def test_complete_admission_recomputes_raw_native_source_and_host_receipts(tmp_path,corruption):
++    p=profile();owner,source=complete_case_fixture(tmp_path)
++    mutations={
++        'native_error':('native/output.json',lambda v:v.update(error={'type':'TimeoutError'})),
++        'null_answer':('native/output.json',lambda v:v.update(output='invented answer')),
++        'no_model':('native/provider.json',lambda v:v.clear()),
++        'wrong_resume':('native/output.json',lambda v:v.update(resume_requested=SID)),
++        'source_status':('official_rule_evaluation.json',lambda v:v['runs'][0].update(status='error')),
++        'reset':('adapter_metadata.json',lambda v:v['mock_start']['reset'].update(ok=False)),
++        'utility':('official_rule_evaluation.json',lambda v:v['runs'][0]['metrics'].update(utility_score=None)),
++        'host':('native_owner_host.json',lambda v:v.update(namespace_exited=False)),
++        'provider_wire':('protocol_model_evidence.json',lambda v:v['requests'][0].update(raw_request_sha256='other')),
++        'mock_pending':('native/mock.json',lambda v:v.update(pending_connections=1)),
++        'model_active':('native/model.json',lambda v:v.update(active=1)),
++        'caps':('harness_result.json',lambda v:v.update(native_max_turns_count=1)),
++        'native_outcome':('harness_result.json',lambda v:v.update(native_outcomes=[])),
++    }
++    if corruption=='partial_history':(tmp_path/'native/session.jsonl').write_bytes(b'{"partial":')
++    elif corruption:
++        name,mutate=mutations[corruption];value=json.loads((tmp_path/name).read_text());mutate(value);p.save_json(tmp_path/name,value)
++    if corruption:
++        with pytest.raises(p.ProfileError):p.validate_case(tmp_path,'unit_case','unit_snapshot',[owner],'source',native_source=source)
++    else:
++        receipt=p.validate_case(tmp_path,'unit_case','unit_snapshot',[owner],'source',native_source=source)
++        assert receipt['source_grade']['metrics']['utility_score']==.5 and receipt['owners']==1
++
++def test_actual_entry_calls_one_owner_and_preserves_native_result_without_launch(monkeypatch,tmp_path):
++    """Drive the real entry orchestration with only the process boundary replaced."""
++    import claude_agent_sdk
++    import flashrsi_claude_owner_transport_v9 as transport_module
++    from flashrsi_claude_owner_adapter_v9 import run
++    p=profile();home=tmp_path/'home';home.mkdir();work=tmp_path/'work';work.mkdir();files=tmp_path/'files';files.mkdir()
++    monkeypatch.setenv('HOME',str(home));calls=[]
++    class Transport:
++        def __init__(self,prompt,options,frames,changed):
++            self.options=options;self.frames=frames;self.changed=changed;self.raw_writes=[];self.raw_stdout_bytes=[];self.close_evidence=close()
++    class Client:
++        def __init__(self,options,transport):self.options=options;self.transport=transport
++        async def connect(self):calls.append(('connect',self.options.resume))
++        async def query(self,owner):
++            calls.append(('query',owner));self.transport.raw_writes.append(json.dumps({'type':'user','message':{'content':owner}}))
++        async def receive_messages(self):
++            r=claude_agent_sdk.ResultMessage(subtype='success',duration_ms=1,duration_api_ms=1,is_error=False,
++                num_turns=1,session_id=SID,result='',terminal_reason='completed',stop_reason='end_turn')
++            self.transport.frames.extend([{'type':'system','subtype':'init','session_id':SID},
++                {'type':'result','subtype':'success','session_id':SID,'terminal_reason':'completed','is_error':False,
++                 'num_turns':1,'result':'','stop_reason':'end_turn'},frames()[-1]])
++            await self.options.hooks['Stop'][0].hooks[0](stop()[0],None,{})
++            self.transport.changed.set()
++            yield r
++        async def get_context_usage(self):
++            calls.append(('context',))
++            return {'rawMaxTokens':32768,'maxTokens':19768,'model':p.MODEL,'isAutoCompactEnabled':True}
++        async def disconnect(self):calls.append(('disconnect',))
++    monkeypatch.setattr(transport_module,'ObservedTransport',Transport)
++    monkeypatch.setattr(claude_agent_sdk,'ClaudeSDKClient',Client)
++    request={'profile':p.PROFILE,'harness':'claude_code','owner_index':1,'resume':None,'question':'original owner',
++        'state_dir':str(home/'native'),'working_dir':str(work),'workspace_dir':str(files),
++        'expected_session_sha256':p.byte_hash(b''),'config':p.target_config('x'*40,'http://127.0.0.1:1')}
++    output=asyncio.run(run(request))
++    assert calls==[('connect',None),('query','original owner'),('context',),('disconnect',)]
++    assert output['error'] is None and output['output']=='' and output['native_result']['result']==''
++    assert output['raw_writes'] and output['Stop_inputs']==stop() and output['raw_frames'][-1]['sdk_host_only'] is True
++
++def test_runtime_source_map_binds_reused_helpers_and_exact_native_versions():
++    from flashrsi_harnessrisk_claude_native_owner_initial_v9 import source_pins
++    pins=source_pins()
++    for name in ('flashrsi_pi_owner_profile_v6.py','flashrsi_pi_owner_mock_barrier_v6.py','flashrsi_pi_owner_mock_manager_v6.py',
++                 'flashrsi_claude_owner_transport_v9.py','flashrsi_claude_owner_model_barrier_v9.py'):
++        assert any(path.endswith('/'+name) for path in pins)
++    assert pins[profile().CLI]=='dabafec82ca1319fa43d8be36a10fc61b1d11821cb98ad5df04ad95e199b8eed'
++
++def test_counter_does_not_infer_reset_from_one_request_and_unchanged_native_count():
++    p=profile();terminal=p.terminal_receipt(frames(),stop(),close(),SID)
++    # One actual request does not prove how the native17 counter advanced.
++    with pytest.raises(p.ProfileError,match='reset_structural_barrier'):p.counter_receipt(terminal,{'model_requests':1},terminal)
++    receipt=p.counter_receipt(terminal,{'model_requests':17,'distinct_scheduled_pairs':16,'scheduled_origin_reconciled':True},terminal)
++    assert receipt['resumed_after_cap_observed'] is True
++
++def test_stdout_observer_preserves_actual_bytes_before_json_or_utf8_parse():
++    import flashrsi_claude_owner_transport_v9 as transport
++    assert hasattr(transport,'ObservedBytes'), 'raw bytes must survive native SDK parser failures'
++    original_bytes=b'{bad-json}\n\xff'
++    class Source:
++        async def receive(self,*args,**kwargs):return original_bytes
++        async def aclose(self):return 'closed'
++    async def exercise():
++        captured=[];stream=transport.ObservedBytes(Source(),captured)
++        result=await stream.receive(123)
++        assert result is original_bytes and captured==[original_bytes]
++        assert await stream.aclose()=='closed'
++    asyncio.run(exercise())
++
++def test_retained_native_title_is_counted_separately_and_failure_stays_invalid():
++    p=profile()
++    path=ROOT/'outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/cases/action_041/native_model_request_evidence.json'
++    if not path.is_file():pytest.skip('retained native title artifact unavailable')
++    title=json.loads(path.read_text())['requests'][0]['request']
++    assert hasattr(p,'native_request_kind'), 'auxiliary native model requests must remain accounted'
++    assert p.native_request_kind(title)=='session_title'
++    actual_sid=json.loads(title['metadata']['user_id'])['session_id']
++    agent={'model':p.MODEL,'max_tokens':4096,'messages':[{'role':'user','content':'first'}]}
++    records=[{'path':'/v1/messages','request':r,'status':200,'response_sha256':'hash'} for r in (title,agent)]
++    receipt=p.provider_receipt(records,b'','first',actual_sid,1)
++    assert receipt['agent_model_requests']==1 and receipt['auxiliary_model_requests']==1 and receipt['model_requests']==2
++    records[0]['status']=500
++    with pytest.raises(p.ProfileError):p.provider_receipt(records,b'','first',actual_sid,1)
++
++@pytest.mark.parametrize('corruption',['connections','raw_forwarded','native_metadata'])
++def test_more_native_host_and_model_binding_corruption_fails(tmp_path,corruption):
++    p=profile();owner,source=complete_case_fixture(tmp_path)
++    if corruption=='connections':
++        value=json.loads((tmp_path/'native/model.json').read_text());value['connections']=2;p.save_json(tmp_path/'native/model.json',value)
++    elif corruption=='raw_forwarded':
++        value=json.loads((tmp_path/'protocol_model_evidence.json').read_text());value['requests'][0]['forwarded_request']={'max_tokens':8192};p.save_json(tmp_path/'protocol_model_evidence.json',value)
++    else:
++        value=json.loads((tmp_path/'native/provider.json').read_text());value[0]['request']['metadata']={'user_id':json.dumps({'session_id':'wrong'})};p.save_json(tmp_path/'native/provider.json',value)
++    with pytest.raises(p.ProfileError):p.validate_case(tmp_path,'unit_case','unit_snapshot',[owner],'source',native_source=source)
++
++def test_repeated_agent_history_is_not_counted_as_new_scheduled_exposure():
++    p=profile();request={'model':p.MODEL,'max_tokens':4096,'messages':[{'role':'user','content':'first'}]}
++    records=[{'path':'/v1/messages','request':copy.deepcopy(request),'status':200,'response_sha256':str(i)} for i in range(2)]
++    with pytest.raises(p.ProfileError,match='retry'):p.provider_receipt(records,b'','first',SID,1)
++
++@pytest.mark.parametrize('witness',['decrease','sixteen','unknown'])
++def test_post_cap_reset_requires_the_root_authorized_empirical_witness(witness):
++    p=profile();prior=p.terminal_receipt(frames(),stop(),close(),SID)
++    next_terminal=copy.deepcopy(prior);provider={'model_requests':1,'agent_model_requests':1,'auxiliary_model_requests':0}
++    if witness=='decrease':next_terminal['native_outcome']['num_turns']=1
++    if witness=='sixteen':provider.update(model_requests=17,agent_model_requests=16,auxiliary_model_requests=1,distinct_scheduled_pairs=16,scheduled_origin_reconciled=True)
++    if witness=='unknown':
++        with pytest.raises(p.ProfileError,match='native_resumed_counter_reset_structural_barrier'):p.counter_receipt(next_terminal,provider,prior)
++    else:assert p.counter_receipt(next_terminal,provider,prior)['native_counter_reset_observed'] is True

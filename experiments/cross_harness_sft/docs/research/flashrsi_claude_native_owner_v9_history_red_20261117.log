@@ -1,0 +1,15 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ test_history_receipt_requires_final_native_assistant_and_no_old_tool_replay __
+
+    def test_history_receipt_requires_final_native_assistant_and_no_old_tool_replay():
+        p=profile()
+>       assert hasattr(p,'history_frame_receipt'), 'native JSONL flush must match emitted message UUIDs/content'
+E       AssertionError: native JSONL flush must match emitted message UUIDs/content
+E       assert False
+E        +  where False = hasattr(<module 'flashrsi_claude_owner_profile_v9' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py'>, 'history_frame_receipt')
+
+tests/test_flashrsi_claude_native_owner_v9.py:336: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_history_receipt_requires_final_native_assistant_and_no_old_tool_replay
+1 failed, 56 deselected in 0.24s

@@ -1,0 +1,18 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__ test_retained_native_title_is_counted_separately_and_failure_stays_invalid __
+
+    def test_retained_native_title_is_counted_separately_and_failure_stays_invalid():
+        p=profile()
+        path=ROOT/'outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/cases/action_041/native_model_request_evidence.json'
+        if not path.is_file():pytest.skip('retained native title artifact unavailable')
+        title=json.loads(path.read_text())['requests'][0]['request']
+>       assert hasattr(p,'native_request_kind'), 'auxiliary native model requests must remain accounted'
+E       AssertionError: auxiliary native model requests must remain accounted
+E       assert False
+E        +  where False = hasattr(<module 'flashrsi_claude_owner_profile_v9' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py'>, 'native_request_kind')
+
+tests/test_flashrsi_claude_native_owner_v9.py:532: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_retained_native_title_is_counted_separately_and_failure_stays_invalid
+1 failed, 78 deselected in 1.58s

@@ -1,0 +1,13 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ test_counter_cannot_approve_max_turn_cap_after_only_one_actual_request ____
+
+    def test_counter_cannot_approve_max_turn_cap_after_only_one_actual_request():
+        p=profile();terminal=p.terminal_receipt(frames(),stop(),close(),SID)
+>       with pytest.raises(p.ProfileError):p.counter_receipt(terminal,{'model_requests':1})
+E       Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_claude_native_owner_v9.py:509: Failed
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_counter_cannot_approve_max_turn_cap_after_only_one_actual_request
+1 failed, 76 deselected in 0.45s

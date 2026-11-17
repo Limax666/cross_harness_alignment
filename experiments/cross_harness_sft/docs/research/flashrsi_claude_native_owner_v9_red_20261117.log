@@ -1,0 +1,15 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________ test_new_profile_surface_exists ________________________
+
+    def test_new_profile_surface_exists():
+>       assert (ROOT / 'scripts/flashrsi_claude_owner_profile_v9.py').is_file(), 'new Claude profile is missing'
+E       AssertionError: new Claude profile is missing
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = (PosixPath('/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft') / 'scripts/flashrsi_claude_owner_profile_v9.py').is_file
+
+tests/test_flashrsi_claude_native_owner_v9.py:16: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_new_profile_surface_exists
+1 failed, 33 deselected in 0.11s

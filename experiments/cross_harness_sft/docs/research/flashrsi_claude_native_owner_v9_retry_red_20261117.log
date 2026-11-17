@@ -1,0 +1,14 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_repeated_agent_history_is_not_counted_as_new_scheduled_exposure _____
+
+    def test_repeated_agent_history_is_not_counted_as_new_scheduled_exposure():
+        p=profile();request={'model':p.MODEL,'max_tokens':4096,'messages':[{'role':'user','content':'first'}]}
+        records=[{'path':'/v1/messages','request':copy.deepcopy(request),'status':200,'response_sha256':str(i)} for i in range(2)]
+>       with pytest.raises(p.ProfileError,match='retry'):p.provider_receipt(records,b'','first',SID,1)
+E       Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_claude_native_owner_v9.py:563: Failed
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_repeated_agent_history_is_not_counted_as_new_scheduled_exposure
+1 failed, 85 deselected in 9.21s

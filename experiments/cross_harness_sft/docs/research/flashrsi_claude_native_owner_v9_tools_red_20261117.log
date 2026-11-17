@@ -1,0 +1,67 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+___ test_original_tool_callbacks_close_actual_ids_without_permission_changes ___
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-320/test_original_tool_callbacks_c0')
+
+    def test_original_tool_callbacks_close_actual_ids_without_permission_changes(tmp_path):
+        p=profile()
+>       assert hasattr(p,'tool_execution_receipt'), 'tool execution must have actual native callback evidence'
+E       AssertionError: tool execution must have actual native callback evidence
+E       assert False
+E        +  where False = hasattr(<module 'flashrsi_claude_owner_profile_v9' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py'>, 'tool_execution_receipt')
+
+tests/test_flashrsi_claude_native_owner_v9.py:360: AssertionError
+_______________ test_native_owner_text_block_format_is_preserved _______________
+
+    def test_native_owner_text_block_format_is_preserved():
+        p=profile();owner=transcript();owner['message']['content']=[{'type':'text','text':'first'}]
+>       assert p.session_receipt(b'',encoded([owner]),'first','/work',SID)['owner_uuid']=='u1'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_claude_native_owner_v9.py:380: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+before = b''
+after = b'{"type": "user", "uuid": "u1", "parentUuid": null, "sessionId": "5600a401-b77e-4b3d-b82f-79ecfe37f623", "cwd": "/work", "message": {"role": "user", "content": [{"type": "text", "text": "first"}]}}\n'
+owner = 'first', cwd = '/work'
+expected_id = '5600a401-b77e-4b3d-b82f-79ecfe37f623'
+
+    def session_receipt(before, after, owner, cwd, expected_id):
+        valid_uuid(expected_id)
+        if not after.startswith(before): raise ProfileError('native_session_prefix_mutated')
+        rows = session_rows(after)
+        old_count = len(session_rows(before)) if before else 0
+        previous, identities, calls, results = None, set(), [], []
+        for row in rows:
+            if row.get('subtype') == 'compact_boundary' or row.get('isCompactSummary'):
+                # This CLI's provider-compaction/branch reconstruction is compiled.
+                # No inferred summary receipt can certify what history was retained.
+                raise ProfileError('native_compaction_projection_structural_barrier_requires_original_receipt')
+            if row.get('type') not in {'user','assistant','progress','system','attachment'}:
+                continue  # Preserve raw metadata/header bytes; not conversation links.
+            if row.get('sessionId') != expected_id or row.get('cwd') != cwd or row.get('isSidechain'):
+                raise ProfileError('native_session_identity_cwd_or_sidechain_changed')
+            identity = row.get('uuid')
+            if not identity or identity in identities or row.get('parentUuid') not in identities | {None}:
+                raise ProfileError('native_session_duplicate_or_dangling_parent')
+            if previous is not None and row.get('parentUuid') is None:
+                raise ProfileError('native_session_unexplained_new_root')
+            identities.add(identity); previous = identity
+            content = row.get('message', {}).get('content', [])
+            for block in content if isinstance(content, list) else []:
+                if block.get('type') == 'tool_use': calls.append(block.get('id'))
+                if block.get('type') == 'tool_result': results.append(block.get('tool_use_id'))
+        if (None in calls or None in results or len(calls)!=len(set(calls)) or len(results)!=len(set(results)) or set(calls)!=set(results)):
+            raise ProfileError('native_session_pending_or_duplicate_tool_result')
+        new_owners = [r for r in rows[old_count:] if r.get('type') == 'user' and not r.get('isMeta')
+                      and isinstance(r.get('message', {}).get('content'), str)]
+        if len(new_owners) != 1 or new_owners[0]['message']['content'] != owner:
+>           raise ProfileError('next_original_owner_not_appended_exactly_once')
+E           flashrsi_pi_owner_profile_v6.ProfileError: next_original_owner_not_appended_exactly_once
+
+scripts/flashrsi_claude_owner_profile_v9.py:188: ProfileError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_original_tool_callbacks_close_actual_ids_without_permission_changes
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_native_owner_text_block_format_is_preserved
+2 failed, 57 deselected in 0.27s
