@@ -1,0 +1,503 @@
+diff --git a/experiments/cross_harness_sft/scripts/publish_hsrl_v6_parallel.py b/experiments/cross_harness_sft/scripts/publish_hsrl_v6_parallel.py
+new file mode 100644
+index 0000000..cdb6ea4
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/publish_hsrl_v6_parallel.py
+@@ -0,0 +1,247 @@
++"""CPU/filesystem-only publication; original release gates, bounded parallel I/O.
++
++The candidate must remain private and immutable throughout publication. This
++operational helper is deliberately outside the frozen release runtime.
++"""
++from concurrent.futures import ThreadPoolExecutor
++import argparse
++import json
++import os
++from pathlib import Path
++import shutil
++import stat
++import subprocess
++import sys
++import tempfile
++import threading
++
++from hsrl_v5 import release as original
++from hsrl_v5.dataset import Dataset
++
++
++def parallel_each(function, values, workers):
++    """Bound queued work; executor shutdown joins all workers after any error."""
++    if not 1 <= workers <= 8:
++        raise ValueError('workers_must_be_1_to_8')
++    iterator, lock, stopped = iter(values), threading.Lock(), threading.Event()
++    def consume():
++        results = []
++        while not stopped.is_set():
++            with lock:
++                value = next(iterator, None)
++            if value is None:
++                break
++            try:
++                results.append(function(value))
++            except BaseException:
++                stopped.set()
++                raise
++        return results
++    with ThreadPoolExecutor(max_workers=workers) as executor:
++        futures = [executor.submit(consume) for _ in range(workers)]
++        return [value for future in futures for value in future.result()]
++
++
++def _identity(info):
++    return (info.st_dev, info.st_ino, info.st_mode, info.st_size,
++            info.st_mtime_ns, info.st_ctime_ns)
++
++
++def _scan(source, target, workers):
++    """Partition at depth three; anchor every open to no-follow directory fds."""
++    source = Path(source)
++    root = os.open(source, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++    jobs, parents = [], []
++    def open_directory(parts):
++        descriptor = os.dup(root)
++        try:
++            for part in parts:
++                child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
++                                dir_fd=descriptor)
++                os.close(descriptor)
++                descriptor = child
++            return descriptor
++        except BaseException:
++            os.close(descriptor)
++            raise
++    def unchanged(descriptor, before):
++        if _identity(os.fstat(descriptor)) != _identity(before):
++            raise ValueError('source_changed_during_copy_or_inventory')
++    def metadata(descriptor, parts):
++        if target is not None:
++            destination = os.open(target.joinpath(*parts), os.O_RDONLY | os.O_DIRECTORY)
++            try:
++                shutil.copystat(descriptor, destination)
++            finally:
++                os.close(destination)
++    def visit(parts):
++        parent = open_directory(parts[:-1])
++        try:
++            descriptor = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
++                                 dir_fd=parent)
++        finally:
++            os.close(parent)
++        try:
++            before = os.fstat(descriptor)
++            if stat.S_ISDIR(before.st_mode):
++                if target is not None:
++                    target.joinpath(*parts).mkdir()
++                files = set()
++                with os.scandir(descriptor) as entries:
++                    for entry in entries:
++                        files.update(visit(parts + (entry.name,)))
++                unchanged(descriptor, before)
++                metadata(descriptor, parts)
++                return files
++            if not stat.S_ISREG(before.st_mode):
++                raise ValueError('source_special_file_rejected')
++            if target is not None:
++                with os.fdopen(os.dup(descriptor), 'rb') as reader:
++                    with target.joinpath(*parts).open('xb') as writer:
++                        shutil.copyfileobj(reader, writer)
++                        writer.flush()
++                        shutil.copystat(descriptor, writer.fileno())
++            unchanged(descriptor, before)
++            return {'/'.join(parts)}
++        finally:
++            os.close(descriptor)
++    def partition(parts):
++        descriptor = open_directory(parts)
++        try:
++            before = os.fstat(descriptor)
++            parents.append((parts, before))
++            with os.scandir(descriptor) as entries:
++                for entry in entries:
++                    child = parts + (entry.name,)
++                    info = entry.stat(follow_symlinks=False)
++                    if stat.S_ISDIR(info.st_mode) and len(child) < 3:
++                        if target is not None:
++                            target.joinpath(*child).mkdir()
++                        partition(child)
++                    elif stat.S_ISDIR(info.st_mode) or stat.S_ISREG(info.st_mode):
++                        jobs.append(child)
++                    else:
++                        raise ValueError('source_symlink_or_special_file_rejected')
++            unchanged(descriptor, before)
++        finally:
++            os.close(descriptor)
++    try:
++        if target is not None:
++            target.mkdir(mode=0o700)
++        partition(())
++        files = set().union(*parallel_each(visit, jobs, workers))
++        for parts, before in reversed(parents):
++            descriptor = open_directory(parts)
++            try:
++                unchanged(descriptor, before)
++                metadata(descriptor, parts)
++            finally:
++                os.close(descriptor)
++        return files
++    finally:
++        os.close(root)
++
++
++def copy_parallel(source, target, workers):
++    return _scan(Path(source), Path(target), workers)
++
++
++def check_closure(root, expected, workers):
++    if _scan(Path(root), None, workers) != set(expected):
++        raise ValueError('release_file_inventory_differs_from_manifest')
++
++
++def verify_files(dataset, workers):
++    # No verification cache: invoke the original method for EVERY declared file.
++    return len(parallel_each(dataset.verify_file, dataset.files, workers))
++
++
++def read_source_manifest(candidate):
++    directory = os.open(candidate, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++    try:
++        descriptor = os.open('manifest.json', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
++                             dir_fd=directory)
++        with os.fdopen(descriptor) as stream:
++            if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
++                raise ValueError('source_manifest_requires_regular_file')
++            return json.load(stream)
++    finally:
++        os.close(directory)
++
++
++def audit_candidate(root, workers):
++    dataset = Dataset.for_verification(root)
++    verify_files(dataset, workers)
++    visited = []
++    for block in range(875):
++        first, second = dataset.sampler.step(block * 2), dataset.sampler.step(block * 2 + 1)
++        if first['groups'] != second['groups'] or first['configuration'] == second['configuration']:
++            raise ValueError('K2_schedule_identity_failed')
++        visited.extend((g['source'], g['id']) for g in first['groups'])
++    if len(visited) != len(set(visited)) or set(visited) != set(dataset.index):
++        raise ValueError('full_875_block_sampler_coverage_failed')
++    def public(key):
++        if set(dataset.public(key)) != {'messages', 'tools'}:
++            raise ValueError('private_fields_in_public_render')
++    parallel_each(public, dataset.index, workers)
++
++
++def publish(candidate, out, context_audit, runtime_audit, workers=8):
++    out = Path(out).absolute()
++    if out.exists() or out.is_symlink():
++        raise FileExistsError('publish_destination_exists:' + str(out))
++    if not 1 <= workers <= 8:
++        raise ValueError('workers_must_be_1_to_8')
++    candidate = Path(candidate).absolute()
++    if candidate.is_symlink():
++        raise ValueError('source_symlink_rejected')
++    manifest = read_source_manifest(candidate)
++    if manifest.get('status') != 'candidate' or (candidate / 'READY.json').exists():
++        raise ValueError('publish_requires_unpublished_candidate')
++    original.require_admission(manifest['admission_report'])
++    # Reject FIFOs/devices/links before the original loader opens any asset.
++    check_closure(candidate, set(manifest['file_sha256']) | {'manifest.json'}, workers)
++    source = Dataset.for_verification(candidate)
++    verify_files(source, workers)
++    out.parent.mkdir(parents=True, exist_ok=True)
++    private = Path(tempfile.mkdtemp(prefix='.' + out.name + '.publication-', dir=out.parent))
++    os.chmod(private, 0o700)
++    stage = private / 'artifact'
++    # Failures retain this private directory; executor closure precedes propagation.
++    copied = copy_parallel(candidate, stage, workers)
++    if copied != set(source.files) | {'manifest.json'}:
++        raise ValueError('release_file_inventory_differs_from_manifest')
++    if original.file_hash(candidate / 'manifest.json') != original.file_hash(stage / 'manifest.json'):
++        raise ValueError('source_manifest_changed_during_copy')
++    audit_candidate(stage, workers)
++    manifest = original.read_json(stage / 'manifest.json')
++    for kind, path in (('context', context_audit), ('runtime', runtime_audit)):
++        target = stage / 'audits' / (kind + '.json')
++        target.parent.mkdir(exist_ok=True)
++        shutil.copyfile(path, target)
++        manifest['file_sha256']['audits/' + kind + '.json'] = original.file_hash(target)
++    original.validate_certificates(stage, manifest)
++    manifest['status'] = 'ready'
++    original.atomic_json(stage / 'manifest.json', manifest)
++    original.atomic_json(stage / 'READY.json', {'manifest_sha256': original.file_hash(stage / 'manifest.json')})
++    check_closure(stage, set(manifest['file_sha256']) | {'manifest.json', 'READY.json'}, workers)
++    env = dict(os.environ, PYTHONPATH=str(stage / 'code'), PYTHONDONTWRITEBYTECODE='1')
++    subprocess.run([sys.executable, '-B', '-c',
++                    'from hsrl_v5.dataset import Dataset; import sys; d=Dataset(sys.argv[1]); assert len(d.index)==14000', str(stage)],
++                   cwd=stage, env=env, check=True, capture_output=True, text=True)
++    original.install_no_replace(stage, out)
++    private.rmdir()
++    return {'status': 'ready', 'root': str(out), 'manifest_sha256': original.file_hash(out / 'manifest.json')}
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    for name in ('candidate', 'out', 'context-audit', 'runtime-audit'):
++        parser.add_argument('--' + name, type=Path, required=True)
++    parser.add_argument('--workers', type=int, choices=range(1, 9), default=8)
++    args = parser.parse_args(argv)
++    print(original.canonical(publish(args.candidate, args.out, args.context_audit, args.runtime_audit, args.workers)))
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/experiments/cross_harness_sft/tests/test_hsrl_v6_parallel_publisher.py b/experiments/cross_harness_sft/tests/test_hsrl_v6_parallel_publisher.py
+new file mode 100644
+index 0000000..ee7a1c2
+--- /dev/null
++++ b/experiments/cross_harness_sft/tests/test_hsrl_v6_parallel_publisher.py
+@@ -0,0 +1,244 @@
++"""Filesystem-only operational publisher tests; never construct a READY release."""
++import importlib.util
++import os
++from pathlib import Path
++import stat
++import subprocess
++import sys
++import threading
++
++import pytest
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
++
++
++def publisher():
++    import publish_hsrl_v6_parallel
++    return publish_hsrl_v6_parallel
++
++
++def test_standalone_publisher_exists():
++    assert importlib.util.find_spec('publish_hsrl_v6_parallel'), 'standalone publisher missing'
++
++
++def fixture_tree(root):
++    root.mkdir()
++    for number in range(24):
++        path = root / 'private' / str(number) / 'quality' / 'bytes'
++        path.parent.mkdir(parents=True)
++        path.write_bytes(bytes([number]) * 300)
++        path.chmod(0o640)
++        os.utime(path, ns=(1234567890000000000, 1234567890000000000))
++    (root / 'empty').mkdir()
++    return root
++
++
++def test_parallel_copy_preserves_all_bytes_metadata_empty_dirs_and_closure(tmp_path):
++    p = publisher()
++    source = fixture_tree(tmp_path / 'source')
++    os.setxattr(source / 'private/0/quality/bytes', 'user.publisher_test', b'provenance')
++    target = tmp_path / 'copy'
++    files = p.copy_parallel(source, target, 8)
++    assert len(files) == 24
++    assert (target / 'empty').is_dir()
++    assert os.getxattr(target / 'private/0/quality/bytes', 'user.publisher_test') == b'provenance'
++    for name in files:
++        left, right = source / name, target / name
++        assert left.read_bytes() == right.read_bytes()
++        assert left.stat().st_ino != right.stat().st_ino
++        assert stat.S_IMODE(left.stat().st_mode) == stat.S_IMODE(right.stat().st_mode)
++        assert left.stat().st_mtime_ns == right.stat().st_mtime_ns
++    p.check_closure(target, files, 8)
++    (target / 'unexpected.py').write_text('raise RuntimeError()')
++    with pytest.raises(ValueError, match='inventory'):
++        p.check_closure(target, files, 8)
++
++
++@pytest.mark.parametrize('kind', ['symlink', 'fifo', 'directory_link'])
++def test_copy_rejects_links_and_special_files_without_following(tmp_path, kind):
++    p = publisher()
++    source = fixture_tree(tmp_path / 'source')
++    outside = tmp_path / 'outside'
++    outside.mkdir()
++    (outside / 'secret').write_text('private')
++    bad = source / 'private' / '0' / 'quality' / 'bad'
++    if kind == 'fifo':
++        os.mkfifo(bad)
++    else:
++        bad.symlink_to(outside if kind == 'directory_link' else outside / 'secret')
++    with pytest.raises((ValueError, OSError)):
++        p.copy_parallel(source, tmp_path / 'copy', 8)
++    assert (outside / 'secret').read_text() == 'private'
++
++
++def test_worker_error_waits_for_other_workers_to_close(tmp_path):
++    p = publisher()
++    started, release, finished = threading.Event(), threading.Event(), threading.Event()
++    def work(number):
++        if number == 0:
++            started.set()
++            release.wait(2)
++            (tmp_path / 'closed').write_text('closed')
++            finished.set()
++        else:
++            assert started.wait(2)
++            release.set()
++            raise ValueError('worker_failure')
++    with pytest.raises(ValueError, match='worker_failure'):
++        p.parallel_each(work, range(2), 2)
++    assert finished.is_set()
++    assert (tmp_path / 'closed').read_text() == 'closed'
++
++
++def test_bounded_parallel_work_accounts_for_every_input():
++    p = publisher()
++    barrier, lock = threading.Barrier(8), threading.Lock()
++    active = peak = 0
++    def work(number):
++        nonlocal active, peak
++        with lock:
++            active += 1
++            peak = max(peak, active)
++        if number < 8:
++            barrier.wait(timeout=2)
++        with lock:
++            active -= 1
++        return number
++    assert sorted(p.parallel_each(work, range(100), 8)) == list(range(100))
++    assert peak == 8
++
++
++def test_copy_detects_source_change_during_real_read(tmp_path, monkeypatch):
++    p = publisher()
++    source = fixture_tree(tmp_path / 'source')
++    original = p.shutil.copyfileobj
++    def copy_and_change(reader, writer, *args):
++        original(reader, writer, *args)
++        os.utime(reader.fileno(), ns=(1, 1))
++    monkeypatch.setattr(p.shutil, 'copyfileobj', copy_and_change)
++    with pytest.raises(ValueError, match='source_changed'):
++        p.copy_parallel(source, tmp_path / 'copy', 8)
++
++
++def test_copy_failure_retains_private_stage_and_unchanged_source(tmp_path):
++    p = publisher()
++    source = fixture_tree(tmp_path / 'source')
++    os.mkfifo(source / 'private/0/quality/failure')
++    private = tmp_path / '.private-publication'
++    private.mkdir(mode=0o700)
++    with pytest.raises(ValueError, match='special'):
++        p.copy_parallel(source, private / 'artifact', 8)
++    assert stat.S_IMODE(private.stat().st_mode) == 0o700
++    assert (private / 'artifact').is_dir()
++    assert stat.S_ISFIFO((source / 'private/0/quality/failure').stat().st_mode)
++    assert not (source / 'READY.json').exists()
++    assert not (private / 'artifact/READY.json').exists()
++
++
++def test_parallel_copy_rejects_root_symlink_and_existing_target(tmp_path):
++    p = publisher()
++    source = fixture_tree(tmp_path / 'source')
++    link = tmp_path / 'link'
++    link.symlink_to(source)
++    with pytest.raises(OSError):
++        p.copy_parallel(link, tmp_path / 'copy', 8)
++    target = tmp_path / 'target'
++    target.mkdir()
++    with pytest.raises(FileExistsError):
++        p.copy_parallel(source, target, 8)
++    assert not list(target.iterdir())
++
++
++def test_closure_rejects_missing_file_and_deep_symlink(tmp_path):
++    p = publisher()
++    source = fixture_tree(tmp_path / 'source')
++    names = {path.relative_to(source).as_posix() for path in source.rglob('*') if path.is_file()}
++    victim = source / next(iter(names))
++    victim.unlink()
++    with pytest.raises(ValueError, match='inventory'):
++        p.check_closure(source, names, 8)
++    victim.symlink_to(tmp_path / 'missing')
++    with pytest.raises((OSError, ValueError)):
++        p.check_closure(source, names, 8)
++
++
++def test_original_dataset_hash_checks_visit_every_file_and_reject_corruption(tmp_path):
++    from hsrl_v5.dataset import Dataset
++    from hsrl_v5.io import file_hash
++    p = publisher()
++    source = fixture_tree(tmp_path / 'source')
++    view = Dataset.__new__(Dataset)
++    view.root = source
++    view.files = {path.relative_to(source).as_posix(): file_hash(path)
++                  for path in source.rglob('*') if path.is_file()}
++    assert p.verify_files(view, 8) == len(view.files) == 24
++    for name in view.files:
++        path = source / name
++        original = path.read_bytes()
++        path.write_bytes(b'corrupt')
++        with pytest.raises(ValueError, match='identity_changed'):
++            p.verify_files(view, 8)
++        path.write_bytes(original)
++
++
++@pytest.mark.parametrize('kind', ['empty', 'symlink'])
++def test_existing_output_refused_before_candidate_read(tmp_path, kind):
++    p = publisher()
++    out = tmp_path / 'out'
++    if kind == 'empty':
++        out.mkdir()
++    else:
++        out.symlink_to(tmp_path / 'absent')
++    with pytest.raises(FileExistsError):
++        p.publish(tmp_path / 'missing_candidate', out, tmp_path / 'context', tmp_path / 'runtime', 8)
++    assert out.is_symlink() if kind == 'symlink' else out.is_dir()
++
++
++def test_original_atomic_install_refuses_existing_empty_directory(tmp_path):
++    from hsrl_v5.release import install_no_replace
++    source, target = tmp_path / 'source', tmp_path / 'target'
++    source.mkdir()
++    target.mkdir()
++    (source / 'evidence').write_text('retained')
++    with pytest.raises(FileExistsError):
++        install_no_replace(source, target)
++    assert (source / 'evidence').read_text() == 'retained'
++    assert not list(target.iterdir())
++
++
++def test_worker_bound_rejected():
++    p = publisher()
++    for count in (0, 9):
++        with pytest.raises(ValueError, match='workers'):
++            p.parallel_each(lambda x: x, [], count)
++
++
++@pytest.mark.parametrize('kind', ['symlink', 'fifo'])
++def test_manifest_rejects_unsafe_type_before_read(tmp_path, kind):
++    p = publisher()
++    candidate = tmp_path / 'candidate'
++    candidate.mkdir()
++    path = candidate / 'manifest.json'
++    if kind == 'fifo':
++        os.mkfifo(path)
++    else:
++        path.symlink_to(tmp_path / 'absent')
++    with pytest.raises((ValueError, OSError)):
++        p.publish(candidate, tmp_path / 'out', tmp_path / 'context', tmp_path / 'runtime')
++    assert not (tmp_path / 'out').exists()
++
++
++def test_real_cli_refuses_existing_output_and_has_no_side_effects(tmp_path):
++    out = tmp_path / 'out'
++    out.mkdir()
++    evidence = out / 'evidence'
++    evidence.write_text('preserved')
++    script = Path(__file__).resolve().parents[1] / 'scripts/publish_hsrl_v6_parallel.py'
++    result = subprocess.run([sys.executable, '-B', str(script), '--candidate', str(tmp_path / 'missing'),
++                             '--out', str(out), '--context-audit', str(tmp_path / 'context'),
++                             '--runtime-audit', str(tmp_path / 'runtime')],
++                            capture_output=True, text=True, timeout=10)
++    assert result.returncode != 0
++    assert 'publish_destination_exists' in result.stderr
++    assert evidence.read_text() == 'preserved'
++    assert sorted(path.name for path in tmp_path.iterdir()) == ['out']

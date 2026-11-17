@@ -1,0 +1,16 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--exit-code",
+    "--",
+    "experiments/cross_harness_sft/scripts/hsrl_v5",
+    "experiments/cross_harness_sft/scripts/hsrl_v3",
+    "experiments/cross_harness_sft/scripts/audit_hsrl_v6_final.py",
+    "experiments/cross_harness_sft/scripts/train_hsrl_v6.py"
+  ],
+  "cwd": "/data/home/liumingxiao/hsrl_v3_worktree_20261116",
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": ""
+}
