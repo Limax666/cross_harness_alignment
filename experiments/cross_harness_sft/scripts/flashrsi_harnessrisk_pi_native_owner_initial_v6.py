@@ -20,7 +20,7 @@ HOST = 'flashrsi_harnessrisk_host_pi_native_owner_v6.py'
 def source_pins():
     paths = list((ROOT / 'scripts').glob('flashrsi*pi*owner*v6.py'))
     paths += [ROOT / 'scripts' / name for name in (
-        'flashrsi_harnessrisk_sandbox.py', 'flashrsi_harnessrisk_privacy.py', 'flashrsi_gateway.py',
+        'flashrsi_owned_lifetime_v1.py', 'flashrsi_harnessrisk_sandbox.py', 'flashrsi_harnessrisk_privacy.py', 'flashrsi_gateway.py',
         'flashrsi_model_relay.py', 'flashrsi_landlock.py', 'flashrsi_native_seccomp.py',
         'flashrsi_native_sandbox_exec.py', 'flashrsi_harnessrisk_benchmark.py', 'flashrsi_harnessrisk_algorithm.py')]
     paths += [ROOT / 'vendor/FlashRSI/flashrsi' / name for name in (

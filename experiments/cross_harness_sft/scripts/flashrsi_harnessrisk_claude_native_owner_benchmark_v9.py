@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import sys
 import time
+from flashrsi_owned_lifetime_v1 import wait_host, await_cleanup, spawn_host
 
 from flashrsi.core import Trajectory
 from flashrsi_harnessrisk_benchmark import HarnessRiskBenchmark as OriginalBenchmark, ROOT, DATA
@@ -37,15 +38,9 @@ class HarnessRiskBenchmark(OriginalBenchmark):
         started, process = time.monotonic(), None
         try:
             with (folder / 'host.stdout.log').open('wb') as out, (folder / 'host.stderr.log').open('wb') as err:
-                process = await asyncio.create_subprocess_exec(*command, cwd=ROOT, stdout=out, stderr=err)
+                process = await spawn_host(*command,receipt=cases / '.lifetime' / (task.task_id+'.json'),proof=proof,cwd=ROOT,stdout=out,stderr=err)
                 proof['pid'] = process.pid
-                try:
-                    await asyncio.wait_for(process.wait(), timeout=2460)
-                except TimeoutError:
-                    process.kill()
-                    await process.wait()
-                    proof.update(timed_out=True, cleanup_confirmed=False)
-                    raise ProfileError('host_cleanup_uncertain_stop_future_rollouts')
+                await wait_host(process,cases / '.lifetime' / (task.task_id+'.json'),timeout=2460,proof=proof)
             proof['returncode'] = process.returncode
             host_receipt = cases / task.task_id / 'native_owner_host.json'
             host = json.loads(host_receipt.read_text()) if host_receipt.is_file() else {}
@@ -76,8 +71,20 @@ class HarnessRiskBenchmark(OriginalBenchmark):
                 raise
             return Trajectory(status='error', error_message=str(exc))
         finally:
+            if process is not None and process.returncode is None:
+                proof['cleanup_confirmed']=False
+                process.kill()
+                await process.wait()
+                cleanup=asyncio.create_task(asyncio.to_thread(await_cleanup,cases / '.lifetime' / (task.task_id+'.json'),process.pid,timeout=30))
+                while not cleanup.done():
+                    try:await asyncio.shield(cleanup)
+                    except asyncio.CancelledError:pass
+                try:proof.update(lifetime_cleanup=cleanup.result(),cleanup_confirmed=True)
+                except Exception as exc:proof.update(cleanup_confirmed=False,lifetime_cleanup_error=str(exc))
             proof['elapsed_seconds'] = time.monotonic() - started
             save_json(folder / 'host_execution.json', proof)
+            if proof.get('cleanup_confirmed') is False:
+                raise ProfileError('host_cleanup_unconfirmed_stop_future_rollouts')
 
     def grade(self, trajectories):
         # Original grade produces zeros for invalid trajectories when its flag

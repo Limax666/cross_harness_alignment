@@ -11,7 +11,7 @@ from dataclasses import fields, is_dataclass
 from contextlib import aclosing
 
 from flashrsi_claude_owner_profile_v9 import (PROFILE, CONTRACT, ProfileError, valid_uuid,
-    byte_hash, digest, target_config, terminal_receipt, context_receipt, locate_session)
+    byte_hash, digest, target_config, terminal_receipt, context_receipt, locate_session, validate_candidate_policy)
 
 
 def plain(value):
@@ -42,11 +42,7 @@ def build_options(config, files_dir, task_dir, runtime, resume, stderr, stops, t
     settings=_settings(files_dir/'settings.json')
     settings_bytes=(files_dir/'settings.json').read_bytes() if settings else b''
     settings_value=json.loads(settings_bytes.decode('utf-8-sig')) if settings else {}
-    candidate_env=settings_value.get('env',{})
-    # Preserve candidate bytes; reject policy overrides rather than rewriting.
-    expected_context={'CLAUDE_CODE_MAX_CONTEXT_TOKENS':'32768'}
-    if any(k.upper() in expected_context and v!=expected_context[k.upper()] for k,v in candidate_env.items()):
-        raise ProfileError('candidate_effective_context_metadata_mismatch')
+    validate_candidate_policy(settings_value)
     system_prompt={'type':'preset','preset':'claude_code'}
     if instructions.strip():system_prompt['append']=instructions
     async def observe_stop(value, _tool_use_id, _context):
@@ -109,6 +105,10 @@ async def run(request):
     async def unused_prompt():
         if False:yield {}
     transport=ObservedTransport(prompt=unused_prompt(),options=options,frames=frames,changed=changed)
+    from flashrsi_claude_owner_identity_v9 import request_identity
+    async def observe_identity(pid):
+        return await request_identity(pid,request['identity_request'],request['identity_response'],home,request['identity_binding'])
+    transport.identity_observer=observe_identity
     client=ClaudeSDKClient(options=options,transport=transport)
     context=None;result=None;error=None
     try:
@@ -154,7 +154,7 @@ async def run(request):
     answer=(result.result or '') if result is not None else ''
     sid=result.session_id if result is not None else next((f.get('session_id') for f in frames if f.get('subtype')=='init'),resume)
     return {'profile':PROFILE,'owner_index':index,'owner_sha256':digest(request['question']),
-        'session_before_sha256':byte_hash(before),'resume_requested':resume,'session_id':sid,
+        'identity_binding':request.get('identity_binding'),'session_before_sha256':byte_hash(before),'resume_requested':resume,'session_id':sid,
         'raw_stdout_b64':[base64.b64encode(b).decode() for b in transport.raw_stdout_bytes],
         'raw_frames':frames,'raw_writes':transport.raw_writes,'Stop_inputs':stops,'tool_hook_inputs':tool_inputs,'close':transport.close_evidence,
         'context_usage':context,'runtime_settings':settings,'native_result':raw_result,

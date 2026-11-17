@@ -1,0 +1,15 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________ test_shared_guard_surface_exists _______________________
+
+    def test_shared_guard_surface_exists():
+>       assert (ROOT/'scripts/flashrsi_owned_lifetime_v1.py').is_file(), 'host-to-owned-launcher lease guard missing'
+E       AssertionError: host-to-owned-launcher lease guard missing
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = (PosixPath('/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft') / 'scripts/flashrsi_owned_lifetime_v1.py').is_file
+
+tests/test_flashrsi_owned_lifetime_v1.py:26: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_owned_lifetime_v1.py::test_shared_guard_surface_exists
+1 failed, 5 deselected in 0.10s

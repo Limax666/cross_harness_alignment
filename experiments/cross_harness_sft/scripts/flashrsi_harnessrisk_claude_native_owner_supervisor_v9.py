@@ -18,6 +18,7 @@ from flashrsi_claude_owner_profile_v9 import (CONTRACT, PROFILE, ProfileError, b
     save_json, save_bytes, process_receipt, target_config, snapshot_source_map,
     locate_session, validate_owner, archive_native_tree)
 from flashrsi_claude_owner_model_barrier_v9 import ModelBarrier
+from flashrsi_claude_owner_identity_v9 import IdentityObserver
 from flashrsi_pi_owner_mock_barrier_v6 import MockBarrier
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -150,8 +151,12 @@ def main():
                     request = {'profile': PROFILE, 'harness': 'claude_code', 'question': owner, 'owner_index': index,
                         'workspace_dir': str(exported), 'working_dir': str(work), 'state_dir': str(state_dir), 'resume': session_id,
                         'expected_session_sha256': byte_hash(before),
+                        'identity_binding':{'case_id':case,'snapshot_id':snapshot.id,'owner_index':index,'nonce':secrets.token_hex(32)},
+                        'identity_request':str(scratch / f'identity_{index:03d}.request.json'),
+                        'identity_response':str(scratch / f'identity_{index:03d}.response.json'),
                         'config': target_config(token, f'http://127.0.0.1:{server.server_port}')}
                     prefix = f'owner_{index:03d}'
+                    observer=None
                     try:
                         # Anonymous input keeps the ephemeral gateway capability
                         # out of persistent experiment configuration/evidence.
@@ -163,6 +168,8 @@ def main():
                             child = subprocess.Popen([str(ROOT / 'scripts/flashrsi_harnessrisk_sandbox.py'), '-I', '-B', entry],
                                 stdin=input_stream, stdout=out, stderr=err,
                                 env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8', 'HARNESSRISK_SANDBOX_CONFIG': json.dumps(sandbox)})
+                            observer=IdentityObserver(request['identity_request'],request['identity_response'],scratch,child.pid,owner_deadline,
+                                expected_executable=request['config']['cli_path'],binding=request['identity_binding'])
                             try: child.wait(timeout=900)
                             except subprocess.TimeoutExpired:
                                 child.kill()
@@ -170,6 +177,8 @@ def main():
                                 raise ProfileError('native_sandbox_wall_timeout_requires_case_namespace_exit')
                         if child.returncode:
                             raise ProfileError('native_sandbox_failed:' + str(child.returncode))
+                        identity=observer.finish()
+                        save_json(private / (prefix + '.identity.json'), identity)
                         output = json.loads((private / (prefix + '.stdout.log')).read_text())
                         save_json(private / (prefix + '.native.json'), output)
                         observed_outcomes.extend(f for f in output.get('raw_frames',[]) if f.get('type')=='result')
@@ -193,11 +202,12 @@ def main():
                             'response_text': output['output'], 'messages':output['messages'], 'usage':output['usage'],
                             'native_result':output['native_result'], 'stop_reason':(output['native_result'] or {}).get('stop_reason')})
                         native_receipt = validate_owner(output, before, archive, owner, index, session_id,
-                                                        owner_records, str(work), previous)
+                                                        owner_records, str(work), previous, trusted_identity=identity)
                         result['owner_receipts'].append({'owner_index':index, 'native_receipt':native_receipt,
                             'process_settlement':settlement, 'mock_settlement':mock_settlement,
                             'model_transport_settlement':model_settlement,
                             'model_transport_archive':f'native_session/{prefix}.model_transport.json',
+                            'identity_archive':f'native_session/{prefix}.identity.json',
                             'session_archive':f'native_session/{prefix}.jsonl',
                             'native_archive':f'native_session/{prefix}.native.json',
                             'provider_archive':f'native_session/{prefix}.provider.json',
@@ -208,6 +218,10 @@ def main():
                             'actual_owner_receipts': result['owner_receipts'], 'original_owner_hashes': result['original_owner_hashes']})
                     except Exception as exc:
                         failure = {'owner_index': index, 'type': type(exc).__name__, 'detail': str(exc)}
+                        if observer is not None:
+                            try:save_json(private / (prefix + '.identity.json'),observer.finish())
+                            except ProfileError as identity_error:
+                                save_json(private / (prefix + '.identity_failure.json'),{'error':str(identity_error),'observed':observer.receipt})
                         save_json(path / 'mock_request_failure.json', {'failure': failure,
                             'requests': mock_barrier.ledger.requests, 'failures': mock_barrier.ledger.failures})
                         try:

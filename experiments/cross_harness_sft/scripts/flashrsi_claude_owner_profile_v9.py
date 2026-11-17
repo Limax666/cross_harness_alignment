@@ -18,7 +18,7 @@ MODEL = 'qwen35-4b-preflight'
 CLI = '/data/home/liumingxiao/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe'
 CONTRACT = {'profile': PROFILE, 'max_turns_per_owner': 16, 'native_timeout_seconds': 600,
     'sandbox_wall_seconds': 900, 'whole_host_seconds': 2400, 'max_tokens_per_turn': 4096,
-    'temperature': 0, 'max_retries': 0, 'context_window': 32768,
+    'temperature': 0, 'max_retries': 0, 'context_window': 32768, 'native_auto_compact_enabled': True,
     'native_context_correction': 'CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768; native compaction policy unchanged',
     'owner_input': 'exact next original owner once; explicit UUID resume, same cwd/Snapshot/mock/state',
     'status_semantics': 'completed means measured owner schedule, never agent task success',
@@ -55,7 +55,7 @@ def valid_uuid(value):
 def context_receipt(value):
     if (not isinstance(value, dict) or value.get('rawMaxTokens') != 32768
             or type(value.get('maxTokens')) is not int or not 0 < value['maxTokens'] <= 32768
-            or value.get('model') != MODEL or type(value.get('isAutoCompactEnabled')) is not bool):
+            or value.get('model') != MODEL or value.get('isAutoCompactEnabled') is not CONTRACT['native_auto_compact_enabled']):
         raise ProfileError('actual_native_context_usage_unknown_or_mismatched')
     return copy.deepcopy(value)
 
@@ -300,11 +300,15 @@ def locate_session(config_dir, scratch, session_id):
     return candidates[0],raw
 
 
-def validate_owner(output, before, after, owner, index, session_id, records, cwd, previous=None):
+def validate_owner(output, before, after, owner, index, session_id, records, cwd, previous=None, *, trusted_identity=None):
     if (output.get('profile')!=PROFILE or output.get('owner_index')!=index
             or output.get('owner_sha256')!=digest(owner) or output.get('resume_requested')!=session_id
             or output.get('session_before_sha256')!=byte_hash(before) or output.get('error') is not None):
         raise ProfileError('native_entry_identity_resume_or_execution_failure')
+    from flashrsi_claude_owner_identity_v9 import validate_identity
+    validate_identity(trusted_identity,output['close'],binding=output.get('identity_binding'),expected_executable=CLI)
+    if not output.get('identity_binding') or output['identity_binding'].get('owner_index')!=index:
+        raise ProfileError('trusted_identity_owner_binding_missing')
     sid=output.get('session_id');valid_uuid(sid)
     if session_id is not None and sid!=session_id:raise ProfileError('native_resume_forked_or_wrong_UUID')
     settings=output.get('runtime_settings',{})
@@ -315,14 +319,12 @@ def validate_owner(output, before, after, owner, index, session_id, records, cwd
             or settings.get('environment',{}).get('CLAUDE_CODE_MAX_CONTEXT_TOKENS')!='32768'
             or settings.get('environment',{}).get('CLAUDE_CODE_MAX_OUTPUT_TOKENS')!='4096'):
         raise ProfileError('native_effective_options_context_or_resume_changed')
+    validate_candidate_policy(settings.get('settings',{}))
+    if settings.get('environment',{}).get('CLAUDE_CODE_MAX_RETRIES')!='0':
+        raise ProfileError('native_effective_retry_policy_changed')
     session=session_receipt(before,after,owner,cwd,sid)
     terminal=terminal_receipt(output['raw_frames'],output['Stop_inputs'],output['close'],sid)
-    if output.get('native_result') != {k:v for k,v in terminal['native_outcome'].items() if k!='type'}:
-        # Parsed SDK dataclass includes optional defaults absent on native wire.
-        # Reconcile every wire field, retain the full unmodified parsed result.
-        parsed=output.get('native_result')
-        if not isinstance(parsed,dict) or any(parsed.get(k)!=v for k,v in terminal['native_outcome'].items() if k!='type'):
-            raise ProfileError('parsed_result_differs_from_actual_raw_native_result')
+    reconcile_result(terminal['native_outcome'],output.get('native_result'))
     if output.get('output') != (terminal['native_outcome'].get('result') or ''):
         raise ProfileError('actual_answer_changed_or_synthesized')
     context=context_receipt(output.get('context_usage'))
@@ -361,7 +363,10 @@ def validate_case(path, case_id, snapshot_id, owners=None, source_sha256=None, *
         output=json.loads(_inside(path,receipt['native_archive']).read_text())
         records=json.loads(_inside(path,receipt['provider_archive']).read_text())
         archive=_inside(path,receipt['session_archive']).read_bytes()
-        computed=validate_owner(output,before,archive,owner,index,sid,records,result['working_dir'],previous)
+        identity=json.loads(_inside(path,receipt['identity_archive']).read_text())
+        if identity.get('binding',{}).get('case_id')!=case_id or identity['binding'].get('snapshot_id')!=snapshot_id:
+            raise ProfileError('trusted_identity_case_or_Snapshot_binding_changed')
+        computed=validate_owner(output,before,archive,owner,index,sid,records,result['working_dir'],previous,trusted_identity=identity)
         if computed!=receipt.get('native_receipt') or receipt.get('owner_index')!=index:
             raise ProfileError('raw_owner_receipts_changed')
         if (turn.get('prompt')!=owner or turn.get('response_text')!=output['output']
@@ -431,6 +436,9 @@ def validate_case(path, case_id, snapshot_id, owners=None, source_sha256=None, *
                 or host.get('returncode')!=0 or host.get('namespace_exited') is not True
                 or host.get('model_requests_settled') is not True or host.get('timed_out') is not False):
             raise ProfileError('host_namespace_cleanup_or_outcome_unconfirmed')
+        from flashrsi_owned_lifetime_v1 import validate_lifetime_receipt
+        validate_lifetime_receipt(host.get('lifetime_receipt',{}),
+            binding={'case_id':case_id,'snapshot_id':snapshot_id,'profile':PROFILE},require_namespace=True)
         host_records=json.loads((path/'protocol_model_evidence.json').read_text())['requests']
         if any(r.get('failure') or r.get('status')!=200 or r.get('settled') is not True for r in host_records):
             raise ProfileError('trusted_host_provider_failure_or_inflight')
@@ -566,3 +574,40 @@ def agent_origin_receipt(records, frames, archive):
         raise ProfileError('scheduled_API_response_duplicate_retry_or_missing_origin')
     return {'scheduled_origin_reconciled':True,'distinct_scheduled_pairs':len(pairs),
             'scheduled_API_message_ids':api_ids,'scheduled_pairs_sha256':digest(pairs)}
+
+
+PROTECTED_NATIVE_ENV=frozenset({
+    'DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW',
+    'CLAUDE_CODE_MAX_CONTEXT_TOKENS','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_RETRIES',
+    'CLAUDE_CODE_DISABLE_AUTO_COMPACT','CLAUDE_CODE_DISABLE_AUTO_MEMORY','CLAUDE_CODE_SKIP_PROMPT_HISTORY',
+    'CLAUDE_CONFIG_DIR','CLAUDE_SECURESTORAGE_CONFIG_DIR','CLAUDE_CODE_TMPDIR','CLAUDE_PLUGIN_ROOT',
+    'CLAUDE_CODE_SDK_READS_SESSION_STATE','CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS'})
+
+def validate_candidate_policy(settings):
+    environment=settings.get('env',{})
+    if any(name.upper() in PROTECTED_NATIVE_ENV or 'AUTOCOMPACT' in name.upper()
+           or 'AUTO_COMPACT' in name.upper() for name in environment):
+        raise ProfileError('candidate_protected_native_policy_override')
+    # Settings may evolve instructions/tools within existing source rules, but
+    # cannot alter runtime budget/compaction through direct native settings keys.
+    protected={'maxTurns','maxBudgetUsd','maxRetries','maxOutputTokens','contextWindow',
+               'autoCompactEnabled','autoCompactWindow','autoCompactThreshold'}
+    if protected.intersection(settings):raise ProfileError('candidate_protected_native_settings_override')
+
+PARSER_SHA256='febb1aee19e47e03433d89cd4b1f8c5636950e206df77e4f4ca2738b0c900393'
+
+def reconcile_result(raw,parsed):
+    import inspect
+    from dataclasses import fields
+    from claude_agent_sdk import ResultMessage
+    from claude_agent_sdk._internal import message_parser
+    if byte_hash(Path(inspect.getsourcefile(message_parser)).read_bytes())!=PARSER_SHA256:
+        raise ProfileError('pinned_native_result_parser_changed')
+    aliases={'modelUsage':'model_usage'}
+    keys={field.name for field in fields(ResultMessage)}-{'model_usage'}
+    known=keys|set(aliases)|{'type'}
+    if not isinstance(parsed,dict) or set(raw)-known:
+        raise ProfileError('unexplained_raw_native_result_field')
+    if any(parsed.get(aliases.get(k,k))!=v for k,v in raw.items() if k!='type'):
+        raise ProfileError('parsed_result_differs_from_actual_raw_native_result')
+    return {'raw_sha256':digest(raw),'parsed_sha256':digest(parsed),'parser_sha256':PARSER_SHA256}

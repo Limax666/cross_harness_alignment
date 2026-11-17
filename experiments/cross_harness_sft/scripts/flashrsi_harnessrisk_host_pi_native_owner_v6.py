@@ -14,6 +14,7 @@ import threading
 import urllib.error
 import urllib.request
 
+from flashrsi_owned_lifetime_v1 import OwnedLifetime
 from flashrsi_pi_owner_profile_v6 import PROFILE, digest, save_json
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,34 +68,27 @@ def main():
             'HR_RUN_ROOT': str(Path(run_root).resolve()), 'HR_HARNESS': 'pi'}
         proof = {'profile': PROFILE, 'case_id': case, 'snapshot_id': expected,
                  'whole_host_seconds': 2400, 'timed_out': False, 'namespace_exited': False,
-                 'namespace_parent_death_signal': 'SIGKILL'}
-        process = None
+                 'lifetime_binding': 'host-exclusive pipe EOF -> guardian -> owned launcher and namespace'}
+        guard = None
+        lifetime_path = Path(run_root) / '.lifetime' / (case + '.json')
         try:
-            # No capability is added: parent death now also kills the owned
-            # namespace init, preventing an orphaned case after host failure.
-            process = subprocess.Popen(['unshare', '-Urnpf', '--kill-child=SIGKILL', '--mount-proc', 'sh', '-c',
+            guard = OwnedLifetime(['unshare', '-Urnpf', '--kill-child=SIGKILL', '--mount-proc', 'sh', '-c',
                 'ip link set lo up && exec "$1" "$2"', 'hr', sys.executable,
                 str(ROOT / 'scripts/flashrsi_harnessrisk_pi_native_owner_supervisor_v6.py')],
-                env=env, start_new_session=True)
-            proof['namespace_launcher_pid'] = process.pid
-            try:
-                code = process.wait(timeout=2400)
-            except subprocess.TimeoutExpired:
-                proof['timed_out'] = True
-                os.killpg(process.pid, signal.SIGKILL)
-                process.wait(timeout=30)
-                code = 124
-            proof.update(returncode=code, namespace_exited=process.poll() is not None)
+                lifetime_path, environment=env, timeout=2400, namespace_required=True, binding={'case_id':case,'snapshot_id':expected,'profile':PROFILE})
+            code, lifetime = guard.wait(timeout=2430)
+            proof.update(returncode=code, namespace_exited=lifetime.get('namespace_exited') is True,
+                namespace_launcher_pid=lifetime.get('launcher', {}).get('pid'), lifetime_receipt=lifetime,
+                timed_out=lifetime.get('reason') == 'whole_host_timeout')
             return code
         finally:
-            if process is not None and process.poll() is None:
+            if guard is not None:
                 try:
-                    os.killpg(process.pid, signal.SIGKILL)
-                    process.wait(timeout=30)
-                except (OSError, subprocess.TimeoutExpired):
-                    proof['cleanup_confirmed'] = False
-            if process is not None:
-                proof['namespace_exited'] = process.poll() is not None
+                    lifetime = guard.close(timeout=30)
+                    proof.update(lifetime_receipt=lifetime, cleanup_confirmed=True,
+                                 namespace_exited=lifetime.get('namespace_exited') is True)
+                except Exception as exc:
+                    proof.update(cleanup_confirmed=False, lifetime_cleanup_error=str(exc))
             proof['model_requests_settled'] = all(r.get('response_sha256') or r.get('failure') for r in records)
             evidence = Path(run_root) / case
             if evidence.is_dir():

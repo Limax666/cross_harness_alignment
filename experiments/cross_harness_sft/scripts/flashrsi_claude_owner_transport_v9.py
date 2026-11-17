@@ -43,11 +43,11 @@ class ObservedTransport(SubprocessCLITransport):
         self._stdout_stream.transport_stream = ObservedBytes(self._stdout_stream.transport_stream, self.raw_stdout_bytes)
         process = self._process
         self.close_evidence['pid'] = process.pid
-        try:
-            raw = Path('/proc', str(process.pid), 'stat').read_text()
-            self.close_evidence['start'] = int(raw[raw.rfind(')') + 2:].split()[19])
-        except (OSError, ValueError, IndexError):
-            self.close_evidence['start'] = None
+        observer=getattr(self,'identity_observer',None)
+        if observer is None:raise ProfileError('trusted_identity_observer_not_configured')
+        receipt=await observer(process.pid)
+        self.close_evidence['identity']=receipt
+        self.close_evidence['start']=receipt['transport_start']
 
     async def read_messages(self):
         async for frame in super().read_messages():

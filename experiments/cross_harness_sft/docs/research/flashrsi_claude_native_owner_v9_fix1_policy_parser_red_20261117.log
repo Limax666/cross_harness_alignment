@@ -1,0 +1,160 @@
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+_ test_review_protected_candidate_env_rejected_without_rewrite[DISABLE_AUTO_COMPACT] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-338/test_review_protected_candidat0')
+key = 'DISABLE_AUTO_COMPACT'
+
+    @pytest.mark.parametrize('key',['DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW','CLAUDE_CODE_MAX_RETRIES','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_CONTEXT_TOKENS'])
+    def test_review_protected_candidate_env_rejected_without_rewrite(tmp_path,key):
+        p=profile();from flashrsi_claude_owner_adapter_v9 import build_options
+        files=tmp_path/'files';files.mkdir();runtime=tmp_path/'runtime';runtime.mkdir()
+        raw=json.dumps({'env':{key:'1'}}).encode();(files/'settings.json').write_bytes(raw)
+>       with pytest.raises(p.ProfileError,match='protected'):build_options(p.target_config('x'*40,'http://127.0.0.1:1'),files,tmp_path,runtime,None,lambda _:None,[])
+E       Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_claude_native_owner_v9.py:580: Failed
+_ test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_AUTOCOMPACT_PCT_OVERRIDE] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-338/test_review_protected_candidat1')
+key = 'CLAUDE_AUTOCOMPACT_PCT_OVERRIDE'
+
+    @pytest.mark.parametrize('key',['DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW','CLAUDE_CODE_MAX_RETRIES','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_CONTEXT_TOKENS'])
+    def test_review_protected_candidate_env_rejected_without_rewrite(tmp_path,key):
+        p=profile();from flashrsi_claude_owner_adapter_v9 import build_options
+        files=tmp_path/'files';files.mkdir();runtime=tmp_path/'runtime';runtime.mkdir()
+        raw=json.dumps({'env':{key:'1'}}).encode();(files/'settings.json').write_bytes(raw)
+>       with pytest.raises(p.ProfileError,match='protected'):build_options(p.target_config('x'*40,'http://127.0.0.1:1'),files,tmp_path,runtime,None,lambda _:None,[])
+E       Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_claude_native_owner_v9.py:580: Failed
+_ test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_CODE_AUTO_COMPACT_WINDOW] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-338/test_review_protected_candidat2')
+key = 'CLAUDE_CODE_AUTO_COMPACT_WINDOW'
+
+    @pytest.mark.parametrize('key',['DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW','CLAUDE_CODE_MAX_RETRIES','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_CONTEXT_TOKENS'])
+    def test_review_protected_candidate_env_rejected_without_rewrite(tmp_path,key):
+        p=profile();from flashrsi_claude_owner_adapter_v9 import build_options
+        files=tmp_path/'files';files.mkdir();runtime=tmp_path/'runtime';runtime.mkdir()
+        raw=json.dumps({'env':{key:'1'}}).encode();(files/'settings.json').write_bytes(raw)
+>       with pytest.raises(p.ProfileError,match='protected'):build_options(p.target_config('x'*40,'http://127.0.0.1:1'),files,tmp_path,runtime,None,lambda _:None,[])
+E       Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_claude_native_owner_v9.py:580: Failed
+_ test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_CODE_MAX_RETRIES] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-338/test_review_protected_candidat3')
+key = 'CLAUDE_CODE_MAX_RETRIES'
+
+    @pytest.mark.parametrize('key',['DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW','CLAUDE_CODE_MAX_RETRIES','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_CONTEXT_TOKENS'])
+    def test_review_protected_candidate_env_rejected_without_rewrite(tmp_path,key):
+        p=profile();from flashrsi_claude_owner_adapter_v9 import build_options
+        files=tmp_path/'files';files.mkdir();runtime=tmp_path/'runtime';runtime.mkdir()
+        raw=json.dumps({'env':{key:'1'}}).encode();(files/'settings.json').write_bytes(raw)
+>       with pytest.raises(p.ProfileError,match='protected'):build_options(p.target_config('x'*40,'http://127.0.0.1:1'),files,tmp_path,runtime,None,lambda _:None,[])
+E       Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_claude_native_owner_v9.py:580: Failed
+_ test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_CODE_MAX_OUTPUT_TOKENS] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-338/test_review_protected_candidat4')
+key = 'CLAUDE_CODE_MAX_OUTPUT_TOKENS'
+
+    @pytest.mark.parametrize('key',['DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW','CLAUDE_CODE_MAX_RETRIES','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_CONTEXT_TOKENS'])
+    def test_review_protected_candidate_env_rejected_without_rewrite(tmp_path,key):
+        p=profile();from flashrsi_claude_owner_adapter_v9 import build_options
+        files=tmp_path/'files';files.mkdir();runtime=tmp_path/'runtime';runtime.mkdir()
+        raw=json.dumps({'env':{key:'1'}}).encode();(files/'settings.json').write_bytes(raw)
+>       with pytest.raises(p.ProfileError,match='protected'):build_options(p.target_config('x'*40,'http://127.0.0.1:1'),files,tmp_path,runtime,None,lambda _:None,[])
+E       Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_claude_native_owner_v9.py:580: Failed
+_ test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_CODE_MAX_CONTEXT_TOKENS] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-338/test_review_protected_candidat5')
+key = 'CLAUDE_CODE_MAX_CONTEXT_TOKENS'
+
+    @pytest.mark.parametrize('key',['DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW','CLAUDE_CODE_MAX_RETRIES','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_CONTEXT_TOKENS'])
+    def test_review_protected_candidate_env_rejected_without_rewrite(tmp_path,key):
+        p=profile();from flashrsi_claude_owner_adapter_v9 import build_options
+        files=tmp_path/'files';files.mkdir();runtime=tmp_path/'runtime';runtime.mkdir()
+        raw=json.dumps({'env':{key:'1'}}).encode();(files/'settings.json').write_bytes(raw)
+>       with pytest.raises(p.ProfileError,match='protected'):build_options(p.target_config('x'*40,'http://127.0.0.1:1'),files,tmp_path,runtime,None,lambda _:None,[])
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'protected'
+E         Actual message: 'candidate_effective_context_metadata_mismatch'
+
+tests/test_flashrsi_claude_native_owner_v9.py:580: AssertionError
+________ test_review_native_compaction_enabled_must_match_frozen_policy ________
+
+    def test_review_native_compaction_enabled_must_match_frozen_policy():
+        p=profile()
+>       with pytest.raises(p.ProfileError):p.context_receipt({'rawMaxTokens':32768,'maxTokens':19768,'model':p.MODEL,'isAutoCompactEnabled':False})
+E       Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_claude_native_owner_v9.py:585: Failed
+_ test_review_actual_pinned_parser_alias_reconciles_without_dropping_raw_fields _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-338/test_review_actual_pinned_pars0')
+
+    def test_review_actual_pinned_parser_alias_reconciles_without_dropping_raw_fields(tmp_path):
+        from claude_agent_sdk._internal.message_parser import parse_message
+        from flashrsi_claude_owner_adapter_v9 import plain
+        p=profile();owner,source=complete_case_fixture(tmp_path)
+        output=json.loads((tmp_path/'native/output.json').read_text());raw=output['raw_frames'][2]
+        raw.update(duration_ms=1,duration_api_ms=1,modelUsage={p.MODEL:{'inputTokens':4,'outputTokens':1,'contextWindow':32768}})
+        parsed=plain(parse_message(raw));assert parsed['model_usage']==raw['modelUsage']
+        output['native_result']=parsed;p.save_json(tmp_path/'native/output.json',output)
+        # Build receipts again using the actual wire/parser pair, not a pseudo-wire
+        # reconstructed from the parsed snake_case dataclass.
+        records=json.loads((tmp_path/'native/provider.json').read_text());archive=(tmp_path/'native/session.jsonl').read_bytes()
+>       receipt=p.validate_owner(output,b'',archive,owner,1,None,records,'/work')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_claude_native_owner_v9.py:598: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+output = {'Stop_inputs': [{'background_tasks': [], 'cwd': '/work', 'hook_event_name': 'Stop', 'session_crons': [], ...}], 'clos...oCompactEnabled': True, 'maxTokens': 19768, 'model': 'qwen35-4b-preflight', 'rawMaxTokens': 32768}, 'error': None, ...}
+before = b''
+after = b'{"type": "user", "uuid": "u1", "parentUuid": null, "sessionId": "5600a401-b77e-4b3d-b82f-79ecfe37f623", "cwd": "/wor...623", "cwd": "/work", "message": {"id": "api1", "role": "assistant", "content": [{"type": "text", "text": "done"}]}}\n'
+owner = 'first', index = 1, session_id = None
+records = [{'content_type': 'application/json', 'path': '/v1/messages', 'request': {'max_tokens': 4096, 'messages': [{'content':...CAiaWQiOiAiYXBpMSIsICJyb2xlIjogImFzc2lzdGFudCIsICJjb250ZW50IjogW3sidHlwZSI6ICJ0ZXh0IiwgInRleHQiOiAiZG9uZSJ9XX0=', ...}]
+cwd = '/work', previous = None
+
+    def validate_owner(output, before, after, owner, index, session_id, records, cwd, previous=None):
+        if (output.get('profile')!=PROFILE or output.get('owner_index')!=index
+                or output.get('owner_sha256')!=digest(owner) or output.get('resume_requested')!=session_id
+                or output.get('session_before_sha256')!=byte_hash(before) or output.get('error') is not None):
+            raise ProfileError('native_entry_identity_resume_or_execution_failure')
+        sid=output.get('session_id');valid_uuid(sid)
+        if session_id is not None and sid!=session_id:raise ProfileError('native_resume_forked_or_wrong_UUID')
+        settings=output.get('runtime_settings',{})
+        if (settings.get('profile')!=PROFILE or settings.get('contract')!=CONTRACT or settings.get('cwd')!=cwd
+                or settings.get('resume')!=session_id or settings.get('continue_conversation') is not False
+                or settings.get('fork_session') is not False or any(settings.get(k) is not None for k in
+                    ('session_id','resume_session_at','resume_drops_turn','session_store'))
+                or settings.get('environment',{}).get('CLAUDE_CODE_MAX_CONTEXT_TOKENS')!='32768'
+                or settings.get('environment',{}).get('CLAUDE_CODE_MAX_OUTPUT_TOKENS')!='4096'):
+            raise ProfileError('native_effective_options_context_or_resume_changed')
+        session=session_receipt(before,after,owner,cwd,sid)
+        terminal=terminal_receipt(output['raw_frames'],output['Stop_inputs'],output['close'],sid)
+        if output.get('native_result') != {k:v for k,v in terminal['native_outcome'].items() if k!='type'}:
+            # Parsed SDK dataclass includes optional defaults absent on native wire.
+            # Reconcile every wire field, retain the full unmodified parsed result.
+            parsed=output.get('native_result')
+            if not isinstance(parsed,dict) or any(parsed.get(k)!=v for k,v in terminal['native_outcome'].items() if k!='type'):
+>               raise ProfileError('parsed_result_differs_from_actual_raw_native_result')
+E               flashrsi_pi_owner_profile_v6.ProfileError: parsed_result_differs_from_actual_raw_native_result
+
+scripts/flashrsi_claude_owner_profile_v9.py:325: ProfileError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_review_protected_candidate_env_rejected_without_rewrite[DISABLE_AUTO_COMPACT]
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_AUTOCOMPACT_PCT_OVERRIDE]
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_CODE_AUTO_COMPACT_WINDOW]
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_CODE_MAX_RETRIES]
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_CODE_MAX_OUTPUT_TOKENS]
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_review_protected_candidate_env_rejected_without_rewrite[CLAUDE_CODE_MAX_CONTEXT_TOKENS]
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_review_native_compaction_enabled_must_match_frozen_policy
+FAILED tests/test_flashrsi_claude_native_owner_v9.py::test_review_actual_pinned_parser_alias_reconciles_without_dropping_raw_fields
+8 failed, 86 deselected in 1.87s

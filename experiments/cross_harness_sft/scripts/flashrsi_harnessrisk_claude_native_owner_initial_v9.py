@@ -23,7 +23,7 @@ def source_pins():
     sdk=ROOT/'.venv-rl-pilot/lib/python3.11/site-packages/claude_agent_sdk'
     paths=list((ROOT/'scripts').glob('flashrsi*claude*owner*v9.py'))
     paths += [ROOT/'scripts'/name for name in (
-        'flashrsi_pi_owner_profile_v6.py','flashrsi_pi_owner_mock_barrier_v6.py',
+        'flashrsi_owned_lifetime_v1.py','flashrsi_pi_owner_profile_v6.py','flashrsi_pi_owner_mock_barrier_v6.py',
         'flashrsi_pi_owner_mock_manager_v6.py','flashrsi_harnessrisk_sandbox.py',
         'flashrsi_harnessrisk_privacy.py','flashrsi_gateway.py','flashrsi_model_relay.py',
         'flashrsi_native_protocol_relay.py','flashrsi_landlock.py','flashrsi_native_seccomp.py',
@@ -53,6 +53,7 @@ def main():
     parser.add_argument('--base', type=Path, required=True)
     parser.add_argument('--snapshot', type=Path, required=True)
     args = parser.parse_args()
+    from flashrsi_owned_lifetime_v1 import await_cleanup
     if os.environ.get('HR_HARNESS') != 'claude_code' or os.environ.get('HARNESSRISK_MODEL_PORT') != '18764':
         raise ProfileError('explicit_Claude_GPU1_endpoint_required')
     from flashrsi.core import Snapshot
@@ -100,7 +101,14 @@ def main():
             proof = {'profile': PROFILE, 'command': command, 'timeout_seconds': 2460}
             try:
                 with (folder / 'host.stdout.log').open('wb') as out, (folder / 'host.stderr.log').open('wb') as err:
-                    proc = subprocess.run(command, cwd=ROOT, stdout=out, stderr=err, timeout=2460)
+                    proc = subprocess.Popen(command, cwd=ROOT, stdout=out, stderr=err, close_fds=True)
+                    try: proc.wait(timeout=2460)
+                    except subprocess.TimeoutExpired:
+                        proof['cleanup_confirmed']=False
+                        proc.kill();proc.wait(timeout=10)
+                        proof['lifetime_cleanup']=await_cleanup(run / 'cases' / '.lifetime' / (case_id+'.json'),proc.pid,timeout=30)
+                        proof['cleanup_confirmed']=True
+                        raise
                 proof['returncode'] = proc.returncode
                 host_receipt = run / 'cases' / case_id / 'native_owner_host.json'
                 host = json.loads(host_receipt.read_text()) if host_receipt.is_file() else {}
@@ -116,8 +124,9 @@ def main():
                 proof.update(measurement_valid=True, bounded_owners=receipt['bounded_owners'])
                 valid += 1
             except subprocess.TimeoutExpired as exc:
-                proof.update(timed_out=True, cleanup_confirmed=False, measurement_valid=False)
-                raise ProfileError('host_cleanup_uncertain_no_next_case') from exc
+                proof.update(timed_out=True, measurement_valid=False)
+                proof.setdefault('cleanup_confirmed',False)
+                raise ProfileError('host_timeout_after_verified_owned_cleanup_no_next_case' if proof['cleanup_confirmed'] else 'host_cleanup_uncertain_no_next_case') from exc
             except ProfileError as exc:
                 proof.update(measurement_valid=False, error=str(exc))
                 if proof.get('cleanup_confirmed') is False:

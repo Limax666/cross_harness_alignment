@@ -1,0 +1,1190 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_implementation_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_implementation_20261117.md
+index 82fbeb7..b5c2339 100644
+--- a/experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_implementation_20261117.md
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_implementation_20261117.md
+@@ -49,3 +49,29 @@ Scope deviation: the two existing `test_flashrsi_native_protocol_relay.py` fixtu
+ No full128 H0, RSI, official source execution, private grading run, native UUID resume, native counter reset, real Stop/idle/background closure, actual context/compaction policy, or real EOF/native JSONL flush was executed. These remain genuine-run proof obligations after independent review. The original compiled CLI may omit Stop at max-turn, emit native system/projection forms absent from raw JSONL, or use compaction/branch transformations whose complete receipt is unavailable. Such cases are precise invalids, not normal caps. Explicit compaction gate: `native_compaction_projection_structural_barrier_requires_original_receipt`; unknown wire/native relation: `native_history_projection_unknown_or_owner_duplicated_removed` or `actual_provider_history_prefix_dropped_duplicated_or_unarchived`; unknown resumed counter: `native_resumed_counter_reset_structural_barrier`.
+ 
+ During a genuine run, failed or deadline-expired owners retain raw stdout chunks, raw native frames, outgoing controls, nullable parsed result, Stop/tool observations, close branch, context if obtained, stderr, complete provider requests/responses and attempted owner hashes. `error.missing_evidence` distinguishes absent result/Stop/idle/context. Context observation occurs before waiting for possibly absent Stop/idle, within the same600s deadline. Before case scratch cleanup, every regular native state-tree file is copied with descriptor-relative no-follow validation and durable hashes, including partial/failed JSONL and subagent files. Final private paths include `native_session/owner_NNN.*`, `all_provider_records.json`, and `final_native_tree/archive_manifest.json`; the host retains `protocol_model_evidence.json` and namespace cleanup proof. Any archive failure is separately recorded. This enables repair from actual authorized H0 evidence without inventing a diagnostic rerun or repairing session contents.
++
++## Independent review fix round1 (base `7d384ac`)
++
++Read the complete independent review at `flashrsi_claude_native_continuation_review_20261117.md` and reproduced all four Important findings with focused regressions before fixing them. This is one coherent fix wave for independent re-review. Root explicitly authorized CPU-only owned sleeper/FD lifecycle fixtures and changes to the future, unlaunched Pi v6 host plus its initial source map for the same shared lifetime guard. No queue/scanner, active ACE/v19/OpenCode, old Pi host, installed SDK/vendor, shared sandbox/Landlock/seccomp policy, credential, historical result or Snapshot was changed. No native CLI, source/mock program, model/API/network service, GPU or Docker run occurred in this fix round.
++
++I1: replaced the sandbox `/proc` read with `flashrsi_claude_owner_identity_v9.py`. An entry sends only its actual SDK transport PID and a case/Snapshot/owner/nonce binding through existing scratch-file IPC. The trusted supervisor independently observes the live direct entry-child relationship, stable entry/CLI starts, and actual executable path/device/inode against the configured pinned CLI. It re-reads identities to detect reuse/reparent/exit races. The authoritative receipt is archived outside actor-visible work/scratch. Final admission compares that actual private receipt, complete binding, executable, and entry close PID/start; a forged/replayed scratch reply grants nothing. Request/response reads are bounded descriptor-relative no-follow/nonblocking regular-file reads. Trusted response writes use a held scratch directory FD, exclusive NOFOLLOW temporary file, fsync and descriptor-relative atomic rename, so a symlink/FIFO leaf or swapped parent cannot redirect a trusted write. The response channel adds no inherited FD, socket, proc grant or pidfd/seccomp exception. Missing identity remains invalid, and observation failures retain private failure evidence.
++
++I2: `reconcile_result()` enforces the exact installed parser source hash and its `modelUsage -> model_usage` mapping, preserves all raw wire keys and complete parsed fields, and rejects unexplained raw fields. The new admission test constructs a real native-shaped result containing `modelUsage`, runs the actual pinned `parse_message()` to obtain its SDK dataclass, then drives owner admission. It does not reconstruct pseudo-wire data from a parsed snake_case record. Source pins already include the actual parser and complete SDK Python source map.
++
++I3: added shared `flashrsi_owned_lifetime_v1.py`. The host exclusively holds an anonymous lease writer. A detached trusted guardian receives only the reader, checks EOF before spawn, creates the exact owned launcher in its own process group with `close_fds=True`/empty child `pass_fds`, and monitors that same lease through the launch race. Neither guardian child nor grandchild receives the writer. Host SIGKILL therefore produces EOF without relying on Python finally or prctl inheritance across unshare/setuid. On EOF/whole-host timeout the guardian verifies its unreaped child's PID/start/group, signals only that owned group, reaps its launcher and adopted owned children, and writes durable cleanup evidence. For actual namespace success, it must have observed the unshare direct-child PID1 (`NSpid` ending1, distinct namespace inode) and its subsequent disappearance; missing namespace evidence cannot admit a completed case. Kernel PID1 death is the namespace-wide termination boundary for descendants in other process groups. The guardian's own subreaper setting is used only for reaping; it is not a claimed parent-death signal on unshare.
++
++The Claude host and explicitly authorized future Pi v6 host use this shared guard; both initial source maps bind its bytes. The misleading `namespace_parent_death_signal` assertion was removed. New Claude initial outer timeout kills/reaps only its own host and waits for the actual guard receipt; uncertainty stops the lane. Benchmark cancellation during subprocess creation retains the actual handle under shielding, and creation/wait cancellation and outer timeout kill/reap the owned host then await actual guard cleanup. A final live-host cleanup fallback retains proof and raises if cleanup is uncertain. Namespace/native runtime itself was not launched by these tests. The existing future Pi initial controller was changed only to bind the shared guard source; its existing conservative outer-timeout admission remains unchanged.
++
++I4: froze `native_auto_compact_enabled=True` in CONTRACT and require the genuine native context observation to match. Before native launch, protected candidate environment controls are rejected case-insensitively, including the actual `DISABLE_AUTO_COMPACT`, `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`, `CLAUDE_CODE_AUTO_COMPACT_WINDOW`, context/output/retry controls, state/observation fields and compaction aliases. Protected direct native settings are also rejected. Candidate bytes are preserved, not rewritten. Admission repeats the policy check and requires effective explicit retries0. The only added model metadata override remains context32768; no compaction threshold/window/percentage override is added. A regression parses the actual original Claude H0 Snapshot's `settings.json` resource (Snapshot `26a1fb7c061e3aec310e5fb266d9083c5b5ab8a754dec4b4ae292a1792357f3b`) without export or candidate code execution and confirms its unchanged `{}` policy is compatible.
++
++Final completed verification command:
++
++```bash
++PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:vendor/FlashRSI .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_claude_native_owner_v9.py tests/test_flashrsi_owned_lifetime_v1.py tests/test_flashrsi_pi_native_owner_v6.py > docs/research/flashrsi_claude_native_owner_v9_fix1_green_20261117.log 2>&1
++```
++
++Observed **179 passed in6.51s**, exit0:108 Claude tests,14 shared lifetime tests,57 existing Pi controller tests. Coverage includes actual pinned parser aliases and unknown fields; actual H0 settings compatibility; protected env/native enabled-state mismatch; real direct-child/executable observation; private reply tampering/replay; symlink/FIFO/parent-swap IPC; actual host SIGKILL, pre-spawn EOF race, outer timeout, cancellation during creation and waiting; actual child/grandchild lease noninheritance; exact owned group cleanup and adopted-grandchild reaping; namespace/host/binding uncertainty rejection; and both actual host/source-map integrations. No loopback/network fixture was included in this command.
++
++Focused red/green logs survive under `flashrsi_claude_native_owner_v9_fix1_*_20261117.log`. Intermediate CPU fixture syntax/cancellation-test mistakes were corrected; their exact recorded owned PID/start identities were cleaned without touching other workloads. `flashrsi_claude_native_owner_v9_fix1_fixture_cleanup_20261117.json` records no active prior failed fixture remaining. All test commands finished. Final static checks AST-parsed16 owned/authorized Python files and passed scoped whitespace checks. The scoped review diff is `flashrsi_claude_native_continuation_fix1_review.diff`, relative to `7d384ac`.
++
++These fixes remove the four reviewed implementation defects; they do not prove genuine native UUID continuation, actual context/Stop/background/EOF/JSONL behavior, native projection/compaction or resumed counter semantics. All earlier precise structural invalid gates remain intact. Actual namespace/CLI behavior and source/private grading remain unverified until independent re-review and the authorized genuine full128 path. No experiment acceptance or score is claimed by these unit fixtures.
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_adapter_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_adapter_v9.py
+index add2e3f..c3b08af 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_adapter_v9.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_adapter_v9.py
+@@ -11,7 +11,7 @@ from dataclasses import fields, is_dataclass
+ from contextlib import aclosing
+ 
+ from flashrsi_claude_owner_profile_v9 import (PROFILE, CONTRACT, ProfileError, valid_uuid,
+-    byte_hash, digest, target_config, terminal_receipt, context_receipt, locate_session)
++    byte_hash, digest, target_config, terminal_receipt, context_receipt, locate_session, validate_candidate_policy)
+ 
+ 
+ def plain(value):
+@@ -42,11 +42,7 @@ def build_options(config, files_dir, task_dir, runtime, resume, stderr, stops, t
+     settings=_settings(files_dir/'settings.json')
+     settings_bytes=(files_dir/'settings.json').read_bytes() if settings else b''
+     settings_value=json.loads(settings_bytes.decode('utf-8-sig')) if settings else {}
+-    candidate_env=settings_value.get('env',{})
+-    # Preserve candidate bytes; reject policy overrides rather than rewriting.
+-    expected_context={'CLAUDE_CODE_MAX_CONTEXT_TOKENS':'32768'}
+-    if any(k.upper() in expected_context and v!=expected_context[k.upper()] for k,v in candidate_env.items()):
+-        raise ProfileError('candidate_effective_context_metadata_mismatch')
++    validate_candidate_policy(settings_value)
+     system_prompt={'type':'preset','preset':'claude_code'}
+     if instructions.strip():system_prompt['append']=instructions
+     async def observe_stop(value, _tool_use_id, _context):
+@@ -109,6 +105,10 @@ async def run(request):
+     async def unused_prompt():
+         if False:yield {}
+     transport=ObservedTransport(prompt=unused_prompt(),options=options,frames=frames,changed=changed)
++    from flashrsi_claude_owner_identity_v9 import request_identity
++    async def observe_identity(pid):
++        return await request_identity(pid,request['identity_request'],request['identity_response'],home,request['identity_binding'])
++    transport.identity_observer=observe_identity
+     client=ClaudeSDKClient(options=options,transport=transport)
+     context=None;result=None;error=None
+     try:
+@@ -154,7 +154,7 @@ async def run(request):
+     answer=(result.result or '') if result is not None else ''
+     sid=result.session_id if result is not None else next((f.get('session_id') for f in frames if f.get('subtype')=='init'),resume)
+     return {'profile':PROFILE,'owner_index':index,'owner_sha256':digest(request['question']),
+-        'session_before_sha256':byte_hash(before),'resume_requested':resume,'session_id':sid,
++        'identity_binding':request.get('identity_binding'),'session_before_sha256':byte_hash(before),'resume_requested':resume,'session_id':sid,
+         'raw_stdout_b64':[base64.b64encode(b).decode() for b in transport.raw_stdout_bytes],
+         'raw_frames':frames,'raw_writes':transport.raw_writes,'Stop_inputs':stops,'tool_hook_inputs':tool_inputs,'close':transport.close_evidence,
+         'context_usage':context,'runtime_settings':settings,'native_result':raw_result,
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_identity_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_identity_v9.py
+new file mode 100644
+index 0000000..e4a809d
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_identity_v9.py
+@@ -0,0 +1,121 @@
++"""Trusted-supervisor proc observation over existing scratch-file IPC only.
++
++Entry/native tools gain neither proc access nor a new descriptor. The private
++receipt, not the scratch response, is authoritative at final admission.
++"""
++from __future__ import annotations
++import asyncio
++import json
++import os
++import secrets
++from pathlib import Path
++import threading
++import time
++from flashrsi_pi_owner_profile_v6 import ProfileError,save_json,read_native_session
++
++
++def proc_identity(pid):
++    raw=Path('/proc',str(pid),'stat').read_text()
++    fields=raw[raw.rfind(')')+2:].split()
++    if fields[0] in {'Z','X'}:raise ProfileError('identity_process_not_live')
++    return {'pid':pid,'ppid':int(fields[1]),'start':int(fields[19])}
++
++
++def observe_process_identity(transport_pid,entry_pid,*,expected_executable=None,binding=None,expected_entry_start=None):
++    if type(transport_pid) is not int or transport_pid<=1 or type(entry_pid) is not int:
++        raise ProfileError('identity_PID_invalid')
++    entry=proc_identity(entry_pid);child=proc_identity(transport_pid)
++    if expected_entry_start is not None and entry['start']!=expected_entry_start:
++        raise ProfileError('entry_start_identity_changed')
++    expected=Path(expected_executable or __import__('sys').executable).resolve(strict=True)
++    expected_stat=expected.stat();actual_stat=Path('/proc',str(transport_pid),'exe').stat()
++    if (expected_stat.st_dev,expected_stat.st_ino)!=(actual_stat.st_dev,actual_stat.st_ino):
++        raise ProfileError('native_CLI_executable_identity_changed')
++    if child['ppid']!=entry_pid or child['start']<entry['start']:
++        raise ProfileError('native_CLI_not_direct_live_entry_child')
++    # Re-read both identities to close exit/reuse/reparent races across reads.
++    if proc_identity(entry_pid)!=entry or proc_identity(transport_pid)!=child:
++        raise ProfileError('native_identity_changed_during_observation')
++    return {'observer':'trusted_namespace_supervisor_v9','entry_pid':entry_pid,'entry_start':entry['start'],
++            'transport_pid':transport_pid,'transport_ppid':child['ppid'],'transport_start':child['start'],
++            'observed_alive':True,'observed_monotonic_ns':time.monotonic_ns(),
++            'binding':dict(binding or {}),'executable':{'path':str(expected),'dev':expected_stat.st_dev,'ino':expected_stat.st_ino}}
++
++
++def validate_identity(receipt,close,*,binding=None,expected_executable=None):
++    if (not isinstance(receipt,dict) or receipt.get('observer')!='trusted_namespace_supervisor_v9'
++            or receipt.get('observed_alive') is not True or receipt.get('transport_pid')!=close.get('pid')
++            or receipt.get('transport_start')!=close.get('start')
++            or receipt.get('entry_pid')!=receipt.get('transport_ppid')
++            or type(receipt.get('entry_start')) is not int or type(receipt.get('transport_start')) is not int
++            or receipt['transport_start']<receipt['entry_start'] or close.get('identity')!=receipt
++            or binding is not None and receipt.get('binding')!=binding
++            or expected_executable is not None and receipt.get('executable',{}).get('path')!=str(Path(expected_executable).resolve())):
++        raise ProfileError('trusted_native_CLI_identity_missing_or_mismatched')
++    return receipt
++
++
++class IdentityObserver:
++    def __init__(self,request,response,scratch,entry_pid,deadline,*,expected_executable,binding):
++        self.request,self.response,self.scratch=Path(request),Path(response),Path(scratch)
++        self.entry_pid,self.deadline=entry_pid,deadline
++        self.expected_entry_start=proc_identity(entry_pid)['start']
++        self.expected_executable,self.binding=expected_executable,dict(binding)
++        self.directory_fd=os.open(self.scratch,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
++        self.receipt=None;self.error=None;self.stop=threading.Event()
++        self.thread=threading.Thread(target=self._serve,daemon=True);self.thread.start()
++    def _serve(self):
++        try:
++            while not self.stop.is_set() and time.monotonic()<self.deadline:
++                try:raw=read_native_session(self.request,self.scratch,max_bytes=1024)
++                except ProfileError:
++                    if self.request.exists():raise
++                    self.stop.wait(.005);continue
++                value=json.loads(raw)
++                if set(value)!={'transport_pid','binding'} or value['binding']!=self.binding:
++                    raise ProfileError('identity_request_binding_invalid')
++                self.receipt=observe_process_identity(value['transport_pid'],self.entry_pid,
++                    expected_executable=self.expected_executable,binding=self.binding,expected_entry_start=self.expected_entry_start)
++                atomic_response(self.directory_fd,self.response.name,self.receipt)
++                return
++            raise ProfileError('native_identity_request_missing_or_deadline')
++        except Exception as exc:self.error={'type':type(exc).__name__,'detail':str(exc)}
++    def finish(self):
++        self.stop.set();self.thread.join(timeout=2)
++        if self.directory_fd is not None:
++            os.close(self.directory_fd);self.directory_fd=None
++        if self.thread.is_alive():raise ProfileError('identity_observer_not_joined')
++        if self.error or self.receipt is None:raise ProfileError('trusted_native_identity_unavailable:'+str(self.error))
++        return self.receipt
++
++
++async def request_identity(pid,request,response,scratch,binding):
++    """No proc read, socket or inherited FD in this entry-side operation."""
++    save_json(request,{'transport_pid':pid,'binding':binding})
++    deadline=time.monotonic()+5
++    while time.monotonic()<deadline:
++        try:
++            receipt=json.loads(read_native_session(Path(response),scratch,max_bytes=4096))
++            if receipt.get('transport_pid')!=pid or receipt.get('binding')!=binding:
++                raise ProfileError('identity_IPC_wrong_transport_or_replay')
++            return receipt
++        except ProfileError:
++            if Path(response).exists():raise
++        await asyncio.sleep(.005)
++    raise ProfileError('trusted_native_identity_observation_timeout')
++
++
++def atomic_response(directory_fd,name,value):
++    """Single-directory-FD atomic replace; never follow an actor-controlled leaf/parent."""
++    if Path(name).name!=name or name in {'.','..'}:raise ProfileError('identity_response_name_invalid')
++    temporary='.identity-'+secrets.token_hex(16)
++    fd=os.open(temporary,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600,dir_fd=directory_fd)
++    try:
++        raw=(json.dumps(value,sort_keys=True)+'\n').encode();offset=0
++        while offset<len(raw):offset+=os.write(fd,raw[offset:])
++        os.fsync(fd);os.close(fd);fd=None
++        os.rename(temporary,name,src_dir_fd=directory_fd,dst_dir_fd=directory_fd);os.fsync(directory_fd)
++    finally:
++        if fd is not None:os.close(fd)
++        try:os.unlink(temporary,dir_fd=directory_fd)
++        except FileNotFoundError:pass
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py
+index 2bc6fd9..bb9a618 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py
+@@ -18,7 +18,7 @@ MODEL = 'qwen35-4b-preflight'
+ CLI = '/data/home/liumingxiao/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe'
+ CONTRACT = {'profile': PROFILE, 'max_turns_per_owner': 16, 'native_timeout_seconds': 600,
+     'sandbox_wall_seconds': 900, 'whole_host_seconds': 2400, 'max_tokens_per_turn': 4096,
+-    'temperature': 0, 'max_retries': 0, 'context_window': 32768,
++    'temperature': 0, 'max_retries': 0, 'context_window': 32768, 'native_auto_compact_enabled': True,
+     'native_context_correction': 'CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768; native compaction policy unchanged',
+     'owner_input': 'exact next original owner once; explicit UUID resume, same cwd/Snapshot/mock/state',
+     'status_semantics': 'completed means measured owner schedule, never agent task success',
+@@ -55,7 +55,7 @@ def valid_uuid(value):
+ def context_receipt(value):
+     if (not isinstance(value, dict) or value.get('rawMaxTokens') != 32768
+             or type(value.get('maxTokens')) is not int or not 0 < value['maxTokens'] <= 32768
+-            or value.get('model') != MODEL or type(value.get('isAutoCompactEnabled')) is not bool):
++            or value.get('model') != MODEL or value.get('isAutoCompactEnabled') is not CONTRACT['native_auto_compact_enabled']):
+         raise ProfileError('actual_native_context_usage_unknown_or_mismatched')
+     return copy.deepcopy(value)
+ 
+@@ -300,11 +300,15 @@ def locate_session(config_dir, scratch, session_id):
+     return candidates[0],raw
+ 
+ 
+-def validate_owner(output, before, after, owner, index, session_id, records, cwd, previous=None):
++def validate_owner(output, before, after, owner, index, session_id, records, cwd, previous=None, *, trusted_identity=None):
+     if (output.get('profile')!=PROFILE or output.get('owner_index')!=index
+             or output.get('owner_sha256')!=digest(owner) or output.get('resume_requested')!=session_id
+             or output.get('session_before_sha256')!=byte_hash(before) or output.get('error') is not None):
+         raise ProfileError('native_entry_identity_resume_or_execution_failure')
++    from flashrsi_claude_owner_identity_v9 import validate_identity
++    validate_identity(trusted_identity,output['close'],binding=output.get('identity_binding'),expected_executable=CLI)
++    if not output.get('identity_binding') or output['identity_binding'].get('owner_index')!=index:
++        raise ProfileError('trusted_identity_owner_binding_missing')
+     sid=output.get('session_id');valid_uuid(sid)
+     if session_id is not None and sid!=session_id:raise ProfileError('native_resume_forked_or_wrong_UUID')
+     settings=output.get('runtime_settings',{})
+@@ -315,14 +319,12 @@ def validate_owner(output, before, after, owner, index, session_id, records, cwd
+             or settings.get('environment',{}).get('CLAUDE_CODE_MAX_CONTEXT_TOKENS')!='32768'
+             or settings.get('environment',{}).get('CLAUDE_CODE_MAX_OUTPUT_TOKENS')!='4096'):
+         raise ProfileError('native_effective_options_context_or_resume_changed')
++    validate_candidate_policy(settings.get('settings',{}))
++    if settings.get('environment',{}).get('CLAUDE_CODE_MAX_RETRIES')!='0':
++        raise ProfileError('native_effective_retry_policy_changed')
+     session=session_receipt(before,after,owner,cwd,sid)
+     terminal=terminal_receipt(output['raw_frames'],output['Stop_inputs'],output['close'],sid)
+-    if output.get('native_result') != {k:v for k,v in terminal['native_outcome'].items() if k!='type'}:
+-        # Parsed SDK dataclass includes optional defaults absent on native wire.
+-        # Reconcile every wire field, retain the full unmodified parsed result.
+-        parsed=output.get('native_result')
+-        if not isinstance(parsed,dict) or any(parsed.get(k)!=v for k,v in terminal['native_outcome'].items() if k!='type'):
+-            raise ProfileError('parsed_result_differs_from_actual_raw_native_result')
++    reconcile_result(terminal['native_outcome'],output.get('native_result'))
+     if output.get('output') != (terminal['native_outcome'].get('result') or ''):
+         raise ProfileError('actual_answer_changed_or_synthesized')
+     context=context_receipt(output.get('context_usage'))
+@@ -361,7 +363,10 @@ def validate_case(path, case_id, snapshot_id, owners=None, source_sha256=None, *
+         output=json.loads(_inside(path,receipt['native_archive']).read_text())
+         records=json.loads(_inside(path,receipt['provider_archive']).read_text())
+         archive=_inside(path,receipt['session_archive']).read_bytes()
+-        computed=validate_owner(output,before,archive,owner,index,sid,records,result['working_dir'],previous)
++        identity=json.loads(_inside(path,receipt['identity_archive']).read_text())
++        if identity.get('binding',{}).get('case_id')!=case_id or identity['binding'].get('snapshot_id')!=snapshot_id:
++            raise ProfileError('trusted_identity_case_or_Snapshot_binding_changed')
++        computed=validate_owner(output,before,archive,owner,index,sid,records,result['working_dir'],previous,trusted_identity=identity)
+         if computed!=receipt.get('native_receipt') or receipt.get('owner_index')!=index:
+             raise ProfileError('raw_owner_receipts_changed')
+         if (turn.get('prompt')!=owner or turn.get('response_text')!=output['output']
+@@ -431,6 +436,9 @@ def validate_case(path, case_id, snapshot_id, owners=None, source_sha256=None, *
+                 or host.get('returncode')!=0 or host.get('namespace_exited') is not True
+                 or host.get('model_requests_settled') is not True or host.get('timed_out') is not False):
+             raise ProfileError('host_namespace_cleanup_or_outcome_unconfirmed')
++        from flashrsi_owned_lifetime_v1 import validate_lifetime_receipt
++        validate_lifetime_receipt(host.get('lifetime_receipt',{}),
++            binding={'case_id':case_id,'snapshot_id':snapshot_id,'profile':PROFILE},require_namespace=True)
+         host_records=json.loads((path/'protocol_model_evidence.json').read_text())['requests']
+         if any(r.get('failure') or r.get('status')!=200 or r.get('settled') is not True for r in host_records):
+             raise ProfileError('trusted_host_provider_failure_or_inflight')
+@@ -566,3 +574,40 @@ def agent_origin_receipt(records, frames, archive):
+         raise ProfileError('scheduled_API_response_duplicate_retry_or_missing_origin')
+     return {'scheduled_origin_reconciled':True,'distinct_scheduled_pairs':len(pairs),
+             'scheduled_API_message_ids':api_ids,'scheduled_pairs_sha256':digest(pairs)}
++
++
++PROTECTED_NATIVE_ENV=frozenset({
++    'DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW',
++    'CLAUDE_CODE_MAX_CONTEXT_TOKENS','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_RETRIES',
++    'CLAUDE_CODE_DISABLE_AUTO_COMPACT','CLAUDE_CODE_DISABLE_AUTO_MEMORY','CLAUDE_CODE_SKIP_PROMPT_HISTORY',
++    'CLAUDE_CONFIG_DIR','CLAUDE_SECURESTORAGE_CONFIG_DIR','CLAUDE_CODE_TMPDIR','CLAUDE_PLUGIN_ROOT',
++    'CLAUDE_CODE_SDK_READS_SESSION_STATE','CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS'})
++
++def validate_candidate_policy(settings):
++    environment=settings.get('env',{})
++    if any(name.upper() in PROTECTED_NATIVE_ENV or 'AUTOCOMPACT' in name.upper()
++           or 'AUTO_COMPACT' in name.upper() for name in environment):
++        raise ProfileError('candidate_protected_native_policy_override')
++    # Settings may evolve instructions/tools within existing source rules, but
++    # cannot alter runtime budget/compaction through direct native settings keys.
++    protected={'maxTurns','maxBudgetUsd','maxRetries','maxOutputTokens','contextWindow',
++               'autoCompactEnabled','autoCompactWindow','autoCompactThreshold'}
++    if protected.intersection(settings):raise ProfileError('candidate_protected_native_settings_override')
++
++PARSER_SHA256='febb1aee19e47e03433d89cd4b1f8c5636950e206df77e4f4ca2738b0c900393'
++
++def reconcile_result(raw,parsed):
++    import inspect
++    from dataclasses import fields
++    from claude_agent_sdk import ResultMessage
++    from claude_agent_sdk._internal import message_parser
++    if byte_hash(Path(inspect.getsourcefile(message_parser)).read_bytes())!=PARSER_SHA256:
++        raise ProfileError('pinned_native_result_parser_changed')
++    aliases={'modelUsage':'model_usage'}
++    keys={field.name for field in fields(ResultMessage)}-{'model_usage'}
++    known=keys|set(aliases)|{'type'}
++    if not isinstance(parsed,dict) or set(raw)-known:
++        raise ProfileError('unexplained_raw_native_result_field')
++    if any(parsed.get(aliases.get(k,k))!=v for k,v in raw.items() if k!='type'):
++        raise ProfileError('parsed_result_differs_from_actual_raw_native_result')
++    return {'raw_sha256':digest(raw),'parsed_sha256':digest(parsed),'parser_sha256':PARSER_SHA256}
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_transport_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_transport_v9.py
+index 873fa77..47d14b7 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_transport_v9.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_claude_owner_transport_v9.py
+@@ -43,11 +43,11 @@ class ObservedTransport(SubprocessCLITransport):
+         self._stdout_stream.transport_stream = ObservedBytes(self._stdout_stream.transport_stream, self.raw_stdout_bytes)
+         process = self._process
+         self.close_evidence['pid'] = process.pid
+-        try:
+-            raw = Path('/proc', str(process.pid), 'stat').read_text()
+-            self.close_evidence['start'] = int(raw[raw.rfind(')') + 2:].split()[19])
+-        except (OSError, ValueError, IndexError):
+-            self.close_evidence['start'] = None
++        observer=getattr(self,'identity_observer',None)
++        if observer is None:raise ProfileError('trusted_identity_observer_not_configured')
++        receipt=await observer(process.pid)
++        self.close_evidence['identity']=receipt
++        self.close_evidence['start']=receipt['transport_start']
+ 
+     async def read_messages(self):
+         async for frame in super().read_messages():
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_benchmark_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_benchmark_v9.py
+index d96d256..b464245 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_benchmark_v9.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_benchmark_v9.py
+@@ -7,6 +7,7 @@ import os
+ from pathlib import Path
+ import sys
+ import time
++from flashrsi_owned_lifetime_v1 import wait_host, await_cleanup, spawn_host
+ 
+ from flashrsi.core import Trajectory
+ from flashrsi_harnessrisk_benchmark import HarnessRiskBenchmark as OriginalBenchmark, ROOT, DATA
+@@ -37,15 +38,9 @@ class HarnessRiskBenchmark(OriginalBenchmark):
+         started, process = time.monotonic(), None
+         try:
+             with (folder / 'host.stdout.log').open('wb') as out, (folder / 'host.stderr.log').open('wb') as err:
+-                process = await asyncio.create_subprocess_exec(*command, cwd=ROOT, stdout=out, stderr=err)
++                process = await spawn_host(*command,receipt=cases / '.lifetime' / (task.task_id+'.json'),proof=proof,cwd=ROOT,stdout=out,stderr=err)
+                 proof['pid'] = process.pid
+-                try:
+-                    await asyncio.wait_for(process.wait(), timeout=2460)
+-                except TimeoutError:
+-                    process.kill()
+-                    await process.wait()
+-                    proof.update(timed_out=True, cleanup_confirmed=False)
+-                    raise ProfileError('host_cleanup_uncertain_stop_future_rollouts')
++                await wait_host(process,cases / '.lifetime' / (task.task_id+'.json'),timeout=2460,proof=proof)
+             proof['returncode'] = process.returncode
+             host_receipt = cases / task.task_id / 'native_owner_host.json'
+             host = json.loads(host_receipt.read_text()) if host_receipt.is_file() else {}
+@@ -76,8 +71,20 @@ class HarnessRiskBenchmark(OriginalBenchmark):
+                 raise
+             return Trajectory(status='error', error_message=str(exc))
+         finally:
++            if process is not None and process.returncode is None:
++                proof['cleanup_confirmed']=False
++                process.kill()
++                await process.wait()
++                cleanup=asyncio.create_task(asyncio.to_thread(await_cleanup,cases / '.lifetime' / (task.task_id+'.json'),process.pid,timeout=30))
++                while not cleanup.done():
++                    try:await asyncio.shield(cleanup)
++                    except asyncio.CancelledError:pass
++                try:proof.update(lifetime_cleanup=cleanup.result(),cleanup_confirmed=True)
++                except Exception as exc:proof.update(cleanup_confirmed=False,lifetime_cleanup_error=str(exc))
+             proof['elapsed_seconds'] = time.monotonic() - started
+             save_json(folder / 'host_execution.json', proof)
++            if proof.get('cleanup_confirmed') is False:
++                raise ProfileError('host_cleanup_unconfirmed_stop_future_rollouts')
+ 
+     def grade(self, trajectories):
+         # Original grade produces zeros for invalid trajectories when its flag
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py
+index 065226d..a186a2d 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py
+@@ -23,7 +23,7 @@ def source_pins():
+     sdk=ROOT/'.venv-rl-pilot/lib/python3.11/site-packages/claude_agent_sdk'
+     paths=list((ROOT/'scripts').glob('flashrsi*claude*owner*v9.py'))
+     paths += [ROOT/'scripts'/name for name in (
+-        'flashrsi_pi_owner_profile_v6.py','flashrsi_pi_owner_mock_barrier_v6.py',
++        'flashrsi_owned_lifetime_v1.py','flashrsi_pi_owner_profile_v6.py','flashrsi_pi_owner_mock_barrier_v6.py',
+         'flashrsi_pi_owner_mock_manager_v6.py','flashrsi_harnessrisk_sandbox.py',
+         'flashrsi_harnessrisk_privacy.py','flashrsi_gateway.py','flashrsi_model_relay.py',
+         'flashrsi_native_protocol_relay.py','flashrsi_landlock.py','flashrsi_native_seccomp.py',
+@@ -53,6 +53,7 @@ def main():
+     parser.add_argument('--base', type=Path, required=True)
+     parser.add_argument('--snapshot', type=Path, required=True)
+     args = parser.parse_args()
++    from flashrsi_owned_lifetime_v1 import await_cleanup
+     if os.environ.get('HR_HARNESS') != 'claude_code' or os.environ.get('HARNESSRISK_MODEL_PORT') != '18764':
+         raise ProfileError('explicit_Claude_GPU1_endpoint_required')
+     from flashrsi.core import Snapshot
+@@ -100,7 +101,14 @@ def main():
+             proof = {'profile': PROFILE, 'command': command, 'timeout_seconds': 2460}
+             try:
+                 with (folder / 'host.stdout.log').open('wb') as out, (folder / 'host.stderr.log').open('wb') as err:
+-                    proc = subprocess.run(command, cwd=ROOT, stdout=out, stderr=err, timeout=2460)
++                    proc = subprocess.Popen(command, cwd=ROOT, stdout=out, stderr=err, close_fds=True)
++                    try: proc.wait(timeout=2460)
++                    except subprocess.TimeoutExpired:
++                        proof['cleanup_confirmed']=False
++                        proc.kill();proc.wait(timeout=10)
++                        proof['lifetime_cleanup']=await_cleanup(run / 'cases' / '.lifetime' / (case_id+'.json'),proc.pid,timeout=30)
++                        proof['cleanup_confirmed']=True
++                        raise
+                 proof['returncode'] = proc.returncode
+                 host_receipt = run / 'cases' / case_id / 'native_owner_host.json'
+                 host = json.loads(host_receipt.read_text()) if host_receipt.is_file() else {}
+@@ -116,8 +124,9 @@ def main():
+                 proof.update(measurement_valid=True, bounded_owners=receipt['bounded_owners'])
+                 valid += 1
+             except subprocess.TimeoutExpired as exc:
+-                proof.update(timed_out=True, cleanup_confirmed=False, measurement_valid=False)
+-                raise ProfileError('host_cleanup_uncertain_no_next_case') from exc
++                proof.update(timed_out=True, measurement_valid=False)
++                proof.setdefault('cleanup_confirmed',False)
++                raise ProfileError('host_timeout_after_verified_owned_cleanup_no_next_case' if proof['cleanup_confirmed'] else 'host_cleanup_uncertain_no_next_case') from exc
+             except ProfileError as exc:
+                 proof.update(measurement_valid=False, error=str(exc))
+                 if proof.get('cleanup_confirmed') is False:
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py
+index dff0ae7..e315ade 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py
+@@ -18,6 +18,7 @@ from flashrsi_claude_owner_profile_v9 import (CONTRACT, PROFILE, ProfileError, b
+     save_json, save_bytes, process_receipt, target_config, snapshot_source_map,
+     locate_session, validate_owner, archive_native_tree)
+ from flashrsi_claude_owner_model_barrier_v9 import ModelBarrier
++from flashrsi_claude_owner_identity_v9 import IdentityObserver
+ from flashrsi_pi_owner_mock_barrier_v6 import MockBarrier
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+@@ -150,8 +151,12 @@ def main():
+                     request = {'profile': PROFILE, 'harness': 'claude_code', 'question': owner, 'owner_index': index,
+                         'workspace_dir': str(exported), 'working_dir': str(work), 'state_dir': str(state_dir), 'resume': session_id,
+                         'expected_session_sha256': byte_hash(before),
++                        'identity_binding':{'case_id':case,'snapshot_id':snapshot.id,'owner_index':index,'nonce':secrets.token_hex(32)},
++                        'identity_request':str(scratch / f'identity_{index:03d}.request.json'),
++                        'identity_response':str(scratch / f'identity_{index:03d}.response.json'),
+                         'config': target_config(token, f'http://127.0.0.1:{server.server_port}')}
+                     prefix = f'owner_{index:03d}'
++                    observer=None
+                     try:
+                         # Anonymous input keeps the ephemeral gateway capability
+                         # out of persistent experiment configuration/evidence.
+@@ -163,6 +168,8 @@ def main():
+                             child = subprocess.Popen([str(ROOT / 'scripts/flashrsi_harnessrisk_sandbox.py'), '-I', '-B', entry],
+                                 stdin=input_stream, stdout=out, stderr=err,
+                                 env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8', 'HARNESSRISK_SANDBOX_CONFIG': json.dumps(sandbox)})
++                            observer=IdentityObserver(request['identity_request'],request['identity_response'],scratch,child.pid,owner_deadline,
++                                expected_executable=request['config']['cli_path'],binding=request['identity_binding'])
+                             try: child.wait(timeout=900)
+                             except subprocess.TimeoutExpired:
+                                 child.kill()
+@@ -170,6 +177,8 @@ def main():
+                                 raise ProfileError('native_sandbox_wall_timeout_requires_case_namespace_exit')
+                         if child.returncode:
+                             raise ProfileError('native_sandbox_failed:' + str(child.returncode))
++                        identity=observer.finish()
++                        save_json(private / (prefix + '.identity.json'), identity)
+                         output = json.loads((private / (prefix + '.stdout.log')).read_text())
+                         save_json(private / (prefix + '.native.json'), output)
+                         observed_outcomes.extend(f for f in output.get('raw_frames',[]) if f.get('type')=='result')
+@@ -193,11 +202,12 @@ def main():
+                             'response_text': output['output'], 'messages':output['messages'], 'usage':output['usage'],
+                             'native_result':output['native_result'], 'stop_reason':(output['native_result'] or {}).get('stop_reason')})
+                         native_receipt = validate_owner(output, before, archive, owner, index, session_id,
+-                                                        owner_records, str(work), previous)
++                                                        owner_records, str(work), previous, trusted_identity=identity)
+                         result['owner_receipts'].append({'owner_index':index, 'native_receipt':native_receipt,
+                             'process_settlement':settlement, 'mock_settlement':mock_settlement,
+                             'model_transport_settlement':model_settlement,
+                             'model_transport_archive':f'native_session/{prefix}.model_transport.json',
++                            'identity_archive':f'native_session/{prefix}.identity.json',
+                             'session_archive':f'native_session/{prefix}.jsonl',
+                             'native_archive':f'native_session/{prefix}.native.json',
+                             'provider_archive':f'native_session/{prefix}.provider.json',
+@@ -208,6 +218,10 @@ def main():
+                             'actual_owner_receipts': result['owner_receipts'], 'original_owner_hashes': result['original_owner_hashes']})
+                     except Exception as exc:
+                         failure = {'owner_index': index, 'type': type(exc).__name__, 'detail': str(exc)}
++                        if observer is not None:
++                            try:save_json(private / (prefix + '.identity.json'),observer.finish())
++                            except ProfileError as identity_error:
++                                save_json(private / (prefix + '.identity_failure.json'),{'error':str(identity_error),'observed':observer.receipt})
+                         save_json(path / 'mock_request_failure.json', {'failure': failure,
+                             'requests': mock_barrier.ledger.requests, 'failures': mock_barrier.ledger.failures})
+                         try:
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py
+index 8f88f2d..abaa47b 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py
+@@ -15,6 +15,7 @@ import threading
+ import urllib.error
+ import urllib.request
+ 
++from flashrsi_owned_lifetime_v1 import OwnedLifetime
+ from flashrsi_claude_owner_profile_v9 import PROFILE, MODEL, ProfileError, digest, byte_hash, save_json, project_cli_history
+ ROOT=Path(__file__).resolve().parents[1]
+ 
+@@ -87,23 +88,26 @@ def main():
+             'HR_CASE_ID':case,'HR_SNAPSHOT':str(Path(snapshot).resolve()),'HR_EXPECTED_ID':expected,
+             'HR_RUN_ROOT':str(Path(run_root).resolve()),'HR_HARNESS':'claude_code'}
+         proof={'profile':PROFILE,'case_id':case,'snapshot_id':expected,'whole_host_seconds':2400,
+-               'timed_out':False,'namespace_exited':False,'namespace_parent_death_signal':'SIGKILL'}
+-        process=None
++               'timed_out':False,'namespace_exited':False,'lifetime_binding':'host-exclusive pipe EOF -> guardian -> owned launcher and namespace'}
++        guard=None
++        lifetime_path=Path(run_root)/'.lifetime'/(case+'.json')
+         try:
+-            process=subprocess.Popen(['unshare','-Urnpf','--kill-child=SIGKILL','--mount-proc','sh','-c',
++            guard=OwnedLifetime(['unshare','-Urnpf','--kill-child=SIGKILL','--mount-proc','sh','-c',
+                 'ip link set lo up && exec "$1" "$2"','hr',sys.executable,
+-                str(ROOT/'scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py')],env=env,start_new_session=True)
+-            proof['namespace_launcher_pid']=process.pid
+-            try:code=process.wait(timeout=2400)
+-            except subprocess.TimeoutExpired:
+-                proof['timed_out']=True;os.killpg(process.pid,signal.SIGKILL);process.wait(timeout=30);code=124
+-            proof.update(returncode=code,namespace_exited=process.poll() is not None)
++                str(ROOT/'scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py')],
++                lifetime_path,environment=env,timeout=2400,namespace_required=True,binding={'case_id':case,'snapshot_id':expected,'profile':PROFILE})
++            code,lifetime=guard.wait(timeout=2430)
++            proof.update(returncode=code,namespace_exited=lifetime.get('namespace_exited') is True,
++                namespace_launcher_pid=lifetime.get('launcher',{}).get('pid'),lifetime_receipt=lifetime,
++                timed_out=lifetime.get('reason')=='whole_host_timeout')
+             return code
+         finally:
+-            if process is not None and process.poll() is None:
+-                try:os.killpg(process.pid,signal.SIGKILL);process.wait(timeout=30)
+-                except (OSError,subprocess.TimeoutExpired):proof['cleanup_confirmed']=False
+-            if process is not None:proof['namespace_exited']=process.poll() is not None
++            if guard is not None:
++                try:
++                    lifetime=guard.close(timeout=30)
++                    proof.update(lifetime_receipt=lifetime,cleanup_confirmed=True,
++                                 namespace_exited=lifetime.get('namespace_exited') is True)
++                except Exception as exc:proof.update(cleanup_confirmed=False,lifetime_cleanup_error=str(exc))
+             relay.shutdown();thread.join(timeout=5);relay.server_close()
+             with lock:
+                 proof['model_requests_settled']=all(r.get('settled') is True for r in records)
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_pi_native_owner_v6.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_pi_native_owner_v6.py
+index 115b6b7..0b61a5a 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_pi_native_owner_v6.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_pi_native_owner_v6.py
+@@ -14,6 +14,7 @@ import threading
+ import urllib.error
+ import urllib.request
+ 
++from flashrsi_owned_lifetime_v1 import OwnedLifetime
+ from flashrsi_pi_owner_profile_v6 import PROFILE, digest, save_json
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+@@ -67,34 +68,27 @@ def main():
+             'HR_RUN_ROOT': str(Path(run_root).resolve()), 'HR_HARNESS': 'pi'}
+         proof = {'profile': PROFILE, 'case_id': case, 'snapshot_id': expected,
+                  'whole_host_seconds': 2400, 'timed_out': False, 'namespace_exited': False,
+-                 'namespace_parent_death_signal': 'SIGKILL'}
+-        process = None
++                 'lifetime_binding': 'host-exclusive pipe EOF -> guardian -> owned launcher and namespace'}
++        guard = None
++        lifetime_path = Path(run_root) / '.lifetime' / (case + '.json')
+         try:
+-            # No capability is added: parent death now also kills the owned
+-            # namespace init, preventing an orphaned case after host failure.
+-            process = subprocess.Popen(['unshare', '-Urnpf', '--kill-child=SIGKILL', '--mount-proc', 'sh', '-c',
++            guard = OwnedLifetime(['unshare', '-Urnpf', '--kill-child=SIGKILL', '--mount-proc', 'sh', '-c',
+                 'ip link set lo up && exec "$1" "$2"', 'hr', sys.executable,
+                 str(ROOT / 'scripts/flashrsi_harnessrisk_pi_native_owner_supervisor_v6.py')],
+-                env=env, start_new_session=True)
+-            proof['namespace_launcher_pid'] = process.pid
+-            try:
+-                code = process.wait(timeout=2400)
+-            except subprocess.TimeoutExpired:
+-                proof['timed_out'] = True
+-                os.killpg(process.pid, signal.SIGKILL)
+-                process.wait(timeout=30)
+-                code = 124
+-            proof.update(returncode=code, namespace_exited=process.poll() is not None)
++                lifetime_path, environment=env, timeout=2400, namespace_required=True, binding={'case_id':case,'snapshot_id':expected,'profile':PROFILE})
++            code, lifetime = guard.wait(timeout=2430)
++            proof.update(returncode=code, namespace_exited=lifetime.get('namespace_exited') is True,
++                namespace_launcher_pid=lifetime.get('launcher', {}).get('pid'), lifetime_receipt=lifetime,
++                timed_out=lifetime.get('reason') == 'whole_host_timeout')
+             return code
+         finally:
+-            if process is not None and process.poll() is None:
++            if guard is not None:
+                 try:
+-                    os.killpg(process.pid, signal.SIGKILL)
+-                    process.wait(timeout=30)
+-                except (OSError, subprocess.TimeoutExpired):
+-                    proof['cleanup_confirmed'] = False
+-            if process is not None:
+-                proof['namespace_exited'] = process.poll() is not None
++                    lifetime = guard.close(timeout=30)
++                    proof.update(lifetime_receipt=lifetime, cleanup_confirmed=True,
++                                 namespace_exited=lifetime.get('namespace_exited') is True)
++                except Exception as exc:
++                    proof.update(cleanup_confirmed=False, lifetime_cleanup_error=str(exc))
+             proof['model_requests_settled'] = all(r.get('response_sha256') or r.get('failure') for r in records)
+             evidence = Path(run_root) / case
+             if evidence.is_dir():
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py
+index 2e088f9..ac94144 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py
+@@ -20,7 +20,7 @@ HOST = 'flashrsi_harnessrisk_host_pi_native_owner_v6.py'
+ def source_pins():
+     paths = list((ROOT / 'scripts').glob('flashrsi*pi*owner*v6.py'))
+     paths += [ROOT / 'scripts' / name for name in (
+-        'flashrsi_harnessrisk_sandbox.py', 'flashrsi_harnessrisk_privacy.py', 'flashrsi_gateway.py',
++        'flashrsi_owned_lifetime_v1.py', 'flashrsi_harnessrisk_sandbox.py', 'flashrsi_harnessrisk_privacy.py', 'flashrsi_gateway.py',
+         'flashrsi_model_relay.py', 'flashrsi_landlock.py', 'flashrsi_native_seccomp.py',
+         'flashrsi_native_sandbox_exec.py', 'flashrsi_harnessrisk_benchmark.py', 'flashrsi_harnessrisk_algorithm.py')]
+     paths += [ROOT / 'vendor/FlashRSI/flashrsi' / name for name in (
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_owned_lifetime_v1.py b/experiments/cross_harness_sft/scripts/flashrsi_owned_lifetime_v1.py
+new file mode 100644
+index 0000000..631dfe7
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_owned_lifetime_v1.py
+@@ -0,0 +1,220 @@
++"""Trusted host lease -> guardian -> exact owned launcher/namespace lifetime.
++
++Only the host owns the lease writer. Guardian and all launched descendants use
++close_fds and receive no writer. Host SIGKILL therefore causes EOF even when
++Python finally blocks cannot execute. No target sandbox permission changes.
++"""
++from __future__ import annotations
++import asyncio
++import ctypes
++import json
++import os
++from pathlib import Path
++import select
++import signal
++import subprocess
++import sys
++import time
++from flashrsi_pi_owner_profile_v6 import ProfileError,save_json
++
++
++def identity(pid):
++    raw=Path('/proc',str(pid),'stat').read_text();parts=raw[raw.rfind(')')+2:].split()
++    return {'pid':pid,'start':int(parts[19]),'ppid':int(parts[1]),'pgid':int(parts[2]),'state':parts[0]}
++
++
++def same_process(expected):
++    try:return identity(expected['pid'])['start']==expected['start']
++    except FileNotFoundError:return False
++
++
++def _children(pid):
++    try:return [int(v) for v in Path('/proc',str(pid),'task',str(pid),'children').read_text().split()]
++    except FileNotFoundError:return []
++
++
++def namespace_child(launcher):
++    for pid in _children(launcher['pid']):
++        try:
++            value=identity(pid)
++            if value['ppid']!=launcher['pid'] or value['start']<launcher['start']:continue
++            fields=Path('/proc',str(pid),'status').read_text().splitlines()
++            nspid=next(([int(v) for v in row.split()[1:]] for row in fields if row.startswith('NSpid:')),[])
++            inode=os.stat('/proc/'+str(pid)+'/ns/pid').st_ino
++            if len(nspid)>1 and nspid[-1]==1:
++                return dict(value,nspid=nspid,namespace_inode=inode)
++        except (FileNotFoundError,ProcessLookupError):continue
++    return None
++
++
++def guardian(config,lease_fd):
++    os.set_inheritable(lease_fd,False)
++    # This property belongs to the trusted guardian, not unshare/setuid. It is
++    # used only to reap its own adopted descendants after PID1 exits.
++    libc=ctypes.CDLL(None,use_errno=True)
++    if libc.prctl(36,1,0,0,0)!=0:raise OSError(ctypes.get_errno(),'subreaper setup failed')
++    process=None;proof={'version':1,'host':config['host'],'guardian':identity(os.getpid()),
++        'command':config['command'],'child_close_fds':True,'child_pass_fds':[],
++        'namespace_required':config['namespace_required'],'namespace':None,'binding':config.get('binding',{}),
++        'cleanup_confirmed':False,'launcher_spawned':False,'launcher_reaped':False,'owned_children_reaped':False,'signals':[]}
++    try:
++        # Parent-death setup race: check EOF before spawn, then monitor the same
++        # non-inherited pipe. EOF during spawn is handled on the next iteration.
++        ready,_,_=select.select([lease_fd],[],[],0)
++        if ready and not os.read(lease_fd,1):
++            proof.update(reason='lease_EOF_before_spawn',cleanup_confirmed=True,launcher_reaped=False,owned_children_reaped=True)
++            return 125
++        process=subprocess.Popen(config['command'],env=config['environment'],close_fds=True,pass_fds=(),start_new_session=True)
++        launch=identity(process.pid)
++        if launch['pgid']!=process.pid:raise ProfileError('owned_launcher_not_new_session_leader')
++        proof['launcher']=launch;proof['launcher_spawned']=True
++        save_json(Path(config['receipt']).with_suffix('.running.json'),proof)
++        deadline=time.monotonic()+config['timeout'];reason='launcher_exit'
++        while True:
++            if proof['namespace'] is None:proof['namespace']=namespace_child(launch)
++            if process.poll() is not None:break
++            ready,_,_=select.select([lease_fd],[],[],.005)
++            if ready and not os.read(lease_fd,1):reason='lease_EOF';break
++            if time.monotonic()>=deadline:reason='whole_host_timeout';break
++        proof['reason']=reason
++        if process.poll() is None:
++            # PID remains our unreaped direct child during verification+kill;
++            # reuse cannot redirect this exact owned process-group operation.
++            if not same_process(launch) or os.getpgid(process.pid)!=launch['pgid']:
++                raise ProfileError('owned_launcher_identity_changed_before_cleanup')
++            os.killpg(launch['pgid'],signal.SIGKILL);proof['signals'].append({'pgid':launch['pgid'],'signal':'SIGKILL'})
++        process.wait(timeout=10);proof.update(returncode=process.returncode,launcher_reaped=True)
++        # Reap only guardian-owned/adopted children. Never enumerate/kill other
++        # users' processes. Namespace PID1 death is the kernel's namespace-wide
++        # kill boundary even if descendants created separate process groups.
++        reap_deadline=time.monotonic()+10;children_gone=False
++        while time.monotonic()<reap_deadline:
++            try:
++                pid,_status=os.waitpid(-1,os.WNOHANG)
++                if pid:continue
++            except ChildProcessError:children_gone=True;break
++            time.sleep(.005)
++        proof['owned_children_reaped']=children_gone
++        ns=proof['namespace'];proof['namespace_pid1_gone']=not same_process(ns) if ns else None
++        proof['namespace_exited']=(proof['namespace_pid1_gone'] is True if config['namespace_required'] else children_gone)
++        proof['cleanup_confirmed']=bool(children_gone and (not ns or proof['namespace_pid1_gone']))
++        # A successful actual namespace run must have an observed PID1 witness.
++        if config['namespace_required'] and process.returncode==0 and ns is None:
++            proof['cleanup_confirmed']=False
++        return process.returncode if proof['cleanup_confirmed'] else 125
++    except BaseException as exc:
++        proof['error']={'type':type(exc).__name__,'detail':str(exc)}
++        if process is not None and process.poll() is None:
++            launch=proof.get('launcher')
++            if launch and same_process(launch) and os.getpgid(process.pid)==launch['pgid']:
++                os.killpg(launch['pgid'],signal.SIGKILL)
++            process.wait(timeout=10)
++        raise
++    finally:
++        os.close(lease_fd);save_json(config['receipt'],proof)
++
++
++class OwnedLifetime:
++    def __init__(self,command,receipt,*,environment=None,timeout=2400,namespace_required=True,binding=None):
++        self.receipt=Path(receipt)
++        if self.receipt.exists() or self.receipt.with_suffix('.running.json').exists():
++            raise ProfileError('owned_lifetime_evidence_already_exists')
++        self.host=identity(os.getpid());read_fd,self.writer=os.pipe()
++        os.set_inheritable(self.writer,False)
++        config={'host':self.host,'command':list(command),'environment':dict(os.environ if environment is None else environment),
++                'receipt':str(self.receipt),'timeout':timeout,'namespace_required':namespace_required,'binding':dict(binding or {})}
++        try:
++            self.process=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--guardian',str(read_fd)],
++                stdin=subprocess.PIPE,pass_fds=(read_fd,),close_fds=True,start_new_session=True)
++            self.process.stdin.write(json.dumps(config).encode());self.process.stdin.close()
++        except BaseException:
++            os.close(self.writer);self.writer=None;raise
++        finally:os.close(read_fd)
++    def wait(self,timeout=None):
++        code=self.process.wait(timeout=timeout)
++        proof=await_cleanup(self.receipt,self.host['pid'],timeout=2,expected_start=self.host['start'])
++        return code,proof
++    def close(self,timeout=30):
++        if self.writer is not None:os.close(self.writer);self.writer=None
++        self.process.wait(timeout=timeout)
++        return await_cleanup(self.receipt,self.host['pid'],timeout=2,expected_start=self.host['start'])
++
++
++def await_cleanup(path,host_pid,*,timeout=30,expected_start=None):
++    deadline=time.monotonic()+timeout
++    while time.monotonic()<deadline:
++        try:
++            value=json.loads(Path(path).read_text())
++            if (value.get('version')!=1 or value.get('host',{}).get('pid')!=host_pid
++                    or expected_start is not None and value['host'].get('start')!=expected_start):
++                raise ProfileError('owned_lifetime_host_identity_mismatch')
++            validate_lifetime_receipt(value)
++            return value
++        except FileNotFoundError:time.sleep(.01)
++    raise ProfileError('owned_lifetime_cleanup_receipt_deadline')
++
++
++def validate_lifetime_receipt(value,*,binding=None,require_namespace=None):
++    no_spawn=(value.get('reason')=='lease_EOF_before_spawn' and value.get('launcher_spawned') is False and 'launcher' not in value)
++    if (value.get('version')!=1 or value.get('cleanup_confirmed') is not True
++            or not no_spawn and value.get('launcher_reaped') is not True or value.get('owned_children_reaped') is not True
++            or type(value.get('host',{}).get('start')) is not int):
++        raise ProfileError('owned_lifetime_cleanup_unconfirmed')
++    if binding is not None and value.get('binding')!=binding:raise ProfileError('owned_lifetime_case_binding_changed')
++    if no_spawn and require_namespace is None:return value
++    required=value.get('namespace_required') if require_namespace is None else require_namespace
++    if required and (value.get('namespace_required') is not True or not value.get('namespace')
++            or value.get('namespace_exited') is not True or value.get('namespace_pid1_gone') is not True
++            or value['namespace'].get('nspid',[])[-1:]!=[1]
++            or type(value['namespace'].get('namespace_inode')) is not int):
++        raise ProfileError('owned_namespace_PID1_exit_unconfirmed')
++    return value
++
++
++async def spawn_host(*command,receipt,proof=None,**kwargs):
++    """Keep the actual child handle even if cancellation races subprocess creation."""
++    proof=proof if proof is not None else {}
++    creation=asyncio.create_task(asyncio.create_subprocess_exec(*command,**kwargs))
++    cancelled=False
++    while not creation.done():
++        try:await asyncio.shield(creation)
++        except asyncio.CancelledError:cancelled=True
++    process=creation.result()
++    if cancelled:
++        proof.update(cancelled=True,cleanup_confirmed=False)
++        if process.returncode is None:process.kill()
++        await process.wait()
++        cleanup=asyncio.create_task(asyncio.to_thread(await_cleanup,receipt,process.pid,timeout=30))
++        while not cleanup.done():
++            try:await asyncio.shield(cleanup)
++            except asyncio.CancelledError:pass
++        proof.update(lifetime_cleanup=cleanup.result(),cleanup_confirmed=True)
++        raise asyncio.CancelledError
++    return process
++
++
++async def wait_host(process,receipt,*,timeout=2460,proof=None):
++    """Outer timeout/cancellation always kills only this host, then awaits lease cleanup."""
++    proof=proof if proof is not None else {}
++    cancelled=False
++    try:
++        await asyncio.wait_for(process.wait(),timeout=timeout)
++    except (TimeoutError,asyncio.CancelledError) as exc:
++        cancelled=isinstance(exc,asyncio.CancelledError)
++        proof['cancelled' if cancelled else 'timed_out']=True
++        proof['cleanup_confirmed']=False
++        if process.returncode is None:process.kill()
++        await process.wait()
++        cleanup=asyncio.create_task(asyncio.to_thread(await_cleanup,receipt,process.pid,timeout=30))
++        while not cleanup.done():
++            try:await asyncio.shield(cleanup)
++            except asyncio.CancelledError:cancelled=True
++        proof['lifetime_cleanup']=cleanup.result();proof['cleanup_confirmed']=True
++        if cancelled:raise asyncio.CancelledError
++        raise ProfileError('host_outer_timeout_after_verified_owned_cleanup')
++    return process.returncode
++
++
++if __name__=='__main__':
++    if len(sys.argv)!=3 or sys.argv[1]!='--guardian':raise SystemExit('internal guardian only')
++    raise SystemExit(guardian(json.load(sys.stdin),int(sys.argv[2])))
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_claude_native_owner_v9.py b/experiments/cross_harness_sft/tests/test_flashrsi_claude_native_owner_v9.py
+index 2893196..23014fc 100644
+--- a/experiments/cross_harness_sft/tests/test_flashrsi_claude_native_owner_v9.py
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_claude_native_owner_v9.py
+@@ -392,7 +392,7 @@ def complete_case_fixture(path):
+        frames()[-1]]
+     options={'profile':p.PROFILE,'contract':p.CONTRACT,'cwd':'/work','resume':None,'continue_conversation':False,
+         'fork_session':False,'session_id':None,'resume_session_at':None,'resume_drops_turn':None,'session_store':None,
+-        'environment':{'CLAUDE_CODE_MAX_CONTEXT_TOKENS':'32768','CLAUDE_CODE_MAX_OUTPUT_TOKENS':'4096'}}
++        'environment':{'CLAUDE_CODE_MAX_CONTEXT_TOKENS':'32768','CLAUDE_CODE_MAX_OUTPUT_TOKENS':'4096','CLAUDE_CODE_MAX_RETRIES':'0'}}
+     output={'profile':p.PROFILE,'owner_index':1,'owner_sha256':p.digest(owner),'resume_requested':None,
+         'session_before_sha256':p.byte_hash(b''),'error':None,'session_id':SID,'runtime_settings':options,
+         'raw_frames':f,'Stop_inputs':stop(),'close':close(),'native_result':{k:v for k,v in f[2].items() if k!='type'},
+@@ -403,14 +403,19 @@ def complete_case_fixture(path):
+     response_hash=p.byte_hash(response)
+     records=[{'path':'/v1/messages','request':{'model':p.MODEL,'max_tokens':4096,'messages':[{'role':'user','content':owner}]},
+               'status':200,'response_sha256':response_hash,'response_body_b64':base64.b64encode(response).decode(),'content_type':'application/json','settled':True}]
+-    native=p.validate_owner(output,b'',raw,owner,1,None,records,'/work')
++    identity={'observer':'trusted_namespace_supervisor_v9','entry_pid':43,'entry_start':122,'transport_pid':44,
++              'transport_ppid':43,'transport_start':123,'observed_alive':True,'observed_monotonic_ns':1,
++              'executable':{'path':p.CLI,'dev':1,'ino':1},'binding':{'case_id':case,'snapshot_id':snap,'owner_index':1,'nonce':'unit-only-nonce'}}
++    output['identity_binding']=identity['binding']
++    output['close']['identity']=identity
++    native=p.validate_owner(output,b'',raw,owner,1,None,records,'/work',trusted_identity=identity)
+     processes={1:{'ppid':0,'state':'S','start':1},2:{'ppid':1,'state':'S','start':2}}
+     mock={'case_id':case,'snapshot_id':snap,'owner_index':1,'sealed':True,'accept_loop_stopped':True,'backlog_drained':True,
+           'pending_connections':0,'settled':True,'request_count':0,'requests':[],'failures':[]}
+     model={'owner_index':1,'connections':1,'active':0,'settled':True,'accept_loop_stopped':True,'backlog_drained':True,'failures':[]}
+     receipt={'owner_index':1,'native_receipt':native,'process_settlement':p.process_receipt(processes,2,namespace_pid=1),
+         'mock_settlement':mock,'model_transport_settlement':model,
+-        'session_archive':'native/session.jsonl','native_archive':'native/output.json',
++        'session_archive':'native/session.jsonl','native_archive':'native/output.json','identity_archive':'native/identity.json',
+         'provider_archive':'native/provider.json','mock_archive':'native/mock.json','model_transport_archive':'native/model.json'}
+     result={'execution_protocol':p.PROFILE,'contract':p.CONTRACT,'status':'completed','driver_status':'owner_schedule_completed',
+         'measurement_validity':{'valid':True,'profile':p.PROFILE},'case_id':case,'snapshot_id':snap,'native_source_sha256':source,
+@@ -418,7 +423,7 @@ def complete_case_fixture(path):
+         'turns':[{'prompt':owner,'response_text':'done','messages':[],'usage':{},'native_result':output['native_result']}],
+         'owner_receipts':[receipt],'native_outcomes':[f[2]],'native_max_turns_count':0}
+     p.save_bytes(path/'native/session.jsonl',raw)
+-    for name,value in [('native/output.json',output),('native/provider.json',records),('native/mock.json',mock),('native/model.json',model),('harness_result.json',result)]:p.save_json(path/name,value)
++    for name,value in [('native/output.json',output),('native/provider.json',records),('native/mock.json',mock),('native/model.json',model),('harness_result.json',result),('native/identity.json',identity)]:p.save_json(path/name,value)
+     services=['mock_email','mock_slack','mock_browser','mock_filesystem','mock_skill_marketplace','mock_payment_api','mock_github','mock_ci_cd']
+     resets={name:{'status':200,'body':{'ok':True,'case_id':case,'service':name}} for name in services}
+     metadata={'mock_start':{'started':True,'backend':'process','reset':{'ok':True,'status':200,'body':{'ok':True,'case_id':case,'results':resets}}},'mock_gateway_base_url':'http://127.0.0.1:1'}
+@@ -429,7 +434,10 @@ def complete_case_fixture(path):
+         'mock':{'start':metadata['mock_start'],'gateway_base_url':metadata['mock_gateway_base_url']}})
+     p.save_json(path/'official_rule_evaluation.json',{'runs':[{'case_id':case,'status':'completed',
+         'metrics':{k:.5 for k in ('utility_score','attack_success_rate','persistence_score','detection_score')}}]})
+-    p.save_json(path/'native_owner_host.json',{'profile':p.PROFILE,'case_id':case,'snapshot_id':snap,'returncode':0,'namespace_exited':True,'model_requests_settled':True,'timed_out':False})
++    lifetime={'version':1,'host':{'pid':100,'start':1},'cleanup_confirmed':True,'launcher_reaped':True,'owned_children_reaped':True,
++        'namespace_required':True,'namespace':{'pid':102,'start':2,'nspid':[102,1],'namespace_inode':1},'namespace_pid1_gone':True,
++        'namespace_exited':True,'binding':{'case_id':case,'snapshot_id':snap,'profile':p.PROFILE}}
++    p.save_json(path/'native_owner_host.json',{'profile':p.PROFILE,'case_id':case,'snapshot_id':snap,'returncode':0,'namespace_exited':True,'model_requests_settled':True,'timed_out':False,'lifetime_receipt':lifetime})
+     from flashrsi_harnessrisk_host_claude_native_owner_v9 import prepare_request
+     forwarded,removed,conversions=prepare_request('/v1/messages',records[0]['request'])
+     p.save_json(path/'protocol_model_evidence.json',{'requests':[dict(records[0],raw_request=records[0]['request'],
+@@ -571,3 +579,111 @@ def test_post_cap_reset_requires_the_root_authorized_empirical_witness(witness):
+     if witness=='unknown':
+         with pytest.raises(p.ProfileError,match='native_resumed_counter_reset_structural_barrier'):p.counter_receipt(next_terminal,provider,prior)
+     else:assert p.counter_receipt(next_terminal,provider,prior)['native_counter_reset_observed'] is True
++
++@pytest.mark.parametrize('key',['DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW','CLAUDE_CODE_MAX_RETRIES','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_CONTEXT_TOKENS'])
++def test_review_protected_candidate_env_rejected_without_rewrite(tmp_path,key):
++    p=profile();from flashrsi_claude_owner_adapter_v9 import build_options
++    files=tmp_path/'files';files.mkdir();runtime=tmp_path/'runtime';runtime.mkdir()
++    raw=json.dumps({'env':{key:'1'}}).encode();(files/'settings.json').write_bytes(raw)
++    with pytest.raises(p.ProfileError,match='protected'):build_options(p.target_config('x'*40,'http://127.0.0.1:1'),files,tmp_path,runtime,None,lambda _:None,[])
++    assert (files/'settings.json').read_bytes()==raw
++
++def test_review_native_compaction_enabled_must_match_frozen_policy():
++    p=profile()
++    with pytest.raises(p.ProfileError):p.context_receipt({'rawMaxTokens':32768,'maxTokens':19768,'model':p.MODEL,'isAutoCompactEnabled':False})
++
++def test_review_actual_pinned_parser_alias_reconciles_without_dropping_raw_fields(tmp_path):
++    from claude_agent_sdk._internal.message_parser import parse_message
++    from flashrsi_claude_owner_adapter_v9 import plain
++    p=profile();owner,source=complete_case_fixture(tmp_path)
++    output=json.loads((tmp_path/'native/output.json').read_text());raw=output['raw_frames'][2]
++    raw.update(duration_ms=1,duration_api_ms=1,modelUsage={p.MODEL:{'inputTokens':4,'outputTokens':1,'contextWindow':32768}})
++    parsed=plain(parse_message(raw));assert parsed['model_usage']==raw['modelUsage']
++    output['native_result']=parsed;p.save_json(tmp_path/'native/output.json',output)
++    # Build receipts again using the actual wire/parser pair, not a pseudo-wire
++    # reconstructed from the parsed snake_case dataclass.
++    records=json.loads((tmp_path/'native/provider.json').read_text());archive=(tmp_path/'native/session.jsonl').read_bytes()
++    receipt=p.validate_owner(output,b'',archive,owner,1,None,records,'/work',trusted_identity=output['close']['identity'])
++    assert receipt['terminal']['native_outcome']['modelUsage']==raw['modelUsage']
++    raw['unexplained_future_field']=123
++    with pytest.raises(p.ProfileError):p.validate_owner(output,b'',archive,owner,1,None,records,'/work',trusted_identity=output['close']['identity'])
++
++def test_review_identity_observer_requires_live_direct_entry_child(tmp_path):
++    import importlib,os,subprocess,sys
++    module=importlib.import_module('flashrsi_claude_owner_identity_v9')
++    # Only authorized CPU sleeper fixtures; no sandbox/native/source/API launch.
++    child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(20)'],close_fds=True)
++    try:
++        receipt=module.observe_process_identity(child.pid,os.getpid())
++        assert receipt['transport_pid']==child.pid and receipt['transport_ppid']==os.getpid()
++        assert isinstance(receipt['transport_start'],int)
++        with pytest.raises(ValueError):module.observe_process_identity(child.pid,1)
++    finally:child.kill();child.wait(timeout=5)
++
++def test_review_transport_does_not_read_proc_in_sandbox():
++    import inspect
++    from flashrsi_claude_owner_transport_v9 import ObservedTransport
++    source=inspect.getsource(ObservedTransport.connect)
++    assert "Path('/proc'" not in source
++    assert 'identity_observer' in source
++
++@pytest.mark.parametrize('corruption',['pid','start','entry','owner','case','snapshot','nonce','exe'])
++def test_review_private_identity_rejects_tampered_or_replayed_scratch_reply(tmp_path,corruption):
++    p=profile();owner,source=complete_case_fixture(tmp_path)
++    output=json.loads((tmp_path/'native/output.json').read_text());reply=output['close']['identity']
++    if corruption=='pid':reply['transport_pid']+=1
++    if corruption=='start':reply['transport_start']+=1
++    if corruption=='entry':reply['entry_pid']+=1
++    if corruption in ('owner','case','snapshot','nonce'):
++        key={'owner':'owner_index','case':'case_id','snapshot':'snapshot_id','nonce':'nonce'}[corruption]
++        reply['binding'][key]='other'
++    if corruption=='exe':reply['executable']['path']='/wrong'
++    p.save_json(tmp_path/'native/output.json',output)
++    with pytest.raises(p.ProfileError):p.validate_case(tmp_path,'unit_case','unit_snapshot',[owner],'source',native_source=source)
++
++def test_review_identity_response_write_uses_held_directory_fd_after_parent_swap(tmp_path):
++    import os
++    from flashrsi_claude_owner_identity_v9 import atomic_response
++    scratch=tmp_path/'scratch';scratch.mkdir();outside=tmp_path/'outside';outside.mkdir()
++    fd=os.open(scratch,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
++    try:
++        (scratch/'reply.json').symlink_to(outside/'victim')
++        old=tmp_path/'old';scratch.rename(old);scratch.symlink_to(outside,target_is_directory=True)
++        atomic_response(fd,'reply.json',{'actual':'receipt'})
++        assert json.loads((old/'reply.json').read_text())=={'actual':'receipt'}
++        assert not (outside/'victim').exists() and not (outside/'reply.json').exists()
++    finally:os.close(fd)
++
++def test_review_identity_ipc_reader_rejects_symlink_and_fifo(tmp_path):
++    import os
++    from flashrsi_claude_owner_identity_v9 import request_identity
++    scratch=tmp_path/'scratch';scratch.mkdir();outside=tmp_path/'outside';outside.write_text('{}')
++    reply=scratch/'reply';request=scratch/'request'
++    for kind in ('symlink','fifo'):
++        if kind=='symlink':reply.symlink_to(outside)
++        else:os.mkfifo(reply)
++        with pytest.raises(ValueError):asyncio.run(request_identity(2,request,reply,scratch,{'nonce':'n'}))
++        reply.unlink()
++
++def test_review_original_h0_settings_policy_is_compatible_without_export():
++    import base64
++    p=profile();path=ROOT/'outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/initial_snapshot.json'
++    snapshot=json.loads(path.read_text());raw=base64.b64decode(snapshot['files']['settings.json']['content'])
++    settings=json.loads(raw.decode('utf-8-sig'));p.validate_candidate_policy(settings)
++    assert settings=={} and snapshot['id']=='26a1fb7c061e3aec310e5fb266d9083c5b5ab8a754dec4b4ae292a1792357f3b'
++
++def test_review_complete_file_ipc_observation_binds_real_owned_child(tmp_path):
++    import os,subprocess,sys,time
++    from flashrsi_claude_owner_identity_v9 import IdentityObserver,request_identity,validate_identity
++    child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(20)'],close_fds=True)
++    binding={'case_id':'unit','snapshot_id':'snapshot','owner_index':1,'nonce':'unique-unit-nonce'}
++    observer=IdentityObserver(tmp_path/'request',tmp_path/'response',tmp_path,os.getpid(),time.monotonic()+5,
++        expected_executable=sys.executable,binding=binding)
++    try:
++        reply=asyncio.run(request_identity(child.pid,tmp_path/'request',tmp_path/'response',tmp_path,binding))
++        trusted=observer.finish()
++        assert reply==trusted
++        validate_identity(trusted,{'pid':child.pid,'start':trusted['transport_start'],'identity':reply},
++            binding=binding,expected_executable=sys.executable)
++    finally:
++        child.kill();child.wait(timeout=5)
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_owned_lifetime_v1.py b/experiments/cross_harness_sft/tests/test_flashrsi_owned_lifetime_v1.py
+new file mode 100644
+index 0000000..01b00b2
+--- /dev/null
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_owned_lifetime_v1.py
+@@ -0,0 +1,146 @@
++"""Authorized CPU-only owned sleeper/FD fixtures; no namespace/native/network."""
++import asyncio
++import json
++import os
++from pathlib import Path
++import signal
++import subprocess
++import sys
++import time
++import pytest
++
++ROOT=Path(__file__).resolve().parents[1]
++
++def module():
++    import flashrsi_owned_lifetime_v1
++    return flashrsi_owned_lifetime_v1
++
++def read_when(path,timeout=5):
++    deadline=time.monotonic()+timeout
++    while time.monotonic()<deadline:
++        try:return json.loads(path.read_text())
++        except (FileNotFoundError,ValueError):time.sleep(.01)
++    raise AssertionError('fixture receipt deadline:'+str(path))
++
++def test_shared_guard_surface_exists():
++    assert (ROOT/'scripts/flashrsi_owned_lifetime_v1.py').is_file(), 'host-to-owned-launcher lease guard missing'
++
++@pytest.mark.parametrize('cause',['host_kill','explicit_close','outer_timeout'])
++def test_real_owned_guard_reaps_sleeper_after_lease_holder_death(tmp_path,cause):
++    m=module();receipt=tmp_path/'guard.json';ready=tmp_path/'ready.json'
++    fixture=("import json,os,sys,time\nfrom pathlib import Path\nfrom flashrsi_owned_lifetime_v1 import OwnedLifetime\n"
++             "guard=OwnedLifetime([sys.executable,'-c','import time;time.sleep(30)'],Path(sys.argv[1]),namespace_required=False)\n"
++             "Path(sys.argv[2]).write_text(json.dumps({'host':os.getpid(),'guardian':guard.process.pid}))\n"
++             "time.sleep(30)\n")
++    host=subprocess.Popen([sys.executable,'-c',fixture,str(receipt),str(ready)],env={**os.environ,'PYTHONPATH':str(ROOT/'scripts')},close_fds=True)
++    try:
++        observed=read_when(ready);running=read_when(receipt.with_suffix('.running.json'))
++        if cause=='outer_timeout':
++            with pytest.raises(subprocess.TimeoutExpired):host.wait(timeout=.05)
++        host.kill();host.wait(timeout=5)
++        proof=m.await_cleanup(receipt,host.pid,timeout=5)
++        assert proof['cleanup_confirmed'] is True and proof['reason']=='lease_EOF'
++        assert proof['launcher']['pid']==running['launcher']['pid']
++        assert proof['launcher_reaped'] is True and proof['owned_children_reaped'] is True
++        with pytest.raises(ProcessLookupError):os.kill(running['launcher']['pid'],0)
++    finally:
++        if host.poll() is None:host.kill();host.wait(timeout=5)
++
++def test_guard_fd_writer_never_reaches_child_or_grandchild(tmp_path):
++    m=module();proof=tmp_path/'guard.json';child_out=tmp_path/'child.json'
++    descriptors="import json,os\nv=[]\nfor f in os.listdir('/proc/self/fd'):\n try:v.append(os.readlink('/proc/self/fd/'+f))\n except FileNotFoundError:pass\nprint(json.dumps(v))"
++    code=("import json,os,subprocess,sys,time\nfrom pathlib import Path\n"
++          "targets=[]\nfor f in os.listdir('/proc/self/fd'):\n"
++          " try:targets.append(os.readlink('/proc/self/fd/'+f))\n except FileNotFoundError:pass\n"
++          "grandchild=json.loads(subprocess.check_output([sys.executable,'-c',sys.argv[2]],close_fds=True))\n"
++          "Path(sys.argv[1]).write_text(json.dumps({'fds':targets,'grandchild_fds':grandchild}))\ntime.sleep(30)\n")
++    guard=m.OwnedLifetime([sys.executable,'-c',code,str(child_out),descriptors],proof,namespace_required=False)
++    try:
++        observed=read_when(child_out)
++        lease='pipe:['+str(os.fstat(guard.writer).st_ino)+']'
++        assert lease not in observed['fds']+observed['grandchild_fds']
++        result=guard.close(timeout=5)
++        assert result['cleanup_confirmed'] is True
++        assert result['child_pass_fds']==[] and result['child_close_fds'] is True
++    finally:guard.close(timeout=5)
++
++def test_async_cancellation_waits_for_guardian_cleanup(tmp_path):
++    m=module();receipt=tmp_path/'guard.json';ready=tmp_path/'ready.json'
++    fixture=("import sys,time;from pathlib import Path;from flashrsi_owned_lifetime_v1 import OwnedLifetime;"
++             "guard=OwnedLifetime([sys.executable,'-c','import time;time.sleep(30)'],Path(sys.argv[1]),namespace_required=False);"
++             "Path(sys.argv[2]).write_text('{}');time.sleep(30)")
++    async def exercise():
++        proc=await asyncio.create_subprocess_exec(sys.executable,'-c',fixture,str(receipt),str(ready),env={**os.environ,'PYTHONPATH':str(ROOT/'scripts')})
++        await asyncio.to_thread(read_when,ready)
++        task=asyncio.create_task(m.wait_host(proc,receipt,timeout=30))
++        await asyncio.sleep(.02)
++        task.cancel()
++        try:await task
++        except asyncio.CancelledError:pass
++        return proc
++    proc=asyncio.run(exercise())
++    assert proc.returncode is not None
++    assert m.await_cleanup(receipt,proc.pid,timeout=5)['cleanup_confirmed'] is True
++
++@pytest.mark.parametrize('corruption',['host','pending','namespace','binding'])
++def test_lifetime_receipt_rejects_unknown_cleanup_and_wrong_namespace_binding(corruption):
++    m=module();value={'version':1,'host':{'pid':10,'start':1},'cleanup_confirmed':True,'launcher_reaped':True,
++        'owned_children_reaped':True,'namespace_required':True,'namespace':{'nspid':[12,1],'namespace_inode':42},
++        'namespace_exited':True,'namespace_pid1_gone':True,'binding':{'case_id':'case'}}
++    if corruption=='host':value['host']['start']=None
++    if corruption=='pending':value['owned_children_reaped']=False
++    if corruption=='namespace':value['namespace']['nspid']=[12,2]
++    if corruption=='binding':value['binding']['case_id']='other'
++    with pytest.raises(ValueError):m.validate_lifetime_receipt(value,binding={'case_id':'case'},require_namespace=True)
++
++def test_actual_unshare_host_paths_and_both_source_maps_bind_shared_guard():
++    import ast
++    for name in ('flashrsi_harnessrisk_host_claude_native_owner_v9.py','flashrsi_harnessrisk_host_pi_native_owner_v6.py'):
++        source=(ROOT/'scripts'/name).read_text();tree=ast.parse(source)
++        assert 'OwnedLifetime' in source and '--kill-child=SIGKILL' in source
++        assert 'namespace_parent_death_signal' not in source
++        assert not any(isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='Popen' for n in ast.walk(tree))
++    from flashrsi_harnessrisk_claude_native_owner_initial_v9 import source_pins as claude_pins
++    from flashrsi_harnessrisk_pi_native_owner_initial_v6 import source_pins as pi_pins
++    assert any(k.endswith('/flashrsi_owned_lifetime_v1.py') for k in claude_pins())
++    assert any(k.endswith('/flashrsi_owned_lifetime_v1.py') for k in pi_pins())
++
++def test_guard_checks_lease_eof_before_spawning_any_child(tmp_path):
++    m=module();receipt=tmp_path/'guard.json';read_fd,writer=os.pipe()
++    config={'host':m.identity(os.getpid()),'command':[sys.executable,'-c','raise SystemExit(99)'],
++        'environment':dict(os.environ),'receipt':str(receipt),'timeout':5,'namespace_required':False,'binding':{}}
++    guardian=subprocess.Popen([sys.executable,str(ROOT/'scripts/flashrsi_owned_lifetime_v1.py'),'--guardian',str(read_fd)],
++        stdin=subprocess.PIPE,close_fds=True,pass_fds=(read_fd,),start_new_session=True)
++    os.close(read_fd);os.close(writer)
++    guardian.communicate(json.dumps(config).encode(),timeout=5)
++    value=m.await_cleanup(receipt,os.getpid(),timeout=2)
++    assert value['reason']=='lease_EOF_before_spawn' and value['launcher_spawned'] is False
++    assert value['launcher_reaped'] is False and 'launcher' not in value
++
++def test_guard_reaps_its_own_adopted_grandchild(tmp_path):
++    m=module();receipt=tmp_path/'guard.json';ready=tmp_path/'ready.json'
++    code=("import json,subprocess,sys,time;from pathlib import Path;"
++          "child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)'],close_fds=True);"
++          "Path(sys.argv[1]).write_text(json.dumps({'grandchild':child.pid}));time.sleep(30)")
++    guard=m.OwnedLifetime([sys.executable,'-c',code,str(ready)],receipt,namespace_required=False)
++    try:
++        observed=read_when(ready);grandchild=m.identity(observed['grandchild'])
++        proof=guard.close(timeout=5)
++        assert proof['owned_children_reaped'] is True and not m.same_process(grandchild)
++    finally:guard.close(timeout=5)
++
++def test_cancellation_during_creation_keeps_child_handle_until_verified_cleanup(monkeypatch,tmp_path):
++    m=module();receipt=tmp_path/'guard.json';ready=tmp_path/'ready.json'
++    fixture=("import sys,time;from pathlib import Path;from flashrsi_owned_lifetime_v1 import OwnedLifetime;"
++             "g=OwnedLifetime([sys.executable,'-c','import time;time.sleep(30)'],Path(sys.argv[1]),namespace_required=False);"
++             "Path(sys.argv[2]).write_text('{}');time.sleep(30)")
++    async def exercise():
++        proc=await asyncio.create_subprocess_exec(sys.executable,'-c',fixture,str(receipt),str(ready),env={**os.environ,'PYTHONPATH':str(ROOT/'scripts')})
++        await asyncio.to_thread(read_when,ready)
++        async def delayed_creation(*_args,**_kwargs):await asyncio.sleep(.03);return proc
++        monkeypatch.setattr(asyncio,'create_subprocess_exec',delayed_creation)
++        proof={};task=asyncio.create_task(m.spawn_host('owned-fixture',receipt=receipt,proof=proof))
++        await asyncio.sleep(.005);task.cancel()
++        with pytest.raises(asyncio.CancelledError):await task
++        assert proc.returncode is not None and proof['cleanup_confirmed'] is True
++    asyncio.run(exercise())

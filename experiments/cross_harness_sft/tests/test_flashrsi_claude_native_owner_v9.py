@@ -392,7 +392,7 @@ def complete_case_fixture(path):
        frames()[-1]]
     options={'profile':p.PROFILE,'contract':p.CONTRACT,'cwd':'/work','resume':None,'continue_conversation':False,
         'fork_session':False,'session_id':None,'resume_session_at':None,'resume_drops_turn':None,'session_store':None,
-        'environment':{'CLAUDE_CODE_MAX_CONTEXT_TOKENS':'32768','CLAUDE_CODE_MAX_OUTPUT_TOKENS':'4096'}}
+        'environment':{'CLAUDE_CODE_MAX_CONTEXT_TOKENS':'32768','CLAUDE_CODE_MAX_OUTPUT_TOKENS':'4096','CLAUDE_CODE_MAX_RETRIES':'0'}}
     output={'profile':p.PROFILE,'owner_index':1,'owner_sha256':p.digest(owner),'resume_requested':None,
         'session_before_sha256':p.byte_hash(b''),'error':None,'session_id':SID,'runtime_settings':options,
         'raw_frames':f,'Stop_inputs':stop(),'close':close(),'native_result':{k:v for k,v in f[2].items() if k!='type'},
@@ -403,14 +403,19 @@ def complete_case_fixture(path):
     response_hash=p.byte_hash(response)
     records=[{'path':'/v1/messages','request':{'model':p.MODEL,'max_tokens':4096,'messages':[{'role':'user','content':owner}]},
               'status':200,'response_sha256':response_hash,'response_body_b64':base64.b64encode(response).decode(),'content_type':'application/json','settled':True}]
-    native=p.validate_owner(output,b'',raw,owner,1,None,records,'/work')
+    identity={'observer':'trusted_namespace_supervisor_v9','entry_pid':43,'entry_start':122,'transport_pid':44,
+              'transport_ppid':43,'transport_start':123,'observed_alive':True,'observed_monotonic_ns':1,
+              'executable':{'path':p.CLI,'dev':1,'ino':1},'binding':{'case_id':case,'snapshot_id':snap,'owner_index':1,'nonce':'unit-only-nonce'}}
+    output['identity_binding']=identity['binding']
+    output['close']['identity']=identity
+    native=p.validate_owner(output,b'',raw,owner,1,None,records,'/work',trusted_identity=identity)
     processes={1:{'ppid':0,'state':'S','start':1},2:{'ppid':1,'state':'S','start':2}}
     mock={'case_id':case,'snapshot_id':snap,'owner_index':1,'sealed':True,'accept_loop_stopped':True,'backlog_drained':True,
           'pending_connections':0,'settled':True,'request_count':0,'requests':[],'failures':[]}
     model={'owner_index':1,'connections':1,'active':0,'settled':True,'accept_loop_stopped':True,'backlog_drained':True,'failures':[]}
     receipt={'owner_index':1,'native_receipt':native,'process_settlement':p.process_receipt(processes,2,namespace_pid=1),
         'mock_settlement':mock,'model_transport_settlement':model,
-        'session_archive':'native/session.jsonl','native_archive':'native/output.json',
+        'session_archive':'native/session.jsonl','native_archive':'native/output.json','identity_archive':'native/identity.json',
         'provider_archive':'native/provider.json','mock_archive':'native/mock.json','model_transport_archive':'native/model.json'}
     result={'execution_protocol':p.PROFILE,'contract':p.CONTRACT,'status':'completed','driver_status':'owner_schedule_completed',
         'measurement_validity':{'valid':True,'profile':p.PROFILE},'case_id':case,'snapshot_id':snap,'native_source_sha256':source,
@@ -418,7 +423,7 @@ def complete_case_fixture(path):
         'turns':[{'prompt':owner,'response_text':'done','messages':[],'usage':{},'native_result':output['native_result']}],
         'owner_receipts':[receipt],'native_outcomes':[f[2]],'native_max_turns_count':0}
     p.save_bytes(path/'native/session.jsonl',raw)
-    for name,value in [('native/output.json',output),('native/provider.json',records),('native/mock.json',mock),('native/model.json',model),('harness_result.json',result)]:p.save_json(path/name,value)
+    for name,value in [('native/output.json',output),('native/provider.json',records),('native/mock.json',mock),('native/model.json',model),('harness_result.json',result),('native/identity.json',identity)]:p.save_json(path/name,value)
     services=['mock_email','mock_slack','mock_browser','mock_filesystem','mock_skill_marketplace','mock_payment_api','mock_github','mock_ci_cd']
     resets={name:{'status':200,'body':{'ok':True,'case_id':case,'service':name}} for name in services}
     metadata={'mock_start':{'started':True,'backend':'process','reset':{'ok':True,'status':200,'body':{'ok':True,'case_id':case,'results':resets}}},'mock_gateway_base_url':'http://127.0.0.1:1'}
@@ -429,7 +434,10 @@ def complete_case_fixture(path):
         'mock':{'start':metadata['mock_start'],'gateway_base_url':metadata['mock_gateway_base_url']}})
     p.save_json(path/'official_rule_evaluation.json',{'runs':[{'case_id':case,'status':'completed',
         'metrics':{k:.5 for k in ('utility_score','attack_success_rate','persistence_score','detection_score')}}]})
-    p.save_json(path/'native_owner_host.json',{'profile':p.PROFILE,'case_id':case,'snapshot_id':snap,'returncode':0,'namespace_exited':True,'model_requests_settled':True,'timed_out':False})
+    lifetime={'version':1,'host':{'pid':100,'start':1},'cleanup_confirmed':True,'launcher_reaped':True,'owned_children_reaped':True,
+        'namespace_required':True,'namespace':{'pid':102,'start':2,'nspid':[102,1],'namespace_inode':1},'namespace_pid1_gone':True,
+        'namespace_exited':True,'binding':{'case_id':case,'snapshot_id':snap,'profile':p.PROFILE}}
+    p.save_json(path/'native_owner_host.json',{'profile':p.PROFILE,'case_id':case,'snapshot_id':snap,'returncode':0,'namespace_exited':True,'model_requests_settled':True,'timed_out':False,'lifetime_receipt':lifetime})
     from flashrsi_harnessrisk_host_claude_native_owner_v9 import prepare_request
     forwarded,removed,conversions=prepare_request('/v1/messages',records[0]['request'])
     p.save_json(path/'protocol_model_evidence.json',{'requests':[dict(records[0],raw_request=records[0]['request'],
@@ -571,3 +579,111 @@ def test_post_cap_reset_requires_the_root_authorized_empirical_witness(witness):
     if witness=='unknown':
         with pytest.raises(p.ProfileError,match='native_resumed_counter_reset_structural_barrier'):p.counter_receipt(next_terminal,provider,prior)
     else:assert p.counter_receipt(next_terminal,provider,prior)['native_counter_reset_observed'] is True
+
+@pytest.mark.parametrize('key',['DISABLE_AUTO_COMPACT','CLAUDE_AUTOCOMPACT_PCT_OVERRIDE','CLAUDE_CODE_AUTO_COMPACT_WINDOW','CLAUDE_CODE_MAX_RETRIES','CLAUDE_CODE_MAX_OUTPUT_TOKENS','CLAUDE_CODE_MAX_CONTEXT_TOKENS'])
+def test_review_protected_candidate_env_rejected_without_rewrite(tmp_path,key):
+    p=profile();from flashrsi_claude_owner_adapter_v9 import build_options
+    files=tmp_path/'files';files.mkdir();runtime=tmp_path/'runtime';runtime.mkdir()
+    raw=json.dumps({'env':{key:'1'}}).encode();(files/'settings.json').write_bytes(raw)
+    with pytest.raises(p.ProfileError,match='protected'):build_options(p.target_config('x'*40,'http://127.0.0.1:1'),files,tmp_path,runtime,None,lambda _:None,[])
+    assert (files/'settings.json').read_bytes()==raw
+
+def test_review_native_compaction_enabled_must_match_frozen_policy():
+    p=profile()
+    with pytest.raises(p.ProfileError):p.context_receipt({'rawMaxTokens':32768,'maxTokens':19768,'model':p.MODEL,'isAutoCompactEnabled':False})
+
+def test_review_actual_pinned_parser_alias_reconciles_without_dropping_raw_fields(tmp_path):
+    from claude_agent_sdk._internal.message_parser import parse_message
+    from flashrsi_claude_owner_adapter_v9 import plain
+    p=profile();owner,source=complete_case_fixture(tmp_path)
+    output=json.loads((tmp_path/'native/output.json').read_text());raw=output['raw_frames'][2]
+    raw.update(duration_ms=1,duration_api_ms=1,modelUsage={p.MODEL:{'inputTokens':4,'outputTokens':1,'contextWindow':32768}})
+    parsed=plain(parse_message(raw));assert parsed['model_usage']==raw['modelUsage']
+    output['native_result']=parsed;p.save_json(tmp_path/'native/output.json',output)
+    # Build receipts again using the actual wire/parser pair, not a pseudo-wire
+    # reconstructed from the parsed snake_case dataclass.
+    records=json.loads((tmp_path/'native/provider.json').read_text());archive=(tmp_path/'native/session.jsonl').read_bytes()
+    receipt=p.validate_owner(output,b'',archive,owner,1,None,records,'/work',trusted_identity=output['close']['identity'])
+    assert receipt['terminal']['native_outcome']['modelUsage']==raw['modelUsage']
+    raw['unexplained_future_field']=123
+    with pytest.raises(p.ProfileError):p.validate_owner(output,b'',archive,owner,1,None,records,'/work',trusted_identity=output['close']['identity'])
+
+def test_review_identity_observer_requires_live_direct_entry_child(tmp_path):
+    import importlib,os,subprocess,sys
+    module=importlib.import_module('flashrsi_claude_owner_identity_v9')
+    # Only authorized CPU sleeper fixtures; no sandbox/native/source/API launch.
+    child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(20)'],close_fds=True)
+    try:
+        receipt=module.observe_process_identity(child.pid,os.getpid())
+        assert receipt['transport_pid']==child.pid and receipt['transport_ppid']==os.getpid()
+        assert isinstance(receipt['transport_start'],int)
+        with pytest.raises(ValueError):module.observe_process_identity(child.pid,1)
+    finally:child.kill();child.wait(timeout=5)
+
+def test_review_transport_does_not_read_proc_in_sandbox():
+    import inspect
+    from flashrsi_claude_owner_transport_v9 import ObservedTransport
+    source=inspect.getsource(ObservedTransport.connect)
+    assert "Path('/proc'" not in source
+    assert 'identity_observer' in source
+
+@pytest.mark.parametrize('corruption',['pid','start','entry','owner','case','snapshot','nonce','exe'])
+def test_review_private_identity_rejects_tampered_or_replayed_scratch_reply(tmp_path,corruption):
+    p=profile();owner,source=complete_case_fixture(tmp_path)
+    output=json.loads((tmp_path/'native/output.json').read_text());reply=output['close']['identity']
+    if corruption=='pid':reply['transport_pid']+=1
+    if corruption=='start':reply['transport_start']+=1
+    if corruption=='entry':reply['entry_pid']+=1
+    if corruption in ('owner','case','snapshot','nonce'):
+        key={'owner':'owner_index','case':'case_id','snapshot':'snapshot_id','nonce':'nonce'}[corruption]
+        reply['binding'][key]='other'
+    if corruption=='exe':reply['executable']['path']='/wrong'
+    p.save_json(tmp_path/'native/output.json',output)
+    with pytest.raises(p.ProfileError):p.validate_case(tmp_path,'unit_case','unit_snapshot',[owner],'source',native_source=source)
+
+def test_review_identity_response_write_uses_held_directory_fd_after_parent_swap(tmp_path):
+    import os
+    from flashrsi_claude_owner_identity_v9 import atomic_response
+    scratch=tmp_path/'scratch';scratch.mkdir();outside=tmp_path/'outside';outside.mkdir()
+    fd=os.open(scratch,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+    try:
+        (scratch/'reply.json').symlink_to(outside/'victim')
+        old=tmp_path/'old';scratch.rename(old);scratch.symlink_to(outside,target_is_directory=True)
+        atomic_response(fd,'reply.json',{'actual':'receipt'})
+        assert json.loads((old/'reply.json').read_text())=={'actual':'receipt'}
+        assert not (outside/'victim').exists() and not (outside/'reply.json').exists()
+    finally:os.close(fd)
+
+def test_review_identity_ipc_reader_rejects_symlink_and_fifo(tmp_path):
+    import os
+    from flashrsi_claude_owner_identity_v9 import request_identity
+    scratch=tmp_path/'scratch';scratch.mkdir();outside=tmp_path/'outside';outside.write_text('{}')
+    reply=scratch/'reply';request=scratch/'request'
+    for kind in ('symlink','fifo'):
+        if kind=='symlink':reply.symlink_to(outside)
+        else:os.mkfifo(reply)
+        with pytest.raises(ValueError):asyncio.run(request_identity(2,request,reply,scratch,{'nonce':'n'}))
+        reply.unlink()
+
+def test_review_original_h0_settings_policy_is_compatible_without_export():
+    import base64
+    p=profile();path=ROOT/'outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/initial_snapshot.json'
+    snapshot=json.loads(path.read_text());raw=base64.b64decode(snapshot['files']['settings.json']['content'])
+    settings=json.loads(raw.decode('utf-8-sig'));p.validate_candidate_policy(settings)
+    assert settings=={} and snapshot['id']=='26a1fb7c061e3aec310e5fb266d9083c5b5ab8a754dec4b4ae292a1792357f3b'
+
+def test_review_complete_file_ipc_observation_binds_real_owned_child(tmp_path):
+    import os,subprocess,sys,time
+    from flashrsi_claude_owner_identity_v9 import IdentityObserver,request_identity,validate_identity
+    child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(20)'],close_fds=True)
+    binding={'case_id':'unit','snapshot_id':'snapshot','owner_index':1,'nonce':'unique-unit-nonce'}
+    observer=IdentityObserver(tmp_path/'request',tmp_path/'response',tmp_path,os.getpid(),time.monotonic()+5,
+        expected_executable=sys.executable,binding=binding)
+    try:
+        reply=asyncio.run(request_identity(child.pid,tmp_path/'request',tmp_path/'response',tmp_path,binding))
+        trusted=observer.finish()
+        assert reply==trusted
+        validate_identity(trusted,{'pid':child.pid,'start':trusted['transport_start'],'identity':reply},
+            binding=binding,expected_executable=sys.executable)
+    finally:
+        child.kill();child.wait(timeout=5)
