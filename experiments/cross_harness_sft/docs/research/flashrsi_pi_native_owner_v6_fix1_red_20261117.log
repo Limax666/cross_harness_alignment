@@ -1,0 +1,442 @@
+FFFF.FFFFFFFFFFF                                                         [100%]
+=================================== FAILURES ===================================
+___________ test_fifo_archive_rejected_with_bounded_parent_deadline ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_fifo_archive_rejected_wit0')
+
+    def test_fifo_archive_rejected_with_bounded_parent_deadline(tmp_path):
+        import os
+        import subprocess
+        fifo = tmp_path / 'session.jsonl'
+        os.mkfifo(fifo)
+        code = ('from flashrsi_pi_owner_profile_v6 import read_native_session, ProfileError\n'
+                'import sys\ntry: read_native_session(sys.argv[1], sys.argv[2])\n'
+                'except ProfileError as e: print(e); raise SystemExit(0)\nraise SystemExit(2)')
+>       result = subprocess.run([sys.executable, '-c', code, str(fifo), str(tmp_path)],
+                                capture_output=True, text=True, timeout=2)
+
+tests/test_flashrsi_pi_native_owner_v6.py:252: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../miniforge3/envs/cross-harness-sft/lib/python3.11/subprocess.py:550: in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../miniforge3/envs/cross-harness-sft/lib/python3.11/subprocess.py:1209: in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../miniforge3/envs/cross-harness-sft/lib/python3.11/subprocess.py:2116: in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Popen: returncode: -9 args: ['/data/home/liumingxiao/cross_harness_alignmen...>
+endtime = 16409550.978686232, orig_timeout = 2, stdout_seq = [], stderr_seq = []
+skip_check_and_raise = False
+
+    def _check_timeout(self, endtime, orig_timeout, stdout_seq, stderr_seq,
+                       skip_check_and_raise=False):
+        """Convenience for checking if a timeout has expired."""
+        if endtime is None:
+            return
+        if skip_check_and_raise or _time() > endtime:
+>           raise TimeoutExpired(
+                    self.args, orig_timeout,
+                    output=b''.join(stdout_seq) if stdout_seq else None,
+                    stderr=b''.join(stderr_seq) if stderr_seq else None)
+E           subprocess.TimeoutExpired: Command '['/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python', '-c', 'from flashrsi_pi_owner_profile_v6 import read_native_session, ProfileError\nimport sys\ntry: read_native_session(sys.argv[1], sys.argv[2])\nexcept ProfileError as e: print(e); raise SystemExit(0)\nraise SystemExit(2)', '/tmp/pytest-of-liumingxiao/pytest-305/test_fifo_archive_rejected_wit0/session.jsonl', '/tmp/pytest-of-liumingxiao/pytest-305/test_fifo_archive_rejected_wit0']' timed out after 2 seconds
+
+../../../miniforge3/envs/cross-harness-sft/lib/python3.11/subprocess.py:1253: TimeoutExpired
+_____________ test_archive_size_and_concurrent_growth_are_bounded ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_archive_size_and_concurre0')
+
+    def test_archive_size_and_concurrent_growth_are_bounded(tmp_path):
+        from flashrsi_pi_owner_profile_v6 import read_native_session, ProfileError
+        path = tmp_path / 'session.jsonl'
+        path.write_bytes(b'x' * 17)
+        with pytest.raises(ProfileError, match='size'):
+>           read_native_session(path, tmp_path, max_bytes=16)
+E           TypeError: read_native_session() got an unexpected keyword argument 'max_bytes'
+
+tests/test_flashrsi_pi_native_owner_v6.py:262: TypeError
+_ test_mock_barrier_requires_real_completed_requests_not_permitted_process_tree _
+
+    def test_mock_barrier_requires_real_completed_requests_not_permitted_process_tree():
+>       from flashrsi_pi_owner_mock_barrier_v6 import RequestLedger
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_mock_barrier_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:267: ModuleNotFoundError
+_ test_mock_transport_preserves_actual_bytes_headers_and_rejects_downstream_599 _
+
+    def test_mock_transport_preserves_actual_bytes_headers_and_rejects_downstream_599():
+>       from flashrsi_pi_owner_mock_barrier_v6 import forward_http, response_settled
+E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_mock_barrier_v6'
+
+tests/test_flashrsi_pi_native_owner_v6.py:290: ModuleNotFoundError
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[official_status] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe1')
+corruption = 'official_status'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[reset_ok] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe2')
+corruption = 'reset_ok'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[reset_case] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe3')
+corruption = 'reset_case'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[service_reset] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe4')
+corruption = 'service_reset'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[export_case] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe5')
+corruption = 'export_case'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[export_status] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe6')
+corruption = 'export_status'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[export_result] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe7')
+corruption = 'export_result'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[export_mock] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe8')
+corruption = 'export_mock'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[host_case] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe9')
+corruption = 'host_case'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[host_snapshot] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe10')
+corruption = 'host_snapshot'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+_ test_complete_admission_independently_binds_actual_metadata_and_official_status[mock_pending] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe11')
+corruption = 'mock_pending'
+
+    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
+        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
+    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
+        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
+        owner, source = admission_fixture(tmp_path)
+        mutations = {
+            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
+            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
+            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
+            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
+            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
+            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
+            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
+            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
+            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
+            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
+            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
+        }
+        if corruption:
+            name, mutate = mutations[corruption]
+            value = json.loads((tmp_path / name).read_text())
+            mutate(value)
+            save_json(tmp_path / name, value)
+>           with pytest.raises(ProfileError):
+E           Failed: DID NOT RAISE ProfileError
+
+tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_fifo_archive_rejected_with_bounded_parent_deadline
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_archive_size_and_concurrent_growth_are_bounded
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_mock_barrier_requires_real_completed_requests_not_permitted_process_tree
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_mock_transport_preserves_actual_bytes_headers_and_rejects_downstream_599
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[official_status]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[reset_ok]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[reset_case]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[service_reset]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[export_case]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[export_status]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[export_result]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[export_mock]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[host_case]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[host_snapshot]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[mock_pending]
+15 failed, 1 passed, 20 deselected in 3.66s

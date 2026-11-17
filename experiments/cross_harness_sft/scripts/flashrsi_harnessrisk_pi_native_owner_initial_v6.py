@@ -26,6 +26,10 @@ def source_pins():
     paths += [ROOT / 'vendor/FlashRSI/flashrsi' / name for name in (
         'agents/pi_agent/__init__.py', 'core/agent.py', 'core/snapshot.py', 'core/trajectory.py')]
     paths += [PROJECT / 'HarnessRisk/harness_adapter' / name for name in ('harness_adapter.py', 'scripts/evaluate_run.py')]
+    # The barrier relies on synchronous dispatch/save-before-response and the
+    # original manager's endpoint generation. Bind every service/template byte.
+    paths += list((PROJECT / 'HarnessRisk/services').rglob('*.py'))
+    paths += [p for p in (PROJECT / 'HarnessRisk/harness_adapter/templates').rglob('*') if p.is_file()]
     return {str(p.relative_to(PROJECT)): byte_hash(p.read_bytes()) for p in sorted(set(paths))}
 
 

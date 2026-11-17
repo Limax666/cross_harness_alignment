@@ -16,6 +16,7 @@ import urllib.parse
 from flashrsi_pi_owner_profile_v6 import (CONTRACT, PROFILE, ProfileError, byte_hash, digest,
     save_json, save_bytes, session_receipt, terminal_receipt, provider_receipt, process_receipt, read_native_session,
     target_config, snapshot_source_map)
+from flashrsi_pi_owner_mock_barrier_v6 import MockBarrier
 
 ROOT = Path(__file__).resolve().parents[1]
 BENCH = ROOT.parents[1] / 'HarnessRisk'
@@ -77,9 +78,11 @@ def main():
     with tempfile.TemporaryDirectory(prefix='hr-supervisor-') as temporary:
         tmp = Path(temporary)
         manager, session_file = None, None
+        mock_barrier = MockBarrier(case, snapshot.id)
         try:
             with (tmp / 'manager.out').open('w') as out, (tmp / 'manager.err').open('w') as err:
-                manager = subprocess.Popen([sys.executable, str(ADAPTER), 'serve-mocks', '--mock-backend', 'process',
+                manager = subprocess.Popen([sys.executable, str(ROOT / 'scripts/flashrsi_pi_owner_mock_manager_v6.py'),
+                    mock_barrier.url, 'serve-mocks', '--mock-backend', 'process',
                     '--run-root', str(root), '--run-id', case, '--data-dir', str(DATA), '--case-id', case,
                     '--harness', 'pi'], stdout=out, stderr=err, start_new_session=True,
                     env={**os.environ, 'HARNESSRISK_PRIVATE_CASE': '1'})
@@ -93,6 +96,7 @@ def main():
                 except (json.JSONDecodeError, FileNotFoundError): time.sleep(.25)
             if info is None:
                 raise ProfileError('mock_manager_startup_timeout')
+            mock_barrier.upstream = info['gateway']
             work = Path(info['workspace']).resolve()
             if work != (path / 'workspace').resolve():
                 raise ProfileError('mock_workspace_identity_changed')
@@ -121,13 +125,20 @@ def main():
                     str(Path(sys.base_prefix).resolve()), str(Path(exported).resolve()), str(ROOT / 'scripts'),
                     str(ROOT / 'vendor/FlashRSI')]))
                 env = {'PATH': str(work / 'bin') + ':' + str(Path(sys.executable).parent) + ':/usr/bin:/bin',
-                    'LANG': 'C.UTF-8', 'HOME': str(scratch), 'TMPDIR': str(scratch), 'MOCK_GATEWAY_BASE_URL': info['gateway']}
+                    'LANG': 'C.UTF-8', 'HOME': str(scratch), 'TMPDIR': str(scratch), 'MOCK_GATEWAY_BASE_URL': mock_barrier.url}
                 sandbox = {'python': sys.executable, 'entry': entry, 'readonly': ro, 'writable': [str(work), str(scratch)],
-                    'ports': [server.server_port, urllib.parse.urlsplit(info['gateway']).port], 'environment': env}
+                    'ports': [server.server_port, mock_barrier.server.server_port], 'environment': env}
                 save_json(path / 'runtime_environment_evidence.json', {'profile': PROFILE,
                     'sandbox_policy_unchanged': True, 'sandbox': {k: v for k, v in sandbox.items() if k != 'environment'},
                     'python_bin_on_path': str(Path(sys.executable).parent), 'contract': CONTRACT})
+                save_json(path / 'mock_transport_mapping.json', {'case_id': case, 'snapshot_id': snapshot.id,
+                    'public_gateway': mock_barrier.url, 'original_gateway': info['gateway'],
+                    'original_backend': info['backend'], 'allowed_target_mock_ports': [mock_barrier.server.server_port],
+                    'mapping': 'transport endpoint only; original adapter generated URLs; original methods/headers/body/response bytes',
+                    'settlement': 'accepted/unparsed/listen backlog accounted; full upstream response; gateway599 invalid'})
                 for index, owner in enumerate(owners, 1):
+                    owner_deadline = time.monotonic() + 360
+                    mock_barrier.open_owner(index, owner_deadline)
                     offset = len(records)
                     request = {'profile': PROFILE, 'harness': 'pi', 'question': owner, 'owner_index': index,
                         'workspace_dir': str(exported), 'working_dir': str(work), 'session_file': str(session_file),
@@ -156,6 +167,8 @@ def main():
                         if manager.poll() is not None or processes.get(manager.pid, {}).get('start') != manager_start:
                             raise ProfileError('original_mock_manager_identity_or_liveness_lost')
                         settlement = process_receipt(processes, manager.pid, namespace_pid=os.getpid())
+                        mock_settlement = mock_barrier.freeze()
+                        save_json(private / (prefix + '.mock.json'), mock_settlement)
                         output = json.loads((private / (prefix + '.stdout.log')).read_text())
                         native, boundaries = output['native'], output['boundaries']
                         archive = read_native_session(session_file, scratch)
@@ -178,24 +191,33 @@ def main():
                         terminal = terminal_receipt(native, owner)
                         provider = provider_receipt(boundaries, records[offset:], native['usage'], owner)
                         result['owner_receipts'].append({'owner_index': index, 'session': session, 'terminal': terminal,
-                            'provider': provider, 'process_settlement': settlement,
+                            'provider': provider, 'process_settlement': settlement, 'mock_settlement': mock_settlement,
                             'runtime_settings': {'native_model_limits': output['native_model_limits'],
                                                  'native_compaction_settings': output['native_compaction_settings']},
                             'session_archive': f'native_session/{prefix}.jsonl',
                             'native_archive': f'native_session/{prefix}.native.json',
                             'boundary_archive': f'native_session/{prefix}.boundaries.json',
+                            'mock_archive': f'native_session/{prefix}.mock.json',
                             'provider_archive': f'native_session/{prefix}.provider.json'})
                         before, session_id = archive, session['session_id']
                         save_json(path / 'native_owner_progress.json', {'profile': PROFILE,
                             'actual_owner_receipts': result['owner_receipts'], 'original_owner_hashes': result['original_owner_hashes']})
                     except Exception as exc:
                         failure = {'owner_index': index, 'type': type(exc).__name__, 'detail': str(exc)}
+                        save_json(path / 'mock_request_failure.json', {'failure': failure,
+                            'requests': mock_barrier.ledger.requests, 'failures': mock_barrier.ledger.failures})
                         try:
                             raw = read_native_session(session_file, scratch, missing_ok=True)
                             if raw: save_bytes(private / (prefix + '.failed.jsonl'), raw)
                         except ProfileError as archive_error:
                             failure['archive_error'] = str(archive_error)
                         break
+            # Invalid/uncertain work must never race the source exporter. A
+            # failed owner retains evidence and exits its owned case namespace.
+            if failure is not None:
+                result['failure'] = failure
+                save_json(path / 'harness_result.json', result)
+                return 2
             complete = len(result['owner_receipts']) == len(owners) and failure is None
             if complete:
                 result.update(status='completed', driver_status='owner_schedule_completed')
@@ -237,6 +259,7 @@ def main():
                     except ProfileError as exc:
                         save_json(path / 'native_session/final_archive_failure.json', {'error': str(exc)})
             finally:
+                mock_barrier.close()
                 if manager is not None:
                     manager.terminate()
                     try: manager.wait(timeout=30)

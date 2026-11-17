@@ -92,7 +92,7 @@ def _unique(pairs):
     return value
 
 
-def read_native_session(path, scratch, *, missing_ok=False):
+def read_native_session(path, scratch, *, missing_ok=False, max_bytes=64 * 1024 * 1024):
     """Read an untrusted scratch file without following any parent/file symlink."""
     path, scratch = Path(path), Path(scratch).resolve(strict=True)
     try:
@@ -106,14 +106,23 @@ def read_native_session(path, scratch, *, missing_ok=False):
         descriptors.append(os.open(scratch, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW))
         for part in parts[:-1]:
             descriptors.append(os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=descriptors[-1]))
-        descriptors.append(os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=descriptors[-1]))
-        if not stat.S_ISREG(os.fstat(descriptors[-1]).st_mode):
+        descriptors.append(os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=descriptors[-1]))
+        initial = os.fstat(descriptors[-1])
+        if not stat.S_ISREG(initial.st_mode):
             raise ProfileError('native_session_not_regular_file')
-        chunks = []
+        if type(max_bytes) is not int or max_bytes < 0 or initial.st_size > max_bytes:
+            raise ProfileError('native_session_archive_size_exceeded')
+        chunks, count = [], 0
         while True:
-            block = os.read(descriptors[-1], 65536)
+            block = os.read(descriptors[-1], min(65536, max_bytes - count + 1))
             if not block: break
             chunks.append(block)
+            count += len(block)
+            if count > max_bytes:
+                raise ProfileError('native_session_archive_size_exceeded')
+        final = os.fstat(descriptors[-1])
+        if (initial.st_size, initial.st_mtime_ns, initial.st_ctime_ns) != (final.st_size, final.st_mtime_ns, final.st_ctime_ns) or count != initial.st_size:
+            raise ProfileError('native_session_changed_during_archive')
         return b''.join(chunks)
     except FileNotFoundError:
         if missing_ok: return b''
@@ -367,14 +376,43 @@ def validate_case(path, case_id, snapshot_id, owners=None, source_sha256=None, *
             raise ProfileError('mock_manager_identity_changed_between_owners')
         process_receipt({int(k): v for k, v in proof['processes'].items()},
                         proof['mock_manager_pid'], namespace_pid=proof['namespace_pid'])
+        from flashrsi_pi_owner_mock_barrier_v6 import validate_mock_receipt
+        mock = json.loads(_inside(path, receipt['mock_archive']).read_text())
+        validate_mock_receipt(mock, case_id, snapshot_id, index)
+        if mock != receipt.get('mock_settlement'):
+            raise ProfileError('trusted_mock_request_archive_changed')
         expected_host_records.extend((digest(r['request']['messages']), digest(r['response'])) for r in records)
         before, session_id = archive, session['session_id']
     privacy = json.loads((path / 'privacy_audit.json').read_text())
     if privacy.get('protocol') != 'harnessrisk-private-case-v1' or privacy.get('roots') != ['workspace', 'seed_cases', 'mock_data']:
         raise ProfileError('privacy_audit_missing')
     grade = json.loads((path / 'official_rule_evaluation.json').read_text())['runs']
-    if len(grade) != 1 or grade[0].get('case_id') != case_id:
+    if len(grade) != 1 or grade[0].get('case_id') != case_id or grade[0].get('status') != 'completed':
         raise ProfileError('official_grade_identity_or_coverage_missing')
+    metadata = json.loads((path / 'adapter_metadata.json').read_text())
+    mock_start = metadata.get('mock_start', {})
+    reset = mock_start.get('reset', {})
+    body = reset.get('body', {})
+    services = {'mock_email', 'mock_slack', 'mock_browser', 'mock_filesystem', 'mock_skill_marketplace',
+                'mock_payment_api', 'mock_github', 'mock_ci_cd'}
+    resets = body.get('results', {})
+    if (mock_start.get('started') is not True or mock_start.get('backend') != 'process'
+            or reset.get('ok') is not True or reset.get('status') != 200
+            or body.get('ok') is not True or body.get('case_id') != case_id or set(resets) != services):
+        raise ProfileError('actual_mock_reset_missing_failed_or_wrong_case')
+    for name, entry in resets.items():
+        response = entry.get('body', {})
+        if (entry.get('status') != 200 or response.get('ok') is not True
+                or response.get('case_id') != case_id or response.get('service', name) != name):
+            raise ProfileError('actual_mock_service_reset_missing_failed_or_wrong_case:' + name)
+    exported = json.loads((path / 'trajectory/trajectory.json').read_text())
+    # Source export occurs before independent admission; its pending validity
+    # flag is preserved. All actual native outcomes and text must be identical.
+    expected_result = dict(result, measurement_validity={'valid': False, 'profile': PROFILE})
+    if (exported.get('case_id') != case_id or exported.get('run_id') != case_id
+            or exported.get('status') != 'completed' or exported.get('result') != expected_result
+            or exported.get('mock') != {'start': mock_start, 'gateway_base_url': metadata.get('mock_gateway_base_url')}):
+        raise ProfileError('source_export_identity_status_result_or_mock_changed')
     metrics = grade[0]['metrics']
     for name in ('utility_score', 'attack_success_rate', 'persistence_score', 'detection_score'):
         value = metrics.get(name)
@@ -382,7 +420,8 @@ def validate_case(path, case_id, snapshot_id, owners=None, source_sha256=None, *
             raise ProfileError('official_metric_missing_or_invalid:' + name)
     if require_host:
         host = json.loads((path / 'native_owner_host.json').read_text())
-        if (host.get('profile') != PROFILE or host.get('returncode') != 0 or host.get('namespace_exited') is not True
+        if (host.get('profile') != PROFILE or host.get('case_id') != case_id or host.get('snapshot_id') != snapshot_id
+                or host.get('returncode') != 0 or host.get('namespace_exited') is not True
                 or host.get('model_requests_settled') is not True or host.get('timed_out') is not False):
             raise ProfileError('host_namespace_cleanup_or_outcome_unconfirmed')
         records = json.loads((path / 'protocol_model_evidence.json').read_text())['requests']
