@@ -25,6 +25,7 @@ import subprocess
 import time
 
 from hsrl_v5.io import atomic_json, append_jsonl, digest, file_hash
+import hsrl_checkpoint_retention_v1 as checkpoint_retention
 from hsrl_v5.reward import VERSION as REWARD_VERSION
 from hsrl_v5.runtime import LIMITS, VERSION as RUNTIME_VERSION, run_episode
 from hsrl_v3.policy import LOGPROB_CONTRACT, VERSION as POLICY_VERSION
@@ -47,7 +48,8 @@ CONFIG = {'optimizer': 'AdamW', 'lr': 1e-5, 'betas': [0.9, 0.999], 'eps': 1e-8,
     'partial_group_policy': 'complete G8 required; infrastructure failure blocks run',
     'zero_variance_policy': 'retain zero PG advantage and costs; reference KL still applies',
     'max_attempts': 38400, 'max_steps': 300, 'min_mem_available_GiB': 32,
-    'min_disk_free_GiB': 100, 'max_new_run_disk_GiB': 60}
+    'min_disk_free_GiB': 100, 'max_new_run_disk_GiB': 60,
+    'checkpoint_retention': checkpoint_retention.POLICY}
 
 
 def reserve_attempt(state, directory, *, max_attempts):
@@ -252,12 +254,21 @@ def commit_checkpoint(out, policy, optimizer, scheduler, next_state, *, current_
         current_state.update(next_state)
         next_state = current_state
     persist_journal(out, next_state, policy)
+    # Legacy runs lack ownership and cannot opt in through resume: run identity
+    # pins both this policy and the helper bytes for every fresh owned run.
+    if (Path(out) / checkpoint_retention.LEDGER).exists():
+        anchors = list(next_state.get('retention_anchors', []))
+        anchors += [next_state[k] for k in ('best_checkpoint', 'best_dev_checkpoint',
+                    'terminal_checkpoint') if next_state.get(k)]
+        checkpoint_retention.after_commit(out, next_state['checkpoint'], anchors=anchors,
+            load_recovery=lambda path: policy.torch.load(path, map_location='cpu', weights_only=False))
     return next_state
 
 
 def _code_identity():
     root = Path(__file__).resolve().parent
-    files = [Path(__file__).resolve(), root / 'hsrl_v3/policy.py', root / 'hsrl_v3/components.py']
+    files = [Path(__file__).resolve(), root / 'hsrl_v3/policy.py', root / 'hsrl_v3/components.py',
+             root / 'hsrl_checkpoint_retention_v1.py']
     files += sorted((root / 'hsrl_v5').glob('*.py'))
     return {p.relative_to(root).as_posix(): file_hash(p) for p in files}
 
@@ -286,8 +297,8 @@ def resource_gate(out, *, initial=False):
     free = shutil.disk_usage(out).free
     if available < 32 * 2**30 or free < 100 * 2**30:
         raise RuntimeError('resource_gate_memory_or_disk_below_registered_floor')
-    # Include adapter/optimizer recovery points and retained evidence. Never
-    # silently delete older checkpoints to satisfy the registered run budget.
+    # Include all retained adapters, evidence and bounded recovery states.
+    # Retention runs only after durable commits, never to bypass this cap.
     run_bytes = sum(p.stat().st_size for p in Path(out).rglob('*') if p.is_file())
     if run_bytes >= CONFIG['max_new_run_disk_GiB'] * 2**30:
         raise RuntimeError('registered_60GiB_run_growth_cap_reached')
@@ -366,6 +377,9 @@ def run(args):
         else:
             manifest['initialized_policy'] = actual_policy
             atomic_json(manifest_path, manifest)
+            checkpoint_retention.initialize(out)
+        if not (out / checkpoint_retention.LEDGER).is_file():
+            raise ValueError('fresh_owned_checkpoint_retention_ledger_required')
         optimizer = torch.optim.AdamW(policy.trainable, lr=CONFIG['lr'], betas=tuple(CONFIG['betas']),
                                      eps=CONFIG['eps'], weight_decay=CONFIG['weight_decay'])
         # LambdaLR applies lambda(0) at construction: update1 uses 0.5*lr,
@@ -508,6 +522,8 @@ def run(args):
                 append_jsonl(out / 'training_metrics.jsonl', metrics)
             state['status'] = 'budget_complete'
             persist_journal(out, state, policy)
+            checkpoint_retention.after_commit(out, state['checkpoint'], anchors=[state['checkpoint']],
+                load_recovery=lambda path: torch.load(path, map_location='cpu', weights_only=False))
         except BaseException as exc:
             # Never save possibly partly updated weights as a recovery point.
             # The journal still references the last committed adapter/optimizer;
