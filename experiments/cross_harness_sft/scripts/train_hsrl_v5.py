@@ -20,6 +20,7 @@ from pathlib import Path
 import random
 import resource
 import shutil
+import stat
 import subprocess
 import time
 
@@ -63,6 +64,59 @@ def complete_attempt(state, entry):
         raise ValueError('no_reserved_attempt')
     state['episodes'].append(entry)
     state['inflight'] = None
+
+
+def seal_episode_evidence(out, episode):
+    """Durable quiescent episode before its completed journal pointer exists."""
+    out, episode = Path(out).absolute(), Path(episode).absolute()
+    if out.resolve() != out or episode.resolve() != episode:
+        raise ValueError('episode_evidence_symlink_path')
+    if not episode.is_relative_to(out / 'episodes') or not episode.is_dir():
+        raise ValueError('episode_evidence_outside_owned_run')
+    paths = list(episode.rglob('*'))
+    directories = [episode]
+    for path in paths:
+        if path.is_symlink():
+            raise ValueError('episode_evidence_symlink')
+        mode = path.stat().st_mode
+        if stat.S_ISDIR(mode):
+            directories.append(path)
+        elif stat.S_ISREG(mode):
+            descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+            try:
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+        else:
+            raise ValueError('episode_evidence_special_file')
+    for path in sorted(directories, key=lambda p: len(p.parts), reverse=True):
+        descriptor = os.open(path, os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+    parent = episode.parent
+    while True:
+        descriptor = os.open(parent, os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+        if parent == out.parent:
+            break
+        parent = parent.parent
+
+
+def commit_completed_attempt(out, state, entry, policy):
+    episode = Path(entry['episode_path']).parent
+    if ((state.get('inflight') or {}).get('directory') != str(episode)
+            or file_hash(entry['episode_path']) != entry['sha256']):
+        raise ValueError('completed_episode_does_not_match_reserved_attempt')
+    # Every barrier precedes mutation. A failure leaves the reserved attempt
+    # and previous authoritative journal available for explicit reconciliation.
+    seal_episode_evidence(out, episode)
+    complete_attempt(state, entry)
+    persist_journal(out, state, policy)
 
 
 def prepare_update(groups, policy_version):
@@ -133,6 +187,11 @@ def persist_journal(out, state, policy):
     # State and all RNG streams are in ONE atomic file. JSON is a human-readable
     # mirror only and never authoritative for continuation.
     _atomic_torch(out / 'journal.pt', {'state': state, 'rng': policy.rng_state()}, policy.torch)
+    descriptor = os.open(Path(out).parent, os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)  # Persist the run directory itself before action.
+    finally:
+        os.close(descriptor)
     atomic_json(out / 'state.json', state)
 
 
@@ -369,8 +428,7 @@ def run(args):
                     episode = run_episode(dataset, key, row, policy, episode_dir, objective=args.objective)
                     entry = {'episode_path': str(episode_dir / 'episode.json'),
                              'sha256': file_hash(episode_dir / 'episode.json'), 'key': list(key)}
-                    complete_attempt(state, entry)
-                    persist_journal(out, state, policy)
+                    commit_completed_attempt(out, state, entry, policy)
                     if not episode['valid']:
                         raise RuntimeError('real_episode_invalid_stop_for_repair:' + str(episode['error']))
                 episodes = []
