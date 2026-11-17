@@ -36,6 +36,12 @@ def drain_judges(queue, verify_binding, sleep=time.sleep):
     return True
 
 
+def terminal_status(task, accepted):
+    # Canonical judge writes its manifest before summary/teardown. Preserve a
+    # failed control process even when every cached case is already available.
+    return 'needs_judge_process_repair' if task.get('judge_returncode', 0) != 0 else accepted['status']
+
+
 def run_followup(run, out, predecessors):
     run, out = Path(run).resolve(), Path(out).absolute()
     if out.exists():
@@ -77,9 +83,10 @@ def run_followup(run, out, predecessors):
         queue.event(key, 'cached_judge_deferred')
         return 1
     accepted = inspect_run(run, expected, None)
-    queue.tasks[key].update(status=accepted['status'], acceptance=accepted)
-    queue.event(key, accepted['status'])
-    return 0 if accepted['status'] == 'complete' else 1
+    status = terminal_status(queue.tasks[key], accepted)
+    queue.tasks[key].update(status=status, acceptance=accepted)
+    queue.event(key, status)
+    return 0 if status == 'complete' else 1
 
 
 if __name__ == '__main__':

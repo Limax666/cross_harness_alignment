@@ -7,3 +7,14 @@ Pure read-only retained-data test: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=s
 ## Review fixround1
 
 Original implementer is root for this small independent orchestrationtask; root amended own code and requests scoped independentreview, without overlapping Pi agentfiles. Both Important findings accepted. ImmutablePID/startticks wait survivesexec; explicit pendingjudge condition avoids falsecompletedjudge deferral; bindingrecheckoccursafterfinalpoll aswell. Pure controller boundarytests cover actual terminalsuccess/failure distinction, pendinglease, exec/PIDreuse. Exactsamecommand above final3passed0.15s (retainedfix1_green.log); REDmissinghelpers2fail1pass retainedfix1_red. No live/API/model/GPU/source/cron actions. Sourcefullacceptance stillunchanged; running/final128/judgecoverage notmanufactured.
+
+## Review fixround2
+
+Accepted nonzerojudge control-error finding. Finalterminal_status preserves needs_judge_process_repair andnonzero followerexit evenwhen actual128 cachedmanifestcomplete. Actualcoverage andrawreturncode retained, noAPIretry/overwrite. Fourterminalpredicateassertions added (cached,success,nonzero/full,sourceincomplete). Samefocusedcommand finaloutput:
+
+```
+....                                                                     [100%]
+4 passed in 0.15s
+```
+
+RED1failed3passed retainedfix2_red.log; no live/API/model/source/GPU actions.

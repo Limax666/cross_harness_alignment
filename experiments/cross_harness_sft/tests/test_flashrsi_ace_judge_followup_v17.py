@@ -45,3 +45,11 @@ def test_judge_finished_success_and_failure_are_not_lease_deferral():
     queue = Boundary('source_valid_needs_judge')
     queue.judge, queue.judges = None, [('opencode/ace', Path('/unused'))]
     assert not drain_judges(queue, lambda: None, lambda _: None)
+
+
+def test_final_verdict_preserves_nonzero_judge_exit_even_when_manifest_is_complete():
+    from flashrsi_ace_judge_followup_v17 import terminal_status
+    assert terminal_status({}, {'status': 'complete'}) == 'complete'  # Cached.
+    assert terminal_status({'judge_returncode': 0}, {'status': 'complete'}) == 'complete'
+    assert terminal_status({'judge_returncode': 1}, {'status': 'complete'}) == 'needs_judge_process_repair'
+    assert terminal_status({'judge_returncode': 0}, {'status': 'needs_judge'}) == 'needs_judge'
