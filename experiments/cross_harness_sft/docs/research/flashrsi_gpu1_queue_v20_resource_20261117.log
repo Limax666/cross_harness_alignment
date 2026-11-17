@@ -1,0 +1,12 @@
+{
+  "resource": {
+    "path": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/flashrsi_harnessrisk_4b_private_pi_gepa_interpreter_v4_20261114/pi_initial_full/initial_snapshot.json",
+    "canonical_path": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/flashrsi_harnessrisk_4b_private_pi_v3_20261114/pi_initial_full/initial_snapshot.json",
+    "sha256": "285e34f76191883d544f9d3fc3397c62e6c8d1480bb3726beb9ab7f95718a201",
+    "snapshot_id": "dd0db4bf42de4f0c6888fff1b287bb56d1d58832ceb7e21b285887d832f4ead2",
+    "agent_type": "pi"
+  },
+  "trusted_core_load_save_roundtrip": "identical bytes and Snapshot ID",
+  "original_resource_unchanged": true,
+  "candidate_code_imported_or_executed": false
+}
