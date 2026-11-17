@@ -54,3 +54,23 @@ The new tests cover actual registry/commands/budgets/manifest/reference field na
 ## Remaining empirical gates
 
 Claude implementation review is still pending at this checkpoint. Genuine queue CLI waiting/lease/supersession, Claude/Pi H0 and six RSI algorithms, selected full128, native continuation/compaction/context/tool/mock/provider/namespace cleanup and actual cached/paid judge outcomes remain unverified here. No process existence, helper test, source hash or resource roundtrip is presented as runtime/full128 acceptance or baseline improvement. Root must complete independent reviews and preserve the live predecessor/active ACE before any waiting-queue replacement or genuine dispatch.
+
+## Fix round 1 — current queue completion guard for I1
+
+The independent v21 review identified Important I1: historical `complete` precedence could leave top-level `all_complete=true` while an identity-matched live queue owned fresh queued/running/failed/blocked work. This round changes only the owned v21 scanner, its covering tests and this report/evidence. The reviewed v21 queue, v20/Pi/Claude implementations and older scanners are untouched. Review base for this fix is `5855389`; independent re-review is still required.
+
+Historical job status/count precedence is preserved and explicitly labelled `aggregation_mode=best_historical_verified_run`, both globally and per job. Each historical complete job exposes its chosen verified run's `path` and `protocol` in `best_historical_verified_run`; `historical_all_complete` retains that coverage reduction. No historical result or run record is erased.
+
+`current_queue_jobs` separately contains every retained task from exactly identity-matched live queues, including H0, with job ID, raw retained task/evidence, current status, queue path/protocol and matched launcher identity. `current_queue_counts` counts these current statuses; `current_queue_status` is `complete`, `incomplete`, or `no_identity_matched_live_queue`. Queued, running, failed and blocked states remain explicit regardless of historical completion. Multiple live queues retain separate rows. An empty/unreadable task manifest in an owned queue becomes `invalid_task_manifest`, which blocks completion rather than disappearing.
+
+Top-level `all_complete` now requires **both** historical coverage and every identity-owned current task to be complete. A reused/orphan PID owns no current tasks; retained queue data still remains visible in `queues`, and the no-owned-live-queue status labels the historical-only case. A live process is never completion evidence. A retained `complete` algorithm row additionally requires its exact current run to pass actual scanner source/judge inspection; an already inspected matching run is reused without scanning again. A retained `complete` H0 requires the trusted queue-manifest contract, actual H0 admission and exact cached judge acceptance. These callbacks read evidence and retain all existing native/legacy admission gates. Missing/mismatched source or judge proof produces `current_completion_not_verified` while preserving the original retained task row.
+
+The pre-fix targeted regressions recorded eight failures in `flashrsi_gpu1_queue_v21_fix1_red_20261117.log` (the prior scanner lacked the newly required source-proof callback imports/current view). The final reproducible commands were:
+
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:src:vendor/FlashRSI .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_gpu1_queue_v21.py tests/test_flashrsi_gpu1_queue_v20.py tests/test_flashrsi_gpu1_queue_v17.py
+.venv-rl-pilot/bin/python -m py_compile scripts/flashrsi_matrix_repair_scan_v21.py tests/test_flashrsi_gpu1_queue_v21.py
+git diff --exit-code 5855389 -- scripts/flashrsi_matrix_gpu1_queue_v21.py scripts/flashrsi_matrix_gpu1_queue_v20.py tests/test_flashrsi_gpu1_queue_v20.py
+```
+
+Observed **88 passed in 3.10s**, exit 0; compilation and unchanged reviewed-queue checks exited 0. The final log is `flashrsi_gpu1_queue_v21_fix1_green_20261117.log`. New pure fixtures cover all 40 accepted historical jobs plus fresh queued/running/repair/cleanup-blocked states; failed H0 and all six blocked algorithms; complete current H0/algorithms with successful versus failed source/judge proof; unreadable/empty owned task manifests; and reused PID rejection. Source/profile/judge callbacks and all process observations remain unit boundaries, not fabricated experiments. No actual scan, process inspection, native/source/model/GPU/API/network/Docker operation or queue launch was performed. The scoped fix patch is `flashrsi_gpu1_queue_v21_fix1_review.diff`, limited to scanner/tests/report changes against `5855389`.

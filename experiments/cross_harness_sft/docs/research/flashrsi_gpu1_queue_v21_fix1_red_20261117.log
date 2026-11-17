@@ -1,0 +1,466 @@
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+_____ test_historical_all40_complete_cannot_hide_fresh_owned_state[queued] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_historical_all40_complete0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37b52950>
+current_status = 'queued'
+
+    @pytest.mark.parametrize('current_status', ['queued', 'running', 'requires_repair', 'blocked_cleanup_uncertain'])
+    def test_historical_all40_complete_cannot_hide_fresh_owned_state(tmp_path, monkeypatch, current_status):
+>       scanner, root, old = historical_and_current(tmp_path, monkeypatch, {'pi/opro': {'status': current_status}})
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_gpu1_queue_v21.py:439: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_historical_all40_complete0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37b52950>
+tasks = {'pi/opro': {'status': 'queued'}}, owned = True, source_complete = True
+
+    def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
+        import flashrsi_matrix_repair_scan_v21 as scanner
+        outputs = tmp_path / 'outputs'; outputs.mkdir()
+        manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                    'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
+        queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
+        old = outputs / 'flashrsi_historical'
+        for harness in scanner.matrix.HARNESSES:
+            for algorithm in scanner.matrix.ALGORITHMS:
+                if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
+                run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
+        root = outputs / 'flashrsi_current_v21'
+        script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
+        identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
+        queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
+        queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
+        queue.save(root / 'pidboard.json', {'launcher': identity})
+        queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
+        queue.save(root / 'case_manifest.json', manifest)
+        for key, task in tasks.items():
+            harness, algorithm = key.split('/')
+            if task['status'] == 'complete':
+                run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
+        current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
+        monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
+        monkeypatch.setattr(scanner, 'active_runs', lambda: {})
+        monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
+        monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
+        monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'native_unit_profile',
+                             'status': 'complete' if source_complete else 'needs_repair'})
+>       monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
+E       AttributeError: <module 'flashrsi_matrix_repair_scan_v21' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py'> has no attribute 'initial_acceptance'
+
+tests/test_flashrsi_gpu1_queue_v21.py:432: AttributeError
+____ test_historical_all40_complete_cannot_hide_fresh_owned_state[running] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_historical_all40_complete1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37b53310>
+current_status = 'running'
+
+    @pytest.mark.parametrize('current_status', ['queued', 'running', 'requires_repair', 'blocked_cleanup_uncertain'])
+    def test_historical_all40_complete_cannot_hide_fresh_owned_state(tmp_path, monkeypatch, current_status):
+>       scanner, root, old = historical_and_current(tmp_path, monkeypatch, {'pi/opro': {'status': current_status}})
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_gpu1_queue_v21.py:439: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_historical_all40_complete1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37b53310>
+tasks = {'pi/opro': {'status': 'running'}}, owned = True, source_complete = True
+
+    def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
+        import flashrsi_matrix_repair_scan_v21 as scanner
+        outputs = tmp_path / 'outputs'; outputs.mkdir()
+        manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                    'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
+        queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
+        old = outputs / 'flashrsi_historical'
+        for harness in scanner.matrix.HARNESSES:
+            for algorithm in scanner.matrix.ALGORITHMS:
+                if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
+                run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
+        root = outputs / 'flashrsi_current_v21'
+        script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
+        identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
+        queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
+        queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
+        queue.save(root / 'pidboard.json', {'launcher': identity})
+        queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
+        queue.save(root / 'case_manifest.json', manifest)
+        for key, task in tasks.items():
+            harness, algorithm = key.split('/')
+            if task['status'] == 'complete':
+                run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
+        current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
+        monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
+        monkeypatch.setattr(scanner, 'active_runs', lambda: {})
+        monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
+        monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
+        monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'native_unit_profile',
+                             'status': 'complete' if source_complete else 'needs_repair'})
+>       monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
+E       AttributeError: <module 'flashrsi_matrix_repair_scan_v21' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py'> has no attribute 'initial_acceptance'
+
+tests/test_flashrsi_gpu1_queue_v21.py:432: AttributeError
+_ test_historical_all40_complete_cannot_hide_fresh_owned_state[requires_repair] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_historical_all40_complete2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37aac550>
+current_status = 'requires_repair'
+
+    @pytest.mark.parametrize('current_status', ['queued', 'running', 'requires_repair', 'blocked_cleanup_uncertain'])
+    def test_historical_all40_complete_cannot_hide_fresh_owned_state(tmp_path, monkeypatch, current_status):
+>       scanner, root, old = historical_and_current(tmp_path, monkeypatch, {'pi/opro': {'status': current_status}})
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_gpu1_queue_v21.py:439: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_historical_all40_complete2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37aac550>
+tasks = {'pi/opro': {'status': 'requires_repair'}}, owned = True
+source_complete = True
+
+    def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
+        import flashrsi_matrix_repair_scan_v21 as scanner
+        outputs = tmp_path / 'outputs'; outputs.mkdir()
+        manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                    'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
+        queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
+        old = outputs / 'flashrsi_historical'
+        for harness in scanner.matrix.HARNESSES:
+            for algorithm in scanner.matrix.ALGORITHMS:
+                if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
+                run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
+        root = outputs / 'flashrsi_current_v21'
+        script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
+        identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
+        queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
+        queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
+        queue.save(root / 'pidboard.json', {'launcher': identity})
+        queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
+        queue.save(root / 'case_manifest.json', manifest)
+        for key, task in tasks.items():
+            harness, algorithm = key.split('/')
+            if task['status'] == 'complete':
+                run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
+        current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
+        monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
+        monkeypatch.setattr(scanner, 'active_runs', lambda: {})
+        monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
+        monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
+        monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'native_unit_profile',
+                             'status': 'complete' if source_complete else 'needs_repair'})
+>       monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
+E       AttributeError: <module 'flashrsi_matrix_repair_scan_v21' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py'> has no attribute 'initial_acceptance'
+
+tests/test_flashrsi_gpu1_queue_v21.py:432: AttributeError
+_ test_historical_all40_complete_cannot_hide_fresh_owned_state[blocked_cleanup_uncertain] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_historical_all40_complete3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37c55d10>
+current_status = 'blocked_cleanup_uncertain'
+
+    @pytest.mark.parametrize('current_status', ['queued', 'running', 'requires_repair', 'blocked_cleanup_uncertain'])
+    def test_historical_all40_complete_cannot_hide_fresh_owned_state(tmp_path, monkeypatch, current_status):
+>       scanner, root, old = historical_and_current(tmp_path, monkeypatch, {'pi/opro': {'status': current_status}})
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_gpu1_queue_v21.py:439: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_historical_all40_complete3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37c55d10>
+tasks = {'pi/opro': {'status': 'blocked_cleanup_uncertain'}}, owned = True
+source_complete = True
+
+    def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
+        import flashrsi_matrix_repair_scan_v21 as scanner
+        outputs = tmp_path / 'outputs'; outputs.mkdir()
+        manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                    'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
+        queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
+        old = outputs / 'flashrsi_historical'
+        for harness in scanner.matrix.HARNESSES:
+            for algorithm in scanner.matrix.ALGORITHMS:
+                if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
+                run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
+        root = outputs / 'flashrsi_current_v21'
+        script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
+        identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
+        queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
+        queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
+        queue.save(root / 'pidboard.json', {'launcher': identity})
+        queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
+        queue.save(root / 'case_manifest.json', manifest)
+        for key, task in tasks.items():
+            harness, algorithm = key.split('/')
+            if task['status'] == 'complete':
+                run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
+        current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
+        monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
+        monkeypatch.setattr(scanner, 'active_runs', lambda: {})
+        monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
+        monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
+        monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'native_unit_profile',
+                             'status': 'complete' if source_complete else 'needs_repair'})
+>       monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
+E       AttributeError: <module 'flashrsi_matrix_repair_scan_v21' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py'> has no attribute 'initial_acceptance'
+
+tests/test_flashrsi_gpu1_queue_v21.py:432: AttributeError
+___ test_current_failed_h0_and_all_six_blocked_are_not_historical_completion ___
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_current_failed_h0_and_all0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37c44850>
+
+    def test_current_failed_h0_and_all_six_blocked_are_not_historical_completion(tmp_path, monkeypatch):
+        tasks = {'pi/initial': {'status': 'blocked_initial_requires_repair'},
+                 **{'pi/' + a: {'status': 'blocked_same_protocol_initial'} for a in queue.ALGORITHMS}}
+>       scanner, _, _ = historical_and_current(tmp_path, monkeypatch, tasks)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_gpu1_queue_v21.py:457: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_current_failed_h0_and_all0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37c44850>
+tasks = {'pi/initial': {'status': 'blocked_initial_requires_repair'}, 'pi/opro': {'status': 'blocked_same_protocol_initial'}, 'pi/gepa': {'status': 'blocked_same_protocol_initial'}, 'pi/evoprompt': {'status': 'blocked_same_protocol_initial'}, ...}
+owned = True, source_complete = True
+
+    def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
+        import flashrsi_matrix_repair_scan_v21 as scanner
+        outputs = tmp_path / 'outputs'; outputs.mkdir()
+        manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                    'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
+        queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
+        old = outputs / 'flashrsi_historical'
+        for harness in scanner.matrix.HARNESSES:
+            for algorithm in scanner.matrix.ALGORITHMS:
+                if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
+                run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
+        root = outputs / 'flashrsi_current_v21'
+        script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
+        identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
+        queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
+        queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
+        queue.save(root / 'pidboard.json', {'launcher': identity})
+        queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
+        queue.save(root / 'case_manifest.json', manifest)
+        for key, task in tasks.items():
+            harness, algorithm = key.split('/')
+            if task['status'] == 'complete':
+                run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
+        current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
+        monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
+        monkeypatch.setattr(scanner, 'active_runs', lambda: {})
+        monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
+        monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
+        monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'native_unit_profile',
+                             'status': 'complete' if source_complete else 'needs_repair'})
+>       monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
+E       AttributeError: <module 'flashrsi_matrix_repair_scan_v21' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py'> has no attribute 'initial_acceptance'
+
+tests/test_flashrsi_gpu1_queue_v21.py:432: AttributeError
+_________ test_current_complete_requires_source_and_judge_proof[True] __________
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_current_complete_requires0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37f379d0>
+source_complete = True
+
+    @pytest.mark.parametrize('source_complete', [True, False])
+    def test_current_complete_requires_source_and_judge_proof(tmp_path, monkeypatch, source_complete):
+        tasks = {'pi/' + a: {'status': 'complete'} for a in ('initial', *queue.ALGORITHMS)}
+>       scanner, _, _ = historical_and_current(tmp_path, monkeypatch, tasks, source_complete=source_complete)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_gpu1_queue_v21.py:467: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_current_complete_requires0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37f379d0>
+tasks = {'pi/initial': {'status': 'complete'}, 'pi/opro': {'status': 'complete'}, 'pi/gepa': {'status': 'complete'}, 'pi/evoprompt': {'status': 'complete'}, ...}
+owned = True, source_complete = True
+
+    def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
+        import flashrsi_matrix_repair_scan_v21 as scanner
+        outputs = tmp_path / 'outputs'; outputs.mkdir()
+        manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                    'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
+        queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
+        old = outputs / 'flashrsi_historical'
+        for harness in scanner.matrix.HARNESSES:
+            for algorithm in scanner.matrix.ALGORITHMS:
+                if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
+                run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
+        root = outputs / 'flashrsi_current_v21'
+        script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
+        identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
+        queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
+        queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
+        queue.save(root / 'pidboard.json', {'launcher': identity})
+        queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
+        queue.save(root / 'case_manifest.json', manifest)
+        for key, task in tasks.items():
+            harness, algorithm = key.split('/')
+            if task['status'] == 'complete':
+                run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
+        current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
+        monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
+        monkeypatch.setattr(scanner, 'active_runs', lambda: {})
+        monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
+        monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
+        monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'native_unit_profile',
+                             'status': 'complete' if source_complete else 'needs_repair'})
+>       monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
+E       AttributeError: <module 'flashrsi_matrix_repair_scan_v21' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py'> has no attribute 'initial_acceptance'
+
+tests/test_flashrsi_gpu1_queue_v21.py:432: AttributeError
+_________ test_current_complete_requires_source_and_judge_proof[False] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_current_complete_requires1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37a814d0>
+source_complete = False
+
+    @pytest.mark.parametrize('source_complete', [True, False])
+    def test_current_complete_requires_source_and_judge_proof(tmp_path, monkeypatch, source_complete):
+        tasks = {'pi/' + a: {'status': 'complete'} for a in ('initial', *queue.ALGORITHMS)}
+>       scanner, _, _ = historical_and_current(tmp_path, monkeypatch, tasks, source_complete=source_complete)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_gpu1_queue_v21.py:467: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_current_complete_requires1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37a814d0>
+tasks = {'pi/initial': {'status': 'complete'}, 'pi/opro': {'status': 'complete'}, 'pi/gepa': {'status': 'complete'}, 'pi/evoprompt': {'status': 'complete'}, ...}
+owned = True, source_complete = False
+
+    def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
+        import flashrsi_matrix_repair_scan_v21 as scanner
+        outputs = tmp_path / 'outputs'; outputs.mkdir()
+        manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                    'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
+        queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
+        old = outputs / 'flashrsi_historical'
+        for harness in scanner.matrix.HARNESSES:
+            for algorithm in scanner.matrix.ALGORITHMS:
+                if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
+                run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
+        root = outputs / 'flashrsi_current_v21'
+        script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
+        identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
+        queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
+        queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
+        queue.save(root / 'pidboard.json', {'launcher': identity})
+        queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
+        queue.save(root / 'case_manifest.json', manifest)
+        for key, task in tasks.items():
+            harness, algorithm = key.split('/')
+            if task['status'] == 'complete':
+                run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
+        current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
+        monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
+        monkeypatch.setattr(scanner, 'active_runs', lambda: {})
+        monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
+        monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
+        monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'native_unit_profile',
+                             'status': 'complete' if source_complete else 'needs_repair'})
+>       monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
+E       AttributeError: <module 'flashrsi_matrix_repair_scan_v21' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py'> has no attribute 'initial_acceptance'
+
+tests/test_flashrsi_gpu1_queue_v21.py:432: AttributeError
+___________ test_orphan_or_reused_pid_never_owns_current_queue_state ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_orphan_or_reused_pid_neve0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37ae7690>
+
+    def test_orphan_or_reused_pid_never_owns_current_queue_state(tmp_path, monkeypatch):
+>       scanner, _, _ = historical_and_current(tmp_path, monkeypatch, {'pi/initial': {'status': 'requires_repair'}}, owned=False)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_gpu1_queue_v21.py:477: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-335/test_orphan_or_reused_pid_neve0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x732c37ae7690>
+tasks = {'pi/initial': {'status': 'requires_repair'}}, owned = False
+source_complete = True
+
+    def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
+        import flashrsi_matrix_repair_scan_v21 as scanner
+        outputs = tmp_path / 'outputs'; outputs.mkdir()
+        manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                    'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
+        queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
+        old = outputs / 'flashrsi_historical'
+        for harness in scanner.matrix.HARNESSES:
+            for algorithm in scanner.matrix.ALGORITHMS:
+                if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
+                run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
+        root = outputs / 'flashrsi_current_v21'
+        script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
+        identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
+        queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
+        queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
+        queue.save(root / 'pidboard.json', {'launcher': identity})
+        queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
+        queue.save(root / 'case_manifest.json', manifest)
+        for key, task in tasks.items():
+            harness, algorithm = key.split('/')
+            if task['status'] == 'complete':
+                run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+                queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
+        current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
+        monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
+        monkeypatch.setattr(scanner, 'active_runs', lambda: {})
+        monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
+        monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
+        monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
+                            {'path': str(run), 'protocol': 'native_unit_profile',
+                             'status': 'complete' if source_complete else 'needs_repair'})
+>       monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
+E       AttributeError: <module 'flashrsi_matrix_repair_scan_v21' from '/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py'> has no attribute 'initial_acceptance'
+
+tests/test_flashrsi_gpu1_queue_v21.py:432: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_historical_all40_complete_cannot_hide_fresh_owned_state[queued]
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_historical_all40_complete_cannot_hide_fresh_owned_state[running]
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_historical_all40_complete_cannot_hide_fresh_owned_state[requires_repair]
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_historical_all40_complete_cannot_hide_fresh_owned_state[blocked_cleanup_uncertain]
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_current_failed_h0_and_all_six_blocked_are_not_historical_completion
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_current_complete_requires_source_and_judge_proof[True]
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_current_complete_requires_source_and_judge_proof[False]
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_orphan_or_reused_pid_never_owns_current_queue_state
+8 failed, 28 deselected in 2.02s

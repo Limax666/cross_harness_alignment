@@ -1,0 +1,236 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_implementation_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_implementation_20261117.md
+index 3bcace6..d8771f4 100644
+--- a/experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_implementation_20261117.md
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_implementation_20261117.md
+@@ -54,3 +54,23 @@ The new tests cover actual registry/commands/budgets/manifest/reference field na
+ ## Remaining empirical gates
+ 
+ Claude implementation review is still pending at this checkpoint. Genuine queue CLI waiting/lease/supersession, Claude/Pi H0 and six RSI algorithms, selected full128, native continuation/compaction/context/tool/mock/provider/namespace cleanup and actual cached/paid judge outcomes remain unverified here. No process existence, helper test, source hash or resource roundtrip is presented as runtime/full128 acceptance or baseline improvement. Root must complete independent reviews and preserve the live predecessor/active ACE before any waiting-queue replacement or genuine dispatch.
++
++## Fix round 1 — current queue completion guard for I1
++
++The independent v21 review identified Important I1: historical `complete` precedence could leave top-level `all_complete=true` while an identity-matched live queue owned fresh queued/running/failed/blocked work. This round changes only the owned v21 scanner, its covering tests and this report/evidence. The reviewed v21 queue, v20/Pi/Claude implementations and older scanners are untouched. Review base for this fix is `5855389`; independent re-review is still required.
++
++Historical job status/count precedence is preserved and explicitly labelled `aggregation_mode=best_historical_verified_run`, both globally and per job. Each historical complete job exposes its chosen verified run's `path` and `protocol` in `best_historical_verified_run`; `historical_all_complete` retains that coverage reduction. No historical result or run record is erased.
++
++`current_queue_jobs` separately contains every retained task from exactly identity-matched live queues, including H0, with job ID, raw retained task/evidence, current status, queue path/protocol and matched launcher identity. `current_queue_counts` counts these current statuses; `current_queue_status` is `complete`, `incomplete`, or `no_identity_matched_live_queue`. Queued, running, failed and blocked states remain explicit regardless of historical completion. Multiple live queues retain separate rows. An empty/unreadable task manifest in an owned queue becomes `invalid_task_manifest`, which blocks completion rather than disappearing.
++
++Top-level `all_complete` now requires **both** historical coverage and every identity-owned current task to be complete. A reused/orphan PID owns no current tasks; retained queue data still remains visible in `queues`, and the no-owned-live-queue status labels the historical-only case. A live process is never completion evidence. A retained `complete` algorithm row additionally requires its exact current run to pass actual scanner source/judge inspection; an already inspected matching run is reused without scanning again. A retained `complete` H0 requires the trusted queue-manifest contract, actual H0 admission and exact cached judge acceptance. These callbacks read evidence and retain all existing native/legacy admission gates. Missing/mismatched source or judge proof produces `current_completion_not_verified` while preserving the original retained task row.
++
++The pre-fix targeted regressions recorded eight failures in `flashrsi_gpu1_queue_v21_fix1_red_20261117.log` (the prior scanner lacked the newly required source-proof callback imports/current view). The final reproducible commands were:
++
++```bash
++PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:src:vendor/FlashRSI .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_gpu1_queue_v21.py tests/test_flashrsi_gpu1_queue_v20.py tests/test_flashrsi_gpu1_queue_v17.py
++.venv-rl-pilot/bin/python -m py_compile scripts/flashrsi_matrix_repair_scan_v21.py tests/test_flashrsi_gpu1_queue_v21.py
++git diff --exit-code 5855389 -- scripts/flashrsi_matrix_gpu1_queue_v21.py scripts/flashrsi_matrix_gpu1_queue_v20.py tests/test_flashrsi_gpu1_queue_v20.py
++```
++
++Observed **88 passed in 3.10s**, exit 0; compilation and unchanged reviewed-queue checks exited 0. The final log is `flashrsi_gpu1_queue_v21_fix1_green_20261117.log`. New pure fixtures cover all 40 accepted historical jobs plus fresh queued/running/repair/cleanup-blocked states; failed H0 and all six blocked algorithms; complete current H0/algorithms with successful versus failed source/judge proof; unreadable/empty owned task manifests; and reused PID rejection. Source/profile/judge callbacks and all process observations remain unit boundaries, not fabricated experiments. No actual scan, process inspection, native/source/model/GPU/API/network/Docker operation or queue launch was performed. The scoped fix patch is `flashrsi_gpu1_queue_v21_fix1_review.diff`, limited to scanner/tests/report changes against `5855389`.
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py
+index a13ab0d..1ff477b 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py
+@@ -44,9 +44,75 @@ def collect_queue_entries(roots):
+ 
+ 
+ def queued_job_entries(queues, key):
+-    return [{'path': q['path'], 'task': q['tasks']['tasks'][key], 'launcher_identity': q['launcher_identity']}
+-        for q in queues if q['launcher_identity_matches']
+-        and q['tasks'].get('tasks', {}).get(key, {}).get('status') == 'queued']
++    entries = []
++    for queue in queues:
++        document = queue['tasks']
++        tasks = document.get('tasks') if isinstance(document, dict) else None
++        task = tasks.get(key) if isinstance(tasks, dict) else None
++        if queue['launcher_identity_matches'] and isinstance(task, dict) and task.get('status') == 'queued':
++            entries.append({'path': queue['path'], 'task': task, 'launcher_identity': queue['launcher_identity']})
++    return entries
++
++
++def current_completion_proof(queue, key, task, expected, active, inspected):
++    """A retained complete row still needs its exact source/judge evidence."""
++    try:
++        harness, stage = key.split('/')
++        if harness not in matrix.HARNESSES or stage not in ('initial', *matrix.ALGORITHMS):
++            raise ValueError('unknown_current_task_identity')
++        root = Path(queue['path'])
++        run = root / harness / (harness + '_' + stage + '_full')
++        if task.get('path') and Path(task['path']).resolve() != run.resolve():
++            raise ValueError('current_task_evidence_path_mismatch')
++        if stage == 'initial':
++            contract = expected_initial_contract((root / 'case_manifest.json').read_bytes(), harness)
++            good = initial_acceptance(run, expected, contract) and judge_acceptance(run / 'cases', expected)
++            return {'path': str(run), 'status': 'complete' if good else 'needs_repair',
++                    'proof': 'matched_H0_contract_and_exact_cached_judge'}
++        cached = inspected.get(str(run.resolve()))
++        return cached if cached is not None else inspect_scanned_run(run, expected, active.get(str(run.resolve())))
++    except (OSError, ValueError, KeyError, TypeError) as exc:
++        return {'status': 'needs_repair', 'error': str(exc), 'proof': 'current_completion_evidence_invalid'}
++
++
++def with_current_queue_view(result, expected, active):
++    """Keep historical precedence labelled; guard completion with owned tasks."""
++    inspected = {}
++    for job in result['jobs']:
++        job['aggregation_mode'] = 'best_historical_verified_run'
++        verified = [row for row in job['runs'] if row.get('status') == 'complete']
++        best = verified[0] if verified else None
++        job['best_historical_verified_run'] = ({'path': best.get('path'),
++            'protocol': best.get('execution_protocol') or best.get('protocol') or 'unknown'} if best else None)
++        for row in job['runs']:
++            if row.get('path'):
++                inspected[str(Path(row['path']).resolve())] = row
++    current = []
++    for queue in result['queues']:
++        if not queue['launcher_identity_matches']:
++            continue
++        retained = queue['tasks']
++        tasks = retained.get('tasks') if isinstance(retained, dict) else None
++        if not isinstance(tasks, dict) or not tasks:
++            tasks = {'queue/task_manifest': {'status': 'invalid_task_manifest', 'retained_manifest': retained}}
++        for key, task in tasks.items():
++            status = task.get('status', 'unknown_task_state') if isinstance(task, dict) else 'invalid_task_state'
++            row = {'job_id': key, 'status': status, 'queue_path': queue['path'],
++                'queue_protocol': queue['protocol'], 'launcher_identity': queue['launcher_identity'],
++                'retained_task': task}
++            if status == 'complete':
++                proof = current_completion_proof(queue, key, task, expected, active, inspected)
++                row['source_acceptance'] = proof
++                if proof.get('status') != 'complete':
++                    row['status'] = 'current_completion_not_verified'
++            current.append(row)
++    historical_complete = result['all_complete']
++    current_complete = all(row['status'] == 'complete' for row in current)
++    result.update(aggregation_mode='best_historical_verified_run', historical_all_complete=historical_complete,
++        current_queue_jobs=current, current_queue_counts=dict(Counter(row['status'] for row in current)),
++        current_queue_status=('complete' if current_complete else 'incomplete') if current else 'no_identity_matched_live_queue',
++        all_complete=historical_complete and current_complete)
++    return result
+ 
+ 
+ def build_source():
+@@ -56,7 +122,8 @@ def build_source():
+         raise ValueError('reviewed_scanner_protocol_shape_changed')
+     source = source.replace(old, 'FINITE_PROTOCOLS')
+     source = replace_once(source, 'from flashrsi_matrix_gpu1_queue_v17 import read, process_identity',
+-        'from flashrsi_matrix_gpu1_queue_v21 import read, process_identity, NATIVE_PROFILES, inspect_run as strict_inspect_run')
++        'from flashrsi_matrix_gpu1_queue_v21 import read, process_identity, NATIVE_PROFILES, '
++        'expected_initial_contract, initial_acceptance, judge_acceptance, inspect_run as strict_inspect_run')
+     names = "{'flashrsi_harnessrisk_algorithm_reference_v17.py', 'flashrsi_harnessrisk_algorithm_reference_v18.py', 'flashrsi_harnessrisk_algorithm_reference_v19.py'}"
+     source = replace_once(source, names, '(' + names + ' | NATIVE_REFERENCES)')
+     marker = "            env = dict(v.split(b'=', 1) for v in (path / 'environ').read_bytes().split(b'\\0') if b'=' in v)"
+@@ -83,6 +150,9 @@ def build_source():
+     source = replace_once(source, old_queue_report, '')
+     source = replace_once(source, 'v17/v18 registered; original strict acceptance',
+                           'v17-v21 registered; native full proof and scoped live queue tasks')
++    source = replace_once(source, "    return {'jobs': jobs,", "    result = {'jobs': jobs,")
++    source = replace_once(source, "\nif __name__ == '__main__':",
++        "\n    return with_current_queue_view(result, expected, active)\n\nif __name__ == '__main__':")
+     return source
+ 
+ 
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v21.py b/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v21.py
+index 73a2af8..2c3fb2c 100644
+--- a/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v21.py
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v21.py
+@@ -393,3 +393,100 @@ def test_scanner_discovers_both_nested_native_runs_with_actual_scope_pids(tmp_pa
+     result = scanner.scan()
+     assert dict(calls) == runs and len(calls) == 2
+     assert all(job['status'] == 'needs_judge' for job in result['jobs'])
++
++
++def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
++    import flashrsi_matrix_repair_scan_v21 as scanner
++    outputs = tmp_path / 'outputs'; outputs.mkdir()
++    manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
++                'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
++    queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
++    old = outputs / 'flashrsi_historical'
++    for harness in scanner.matrix.HARNESSES:
++        for algorithm in scanner.matrix.ALGORITHMS:
++            if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
++            run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
++            queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
++    root = outputs / 'flashrsi_current_v21'
++    script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
++    identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
++    queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
++    queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
++    queue.save(root / 'pidboard.json', {'launcher': identity})
++    queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
++    queue.save(root / 'case_manifest.json', manifest)
++    for key, task in tasks.items():
++        harness, algorithm = key.split('/')
++        if task['status'] == 'complete':
++            run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
++            queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
++    current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
++    monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
++    monkeypatch.setattr(scanner, 'active_runs', lambda: {})
++    monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
++    monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
++                        {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
++    monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
++                        {'path': str(run), 'protocol': 'native_unit_profile',
++                         'status': 'complete' if source_complete else 'needs_repair'})
++    monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
++    monkeypatch.setattr(scanner, 'judge_acceptance', lambda *args: source_complete)
++    return scanner, root, old
++
++
++@pytest.mark.parametrize('current_status', ['queued', 'running', 'requires_repair', 'blocked_cleanup_uncertain'])
++def test_historical_all40_complete_cannot_hide_fresh_owned_state(tmp_path, monkeypatch, current_status):
++    scanner, root, old = historical_and_current(tmp_path, monkeypatch, {'pi/opro': {'status': current_status}})
++    result = scanner.scan()
++    assert result['aggregation_mode'] == 'best_historical_verified_run'
++    assert result['historical_all_complete'] is True and result['counts']['complete'] == 40
++    job = next(job for job in result['jobs'] if job['job_id'] == 'pi/opro')
++    assert job['status'] == 'complete'
++    assert job['best_historical_verified_run'] == {'path': str(old / 'pi_opro_full'), 'protocol': 'old_verified_host.py'}
++    assert result['current_queue_status'] == 'incomplete'
++    assert result['current_queue_counts'] == {current_status: 1}
++    current = result['current_queue_jobs'][0]
++    assert current['job_id'] == 'pi/opro' and current['status'] == current_status
++    assert current['queue_path'] == str(root) and current['retained_task']['status'] == current_status
++    assert result['all_complete'] is False
++
++
++def test_current_failed_h0_and_all_six_blocked_are_not_historical_completion(tmp_path, monkeypatch):
++    tasks = {'pi/initial': {'status': 'blocked_initial_requires_repair'},
++             **{'pi/' + a: {'status': 'blocked_same_protocol_initial'} for a in queue.ALGORITHMS}}
++    scanner, _, _ = historical_and_current(tmp_path, monkeypatch, tasks)
++    result = scanner.scan()
++    assert result['historical_all_complete'] is True and result['all_complete'] is False
++    assert result['current_queue_counts'] == {'blocked_initial_requires_repair': 1, 'blocked_same_protocol_initial': 6}
++    assert {row['job_id'] for row in result['current_queue_jobs']} == set(tasks)
++
++
++@pytest.mark.parametrize('source_complete', [True, False])
++def test_current_complete_requires_source_and_judge_proof(tmp_path, monkeypatch, source_complete):
++    tasks = {'pi/' + a: {'status': 'complete'} for a in ('initial', *queue.ALGORITHMS)}
++    scanner, _, _ = historical_and_current(tmp_path, monkeypatch, tasks, source_complete=source_complete)
++    result = scanner.scan()
++    assert result['historical_all_complete'] is True
++    assert result['all_complete'] is source_complete
++    assert result['current_queue_status'] == ('complete' if source_complete else 'incomplete')
++    assert result['current_queue_counts'] == {('complete' if source_complete else 'current_completion_not_verified'): 7}
++    assert all(row['retained_task']['status'] == 'complete' and row['source_acceptance'] for row in result['current_queue_jobs'])
++
++
++def test_orphan_or_reused_pid_never_owns_current_queue_state(tmp_path, monkeypatch):
++    scanner, _, _ = historical_and_current(tmp_path, monkeypatch, {'pi/initial': {'status': 'requires_repair'}}, owned=False)
++    result = scanner.scan()
++    assert result['current_queue_jobs'] == [] and result['current_queue_counts'] == {}
++    assert result['current_queue_status'] == 'no_identity_matched_live_queue'
++    assert result['historical_all_complete'] is True and result['all_complete'] is True
++    assert result['queues'][0]['launcher_identity_matches'] is False
++
++
++@pytest.mark.parametrize('retained_manifest', [None, {'tasks': {}}])
++def test_owned_queue_without_readable_tasks_cannot_claim_completion(tmp_path, monkeypatch, retained_manifest):
++    scanner, root, _ = historical_and_current(tmp_path, monkeypatch, {})
++    queue.save(root / 'remaining_tasks.json', retained_manifest)
++    result = scanner.scan()
++    assert result['historical_all_complete'] is True and result['all_complete'] is False
++    assert result['current_queue_counts'] == {'invalid_task_manifest': 1}
++    assert result['current_queue_jobs'][0]['retained_task']['retained_manifest'] == retained_manifest

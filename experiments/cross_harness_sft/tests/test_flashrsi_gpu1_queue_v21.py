@@ -393,3 +393,100 @@ def test_scanner_discovers_both_nested_native_runs_with_actual_scope_pids(tmp_pa
     result = scanner.scan()
     assert dict(calls) == runs and len(calls) == 2
     assert all(job['status'] == 'needs_judge' for job in result['jobs'])
+
+
+def historical_and_current(tmp_path, monkeypatch, tasks, *, owned=True, source_complete=True):
+    import flashrsi_matrix_repair_scan_v21 as scanner
+    outputs = tmp_path / 'outputs'; outputs.mkdir()
+    manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                'flashrsi_revision': 'unit', 'cases': [{'case_id': f'case{i}', 'sha256': 'a' * 64} for i in range(128)]}
+    queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json', manifest)
+    old = outputs / 'flashrsi_historical'
+    for harness in scanner.matrix.HARNESSES:
+        for algorithm in scanner.matrix.ALGORITHMS:
+            if harness == 'opencode' and algorithm in ('skillopt', 'evo_harness'): continue
+            run = old / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+            queue.save(run / 'run_manifest.json', {'host_script': 'old_verified_host.py'})
+    root = outputs / 'flashrsi_current_v21'
+    script = 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
+    identity = {'pid': 900, 'start_ticks': 'retained', 'command': ['python', script, '--out', str(root)]}
+    queue.save(root / 'repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21', 'queue_launcher': script})
+    queue.save(root / 'launch_state.json', {'launcher_pid': 900, 'status': 'waiting_endpoint_capacity'})
+    queue.save(root / 'pidboard.json', {'launcher': identity})
+    queue.save(root / 'remaining_tasks.json', {'tasks': tasks})
+    queue.save(root / 'case_manifest.json', manifest)
+    for key, task in tasks.items():
+        harness, algorithm = key.split('/')
+        if task['status'] == 'complete':
+            run = root / harness / (harness + '_' + algorithm + '_full'); run.mkdir(parents=True)
+            queue.save(run / 'run_manifest.json', {'target_execution_protocol': queue.NATIVE_PROFILES[harness]['profile']})
+    current_identity = identity if owned else {**identity, 'start_ticks': 'reused'}
+    monkeypatch.setattr(scanner, 'process_identity', lambda pid: current_identity if pid == 900 else None)
+    monkeypatch.setattr(scanner, 'active_runs', lambda: {})
+    monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
+    monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid:
+                        {'path': str(run), 'protocol': 'old_verified_host.py', 'status': 'complete'})
+    monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
+                        {'path': str(run), 'protocol': 'native_unit_profile',
+                         'status': 'complete' if source_complete else 'needs_repair'})
+    monkeypatch.setattr(scanner, 'initial_acceptance', lambda *args: source_complete)
+    monkeypatch.setattr(scanner, 'judge_acceptance', lambda *args: source_complete)
+    return scanner, root, old
+
+
+@pytest.mark.parametrize('current_status', ['queued', 'running', 'requires_repair', 'blocked_cleanup_uncertain'])
+def test_historical_all40_complete_cannot_hide_fresh_owned_state(tmp_path, monkeypatch, current_status):
+    scanner, root, old = historical_and_current(tmp_path, monkeypatch, {'pi/opro': {'status': current_status}})
+    result = scanner.scan()
+    assert result['aggregation_mode'] == 'best_historical_verified_run'
+    assert result['historical_all_complete'] is True and result['counts']['complete'] == 40
+    job = next(job for job in result['jobs'] if job['job_id'] == 'pi/opro')
+    assert job['status'] == 'complete'
+    assert job['best_historical_verified_run'] == {'path': str(old / 'pi_opro_full'), 'protocol': 'old_verified_host.py'}
+    assert result['current_queue_status'] == 'incomplete'
+    assert result['current_queue_counts'] == {current_status: 1}
+    current = result['current_queue_jobs'][0]
+    assert current['job_id'] == 'pi/opro' and current['status'] == current_status
+    assert current['queue_path'] == str(root) and current['retained_task']['status'] == current_status
+    assert result['all_complete'] is False
+
+
+def test_current_failed_h0_and_all_six_blocked_are_not_historical_completion(tmp_path, monkeypatch):
+    tasks = {'pi/initial': {'status': 'blocked_initial_requires_repair'},
+             **{'pi/' + a: {'status': 'blocked_same_protocol_initial'} for a in queue.ALGORITHMS}}
+    scanner, _, _ = historical_and_current(tmp_path, monkeypatch, tasks)
+    result = scanner.scan()
+    assert result['historical_all_complete'] is True and result['all_complete'] is False
+    assert result['current_queue_counts'] == {'blocked_initial_requires_repair': 1, 'blocked_same_protocol_initial': 6}
+    assert {row['job_id'] for row in result['current_queue_jobs']} == set(tasks)
+
+
+@pytest.mark.parametrize('source_complete', [True, False])
+def test_current_complete_requires_source_and_judge_proof(tmp_path, monkeypatch, source_complete):
+    tasks = {'pi/' + a: {'status': 'complete'} for a in ('initial', *queue.ALGORITHMS)}
+    scanner, _, _ = historical_and_current(tmp_path, monkeypatch, tasks, source_complete=source_complete)
+    result = scanner.scan()
+    assert result['historical_all_complete'] is True
+    assert result['all_complete'] is source_complete
+    assert result['current_queue_status'] == ('complete' if source_complete else 'incomplete')
+    assert result['current_queue_counts'] == {('complete' if source_complete else 'current_completion_not_verified'): 7}
+    assert all(row['retained_task']['status'] == 'complete' and row['source_acceptance'] for row in result['current_queue_jobs'])
+
+
+def test_orphan_or_reused_pid_never_owns_current_queue_state(tmp_path, monkeypatch):
+    scanner, _, _ = historical_and_current(tmp_path, monkeypatch, {'pi/initial': {'status': 'requires_repair'}}, owned=False)
+    result = scanner.scan()
+    assert result['current_queue_jobs'] == [] and result['current_queue_counts'] == {}
+    assert result['current_queue_status'] == 'no_identity_matched_live_queue'
+    assert result['historical_all_complete'] is True and result['all_complete'] is True
+    assert result['queues'][0]['launcher_identity_matches'] is False
+
+
+@pytest.mark.parametrize('retained_manifest', [None, {'tasks': {}}])
+def test_owned_queue_without_readable_tasks_cannot_claim_completion(tmp_path, monkeypatch, retained_manifest):
+    scanner, root, _ = historical_and_current(tmp_path, monkeypatch, {})
+    queue.save(root / 'remaining_tasks.json', retained_manifest)
+    result = scanner.scan()
+    assert result['historical_all_complete'] is True and result['all_complete'] is False
+    assert result['current_queue_counts'] == {'invalid_task_manifest': 1}
+    assert result['current_queue_jobs'][0]['retained_task']['retained_manifest'] == retained_manifest
