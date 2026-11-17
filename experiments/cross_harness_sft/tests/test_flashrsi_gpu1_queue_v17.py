@@ -19,10 +19,14 @@ def test_initial_transforms_keep_full_inventory_and_actual_budgets():
 
 def test_gepa_entry_composes_contextfit_and_observability():
     source = gepa.build_source()
-    assert 'flashrsi_harnessrisk_benchmark_v17' in source
+    assert 'flashrsi_harnessrisk_benchmark_v18' in source
     assert 'OpenCodeContextfitGEPA' in source
     assert "Path(os.environ['HR_INITIAL_REFERENCE']).resolve()" in source
     compile(source, '<gepa-v18-shape-check>', 'exec')
+    from flashrsi_harnessrisk_algorithm_reference_v19 import build_source
+    ordinary=build_source()
+    assert 'from flashrsi_harnessrisk_benchmark_v18 import HarnessRiskBenchmark,ROOT' in ordinary
+    compile(ordinary,'<ordinary-v19-shape-check>','exec')
 
 
 def test_initial_failed_host_retains_bytes_and_status(tmp_path, monkeypatch):
@@ -53,28 +57,52 @@ def test_initial_timeout_blocks_replacement_and_preserves_evidence(tmp_path, mon
 
 
 def fixture_control(tmp_path):
-    expected = {f'case{i}' for i in range(128)}
-    queue.save(tmp_path / 'initial_snapshot.json', {'id': 'sid', 'agent_type': 'openclaw'})
-    queue.save(tmp_path / 'run_manifest.json', {'snapshot_id': 'sid', 'harness': 'openclaw', 'host_script': 'corrected.py', 'privacy_protocol': 'harnessrisk-private-case-v1'})
-    queue.save(tmp_path / 'completed.json', {'snapshot_id': 'sid', 'completed_scored': 128, 'attempts': 128})
+    run=tmp_path/'control';run.mkdir()
+    manifest={'benchmark':'HarnessRisk','full_evaluation_count':128,
+              'model_revision':'851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+              'flashrsi_revision':'778e2d01a995491fe63db210dcf46db1723a4430',
+              'cases':[{'case_id':f'case{i}','phase':'fixture','sha256':'0'*64,'owner_turns':3} for i in range(128)]}
+    queue.save(tmp_path/'case_manifest.json',manifest)
+    contract=queue.expected_initial_contract((tmp_path/'case_manifest.json').read_bytes(),'openclaw')
+    expected={row['case_id'] for row in manifest['cases']}
+    queue.save(run/'initial_snapshot.json',{'id':'sid','agent_type':'openclaw'})
+    queue.save(run/'run_manifest.json',{'snapshot_id':'sid',**contract})
+    queue.save(run/'completed.json',{'snapshot_id':'sid','completed_scored':128,'attempts':128})
     rows=[]
     for cid in expected:
         rows.append({'case_id':cid,'exit_code':0,'rule_evaluation_present':True})
-        case=tmp_path/'cases'/cid
+        case=run/'cases'/cid
         queue.save(case/'harness_result.json',{'snapshot_id':'sid','status':'completed','process_exit_code':0})
         queue.save(case/'privacy_audit.json',{'protocol':'harnessrisk-private-case-v1'})
         queue.save(case/'official_rule_evaluation.json',{'runs':[{'case_id':cid,'status':'completed'}]})
         queue.save(case/'adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':cid,'ok':True}}}})
-    (tmp_path/'attempts.jsonl').write_text(''.join(json.dumps(row)+'\n' for row in rows))
-    return expected
+    (run/'attempts.jsonl').write_text(''.join(json.dumps(row)+'\n' for row in rows))
+    return run,expected,contract
 
 
 def test_full_initial_gate_checks_identity_not_only_128_files(tmp_path):
-    expected=fixture_control(tmp_path)
-    assert queue.initial_acceptance(tmp_path,expected,'corrected.py')
-    assert not queue.initial_acceptance(tmp_path,expected,'old.py')
-    queue.save(tmp_path/'cases/case0/harness_result.json',{'snapshot_id':'sid','status':'error','process_exit_code':1})
-    assert not queue.initial_acceptance(tmp_path,expected,'corrected.py')
+    run,expected,contract=fixture_control(tmp_path)
+    assert queue.initial_acceptance(run,expected,contract)
+    assert not queue.initial_acceptance(run,expected,{**contract,'host_script':'old.py'})
+    queue.save(run/'cases/case0/harness_result.json',{'snapshot_id':'sid','status':'error','process_exit_code':1})
+    assert not queue.initial_acceptance(run,expected,contract)
+
+
+def test_initial_contract_rejects_same_ids_wrong_bytes_revision_port_and_budget(tmp_path):
+    run,expected,contract=fixture_control(tmp_path)
+    original=queue.read(run/'run_manifest.json')
+    for field,value in [('model_revision','wrong-model'),('flashrsi_revision','wrong-runtime'),
+                        ('model_port',18761),('temperature',1),('max_tokens_per_turn',8192),
+                        ('max_turns_per_owner_turn',24),('harness','pi')]:
+        queue.save(run/'run_manifest.json',{**original,field:value})
+        assert not queue.initial_acceptance(run,expected,contract),field
+    queue.save(run/'run_manifest.json',original)
+    retained=queue.read(tmp_path/'case_manifest.json')
+    retained['cases'][0]['sha256']='f'*64
+    queue.save(tmp_path/'case_manifest.json',retained)
+    # Updating the H0's self-declared hash must not override the trusted queue hash.
+    queue.save(run/'run_manifest.json',{**original,'case_manifest_sha256':queue.sha(tmp_path/'case_manifest.json')})
+    assert not queue.initial_acceptance(run,expected,contract)
 
 
 def test_judge_gate_requires_all_exact_accepted_case_ids(tmp_path):
@@ -95,9 +123,10 @@ def test_source_drift_is_typed_and_never_retried(tmp_path,monkeypatch):
         queue.verify_frozen(pins)
 
 
-def test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0(tmp_path,monkeypatch):
+@pytest.mark.parametrize('uncertain_stage',[None,'opencode/evoprompt','openclaw/initial'])
+def test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0(tmp_path,monkeypatch,uncertain_stage):
     source=tmp_path/'source';source.mkdir()
-    manifest={'cases':[]}
+    manifest={'cases':[],'model_revision':'851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a','flashrsi_revision':'778e2d01a995491fe63db210dcf46db1723a4430'}
     for index in range(128):
         cid=f'case{index}';path=source/(cid+'.json');path.write_text('{}')
         manifest['cases'].append({'case_id':cid,'sha256':queue.sha(path)})
@@ -115,8 +144,24 @@ def test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0(tm
     controller=queue.Queue(tmp_path/'queue')
     def execute(key,command,env,*args):
         calls.append((key,command,env))
+        if key==uncertain_stage:
+            harness,stage=key.split('/')
+            run=Path(env['HR_OUTPUT_ROOT'])/(harness+'_'+('initial_full' if stage=='initial' else stage+'_full'))
+            receipt=run/('host_observability/case/host_execution.json' if stage=='initial' else 'evidence/00000001/host_execution.json')
+            queue.save(receipt,{'timed_out':True,**({'cleanup_confirmed':False} if stage=='initial' else {})})
         return 2
     monkeypatch.setattr(controller,'execute',execute)
+    if uncertain_stage:
+        with pytest.raises(queue.QueueCleanupUncertain):
+            controller.run(manifest,[])
+        assert calls[-1][0]==uncertain_stage
+        assert controller.tasks['codex/initial']['status']=='blocked_cleanup_uncertain'
+        assert (controller.out/'queue_cleanup_block.json').exists()
+        assert queue.read(controller.out/'ready.json')['ready_for_authorized_finite_queue'] is False
+        # An empty name scan is not descendant reconciliation or an unblock.
+        with pytest.raises(queue.QueueCleanupUncertain):
+            controller.check_cleanup()
+        return
     controller.run(manifest,[])
     assert [key for key,_,_ in calls]==['opencode/evoprompt','opencode/gepa','openclaw/initial','codex/initial']
     assert calls[1][1][0].endswith('reference_v18.py')
@@ -139,12 +184,12 @@ def test_billing_guard_does_not_call_api_or_block_model_queue(tmp_path,monkeypat
 
 
 def test_initial_gate_rejects_wrong_mock_reset_and_unexpected_extra_case(tmp_path):
-    expected=fixture_control(tmp_path)
-    queue.save(tmp_path/'cases/case0/adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':'other','ok':True}}}})
-    assert not queue.initial_acceptance(tmp_path,expected,'corrected.py')
-    queue.save(tmp_path/'cases/case0/adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':'case0','ok':True}}}})
-    queue.save(tmp_path/'cases/extra/harness_result.json',{'status':'completed'})
-    assert not queue.initial_acceptance(tmp_path,expected,'corrected.py')
+    run,expected,contract=fixture_control(tmp_path)
+    queue.save(run/'cases/case0/adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':'other','ok':True}}}})
+    assert not queue.initial_acceptance(run,expected,contract)
+    queue.save(run/'cases/case0/adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':'case0','ok':True}}}})
+    queue.save(run/'cases/extra/harness_result.json',{'status':'completed'})
+    assert not queue.initial_acceptance(run,expected,contract)
 
 
 def test_existing_queue_directory_is_never_overwritten_on_relaunch(tmp_path,monkeypatch):
@@ -154,3 +199,36 @@ def test_existing_queue_directory_is_never_overwritten_on_relaunch(tmp_path,monk
     with pytest.raises(RuntimeError,match='output_exists_preserved'):
         queue.main()
     assert state.read_text()=='{"retain":"evidence"}'
+
+
+def test_algorithm_timeout_aborts_rollout_before_next_case(tmp_path,monkeypatch):
+    import asyncio
+    from flashrsi.core import Task,Trajectory
+    import flashrsi_harnessrisk_benchmark_v18 as guarded
+    calls=[]
+    async def boundary(controller,target,task):
+        calls.append(task.task_id);controller._sequence+=1
+        queue.save(tmp_path/'evidence'/f'{controller._sequence:08d}'/'host_execution.json',{'timed_out':True})
+        return Trajectory(status='error',error_message='HarnessRisk host timeout')
+    monkeypatch.setattr(guarded.ObservedBenchmark,'_run_once',boundary)
+    controller=guarded.HarnessRiskBenchmark(tmp_path)
+    target=SimpleNamespace(snapshot=SimpleNamespace(id='fixture'))
+    tasks=[Task(task_id='first',question='owner',env='harnessrisk'),Task(task_id='must-not-start',question='owner',env='harnessrisk')]
+    async def rollout():
+        for task in tasks:
+            await controller.env_runner(target,task)
+    with pytest.raises(guarded.HostCleanupUncertain,match='identity_reconciliation'):
+        asyncio.run(rollout())
+    assert calls==['first']
+
+
+def test_exact_predecessor_timeout_scope_blocks_even_with_no_lane_clients(tmp_path):
+    old=tmp_path/'owned-predecessor';out=tmp_path/'new-queue';out.mkdir()
+    queue.save(old/'evidence/00000001/host_execution.json',{'timed_out':True,'pid':123})
+    controller=queue.Queue(out);controller.predecessor_scopes=[old]
+    controller.tasks={'codex/initial':{'status':'queued'}}
+    with pytest.raises(queue.QueueCleanupUncertain):
+        controller.check_cleanup()
+    block=queue.read(out/'queue_cleanup_block.json')
+    assert block['receipts'][0]['path'].startswith(str(old))
+    assert controller.tasks['codex/initial']['status']=='blocked_cleanup_uncertain'

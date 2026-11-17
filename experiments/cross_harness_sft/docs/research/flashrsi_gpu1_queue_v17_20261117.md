@@ -44,3 +44,29 @@ PYTHONPATH=scripts:src:vendor/FlashRSI CUDA_VISIBLE_DEVICES='' .venv-rl-pilot/bi
 ```
 
 This is a handoff command, not a command executed by this implementation. Read `launch_state.json`, `pidboard.json`, `remaining_tasks.json`, stage receipts and actual host logs; process existence/exit is not acceptance. Any future bounded-owner profile needs independent review plus a fresh matched H0 and RSI set; old strict or partial histories must not be mixed.
+
+## Independent review fix round1: Q-I1 / Q-I2
+
+Read `flashrsi_gpu1_queue_v17_review_20261117.md` in full and used the receiving-code-review workflow to verify both findings before changing the unused queue code. Active ACE's `benchmark_v17.py` and `algorithm_reference_v17.py`, all original runtime/initial/host files, live judge and CPU source QA were untouched. No actual queue, host, source program, process signal, model/API/GPU/Docker operation or native bounded-owner profile was run or implemented.
+
+**Q-I1 fixed:** initial and algorithm timeout/explicit cleanup-false/live-owned-stage receipts now cause typed `QueueCleanupUncertain`, a persistent `queue_cleanup_block.json`, false dispatch-ready marker and queue-wide blocked tickets before the next dispatch. The queue consumes these receipts after every stage and before further model or new judge dispatch. An empty process-name scan cannot clear the sticky blocker. Existing-output restart remains forbidden. There is deliberately no automatic reconciliation or unblock; root must retain and reconcile exact owned process/descendant identities before authorizing a fresh queue. This implementation does not pretend a receipt or a name scan proves descendant absence.
+
+The inherited algorithm benchmark could otherwise continue its next case before returning control to the queue after a timeout. New tiny `benchmark_v18.py` subclasses the immutable v17 bridge and raises `HostCleanupUncertain` immediately after v17 retains a timed-out host receipt. Ordinary future stages now use new `algorithm_reference_v19.py`; unused OpenCode GEPA `reference_v18.py` composes the same guard with the existing context-fit Worker. The new scanner registers v19 too. Original active v17 code remains unchanged. The guard does not rewrite trajectory statuses, change rules or budgets, or fabricate zero scores.
+
+**Q-I2 fixed:** H0 acceptance now takes an explicit trusted contract, including the SHA256 of the actual supplied case-manifest bytes, model revision, FlashRSI revision, harness, exact host, model port18764, temperature0, reply cap4096, applicable native turn/timeout limits, owner protocol, privacy protocol and128-case count. Both the retained H0 parent case-manifest bytes and the H0's declared manifest hash must equal that trusted raw-byte hash. Every required field must actually exist, including Codex's explicit null turn cap. The retained v11 manifest's declared12-turn4096-token protocol is checked using its available fields; fresh corrected H0s additionally require their explicit native/sandbox timeout metadata.
+
+The actual trusted bytes are preserved verbatim at queue and harness roots. Expected H0 contracts, trusted source identity and retained OpenCode reference bindings enter the frozen queue protocol. Stage receipts bind the expected H0 contract and retained Snapshot/run-manifest/case-manifest hashes before and after execution. Algorithm stages revalidate the complete H0 contract immediately before launch and reject mid-stage reference drift. Same128 IDs with changed source hashes, wrong model/runtime revision, wrong port, harness, temperature or budgets cannot authorize reuse.
+
+TDD retained expected failures: `flashrsi_gpu1_queue_v17_fix1_red_20261117.log` (two missing queue-blocker failures, one existing pass) and `flashrsi_gpu1_queue_v17_fix2_red_20261117.log` (one missing trusted-contract guard failure). Those remain failure evidence; they are not counted as passes.
+
+Final affected command, from MAIN experiment directory:
+
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:src:vendor/FlashRSI CUDA_VISIBLE_DEVICES='' .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_gpu1_queue_v17.py tests/test_flashrsi_harnessrisk_benchmark_v17.py
+```
+
+Result: **19 passed in 0.76s**, retained `flashrsi_gpu1_queue_v17_fix_round1_20261117.log`. Scoped staged diff check passed. Focused new guards exercise initial timeout preventing Codex dispatch, algorithm timed_out-only receipts preventing even GEPA dispatch, persistent blockade despite empty lane scans, immediate within-rollout timeout abort, real-shaped complete H0 contracts, same-ID/different-manifest bytes, wrong port/revisions/harness/temperature/turn/reply caps, and guarded entry composition. Only process/controller boundaries and isolated fixtures were used; no original source bytes were altered.
+
+Real descendant cleanup/reconciliation, predecessor wait/locks, full corrected initial/RSI behavior, native context contracts and judge outcomes remain root-owned and unverified here. Current strict validity and blocked Claude/Pi tickets remain unchanged. Independent rereview is required before the actual queue launch.
+
+Explicit owned predecessor identities now retain only the safe algorithm run scope derived from PID/start-tick-bound harness/output/algorithm metadata. After that predecessor exits, its bounded host receipts are checked before the first new dispatch too. A historical external v17 timeout therefore cannot be forgotten merely because its process name disappeared. The additional isolated guard verifies this external-scope blockade; no active predecessor was inspected through a source program, modified or signaled.

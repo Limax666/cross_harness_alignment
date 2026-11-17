@@ -8,7 +8,7 @@ def build_source():
     original = 'from flashrsi_harnessrisk_benchmark import HarnessRiskBenchmark,ROOT'
     if source.count(old) != 1:
         raise RuntimeError('v18_algorithm_source_transform_not_exact')
-    inject = old + '\nbenchmark_import = ' + repr(original) + "\nif source.count(benchmark_import) != 1:\n    raise RuntimeError('v18_benchmark_import_transform_not_exact')\nsource = source.replace(benchmark_import, 'from flashrsi_harnessrisk_benchmark_v17 import HarnessRiskBenchmark,ROOT')"
+    inject = old + '\nbenchmark_import = ' + repr(original) + "\nif source.count(benchmark_import) != 1:\n    raise RuntimeError('v18_benchmark_import_transform_not_exact')\nsource = source.replace(benchmark_import, 'from flashrsi_harnessrisk_benchmark_v18 import HarnessRiskBenchmark,ROOT')"
     return source.replace(old, inject)
 
 

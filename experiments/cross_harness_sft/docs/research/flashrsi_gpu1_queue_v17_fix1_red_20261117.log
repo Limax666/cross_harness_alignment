@@ -1,0 +1,86 @@
+.FF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0[opencode/evoprompt] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-275/test_finite_plan_skips_unrepai1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x758d289ee010>
+uncertain_stage = 'opencode/evoprompt'
+
+    @pytest.mark.parametrize('uncertain_stage',[None,'opencode/evoprompt','openclaw/initial'])
+    def test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0(tmp_path,monkeypatch,uncertain_stage):
+        source=tmp_path/'source';source.mkdir()
+        manifest={'cases':[]}
+        for index in range(128):
+            cid=f'case{index}';path=source/(cid+'.json');path.write_text('{}')
+            manifest['cases'].append({'case_id':cid,'sha256':queue.sha(path)})
+        reference=tmp_path/'reference';reference.mkdir();(reference/'initial_snapshot.json').write_text('{}')
+        monkeypatch.setattr(queue,'DATA',source)
+        monkeypatch.setattr(queue,'LANE_LOCK',tmp_path/'lane.lock')
+        monkeypatch.setattr(queue,'REFERENCE',reference)
+        monkeypatch.setattr(queue,'lane_clients',lambda **kwargs:[])
+        monkeypatch.setattr(queue,'freeze_sources',lambda destination:{})
+        monkeypatch.setattr(queue,'initial_acceptance',lambda path,expected,host:Path(path)==reference)
+        monkeypatch.setattr(queue,'judge_acceptance',lambda *args:True)
+        monkeypatch.setattr(queue,'inspect_run',lambda *args:{'status':'needs_repair'})
+        monkeypatch.setattr(queue.importlib.metadata,'version',lambda name:{'tree-sitter':'0.25.2','tree-sitter-bash':'0.25.1'}[name])
+        calls=[]
+        controller=queue.Queue(tmp_path/'queue')
+        def execute(key,command,env,*args):
+            calls.append((key,command,env))
+            if key==uncertain_stage:
+                harness,stage=key.split('/')
+                run=Path(env['HR_OUTPUT_ROOT'])/(harness+'_'+('initial_full' if stage=='initial' else stage+'_full'))
+                receipt=run/('host_observability/case/host_execution.json' if stage=='initial' else 'evidence/00000001/host_execution.json')
+                queue.save(receipt,{'timed_out':True,'cleanup_confirmed':False})
+            return 2
+        monkeypatch.setattr(controller,'execute',execute)
+        if uncertain_stage:
+>           with pytest.raises(queue.QueueCleanupUncertain):
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'flashrsi_matrix_gpu1_queue_v17' has no attribute 'QueueCleanupUncertain'
+
+tests/test_flashrsi_gpu1_queue_v17.py:127: AttributeError
+_ test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0[openclaw/initial] _
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-275/test_finite_plan_skips_unrepai2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x758d28bb38d0>
+uncertain_stage = 'openclaw/initial'
+
+    @pytest.mark.parametrize('uncertain_stage',[None,'opencode/evoprompt','openclaw/initial'])
+    def test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0(tmp_path,monkeypatch,uncertain_stage):
+        source=tmp_path/'source';source.mkdir()
+        manifest={'cases':[]}
+        for index in range(128):
+            cid=f'case{index}';path=source/(cid+'.json');path.write_text('{}')
+            manifest['cases'].append({'case_id':cid,'sha256':queue.sha(path)})
+        reference=tmp_path/'reference';reference.mkdir();(reference/'initial_snapshot.json').write_text('{}')
+        monkeypatch.setattr(queue,'DATA',source)
+        monkeypatch.setattr(queue,'LANE_LOCK',tmp_path/'lane.lock')
+        monkeypatch.setattr(queue,'REFERENCE',reference)
+        monkeypatch.setattr(queue,'lane_clients',lambda **kwargs:[])
+        monkeypatch.setattr(queue,'freeze_sources',lambda destination:{})
+        monkeypatch.setattr(queue,'initial_acceptance',lambda path,expected,host:Path(path)==reference)
+        monkeypatch.setattr(queue,'judge_acceptance',lambda *args:True)
+        monkeypatch.setattr(queue,'inspect_run',lambda *args:{'status':'needs_repair'})
+        monkeypatch.setattr(queue.importlib.metadata,'version',lambda name:{'tree-sitter':'0.25.2','tree-sitter-bash':'0.25.1'}[name])
+        calls=[]
+        controller=queue.Queue(tmp_path/'queue')
+        def execute(key,command,env,*args):
+            calls.append((key,command,env))
+            if key==uncertain_stage:
+                harness,stage=key.split('/')
+                run=Path(env['HR_OUTPUT_ROOT'])/(harness+'_'+('initial_full' if stage=='initial' else stage+'_full'))
+                receipt=run/('host_observability/case/host_execution.json' if stage=='initial' else 'evidence/00000001/host_execution.json')
+                queue.save(receipt,{'timed_out':True,'cleanup_confirmed':False})
+            return 2
+        monkeypatch.setattr(controller,'execute',execute)
+        if uncertain_stage:
+>           with pytest.raises(queue.QueueCleanupUncertain):
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'flashrsi_matrix_gpu1_queue_v17' has no attribute 'QueueCleanupUncertain'
+
+tests/test_flashrsi_gpu1_queue_v17.py:127: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_gpu1_queue_v17.py::test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0[opencode/evoprompt]
+FAILED tests/test_flashrsi_gpu1_queue_v17.py::test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0[openclaw/initial]
+2 failed, 1 passed, 10 deselected in 0.15s

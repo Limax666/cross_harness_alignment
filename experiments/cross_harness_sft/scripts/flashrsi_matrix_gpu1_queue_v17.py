@@ -31,6 +31,10 @@ HOSTS = {
 }
 
 
+class QueueCleanupUncertain(RuntimeError):
+    """No further dispatch before external exact descendant reconciliation."""
+
+
 def read(path, default=None):
     try:
         return json.loads(Path(path).read_text())
@@ -61,7 +65,14 @@ def process_identity(pid):
             return None
         command = (path / 'cmdline').read_bytes().split(b'\0')
         raw = (path / 'stat').read_text().rsplit(')', 1)[1].split()
-        return {'pid': pid, 'start_ticks': raw[19], 'command': [v.decode(errors='replace') for v in command if v]}
+        identity = {'pid': pid, 'start_ticks': raw[19], 'command': [v.decode(errors='replace') for v in command if v]}
+        if '--algorithm' in identity['command']:
+            env = dict(v.split(b'=', 1) for v in (path / 'environ').read_bytes().split(b'\0') if b'=' in v)
+            harness = env.get(b'HR_HARNESS', b'').decode()
+            algorithm = identity['command'][identity['command'].index('--algorithm') + 1]
+            if harness in HOSTS and algorithm in ALGORITHMS and env.get(b'HARNESSRISK_MODEL_PORT') == b'18764' and env.get(b'HR_OUTPUT_ROOT'):
+                identity['run_scope'] = str((Path(env[b'HR_OUTPUT_ROOT'].decode()) / f'{harness}_{algorithm}_full').resolve())
+        return identity
     except (OSError, IndexError):
         return None
 
@@ -86,18 +97,50 @@ def lane_clients(exclude=()):
     return result
 
 
-def initial_acceptance(run, expected, host):
+def expected_initial_contract(manifest_bytes, harness):
+    manifest = json.loads(manifest_bytes)
+    if not all(isinstance(manifest.get(key), str) and manifest[key]
+               for key in ('model_revision', 'flashrsi_revision')):
+        raise ValueError('trusted_manifest_model_runtime_revisions_missing')
+    contract = {'case_manifest_sha256': hashlib.sha256(manifest_bytes).hexdigest(),
+        'model_revision': manifest['model_revision'], 'flashrsi_revision': manifest['flashrsi_revision'],
+        'harness': harness, 'host_script': HOSTS[harness], 'model_port': 18764,
+        'privacy_protocol': 'harnessrisk-private-case-v1', 'temperature': 0,
+        'max_tokens_per_turn': 4096, 'case_count': 128,
+        'max_turns_per_owner_turn': None if harness == 'codex' else 16 if harness == 'claude_code' else 12,
+        'owner_turn_protocol': 'sequential native SQLite session; environment state preserved' if harness == 'openclaw'
+            else 'sequential, previous owner/assistant text replay; environment state preserved'}
+    # The retained v11 manifest predates these explicit native/sandbox fields;
+    # its declared12-turn4096-token contract and exact host remain mandatory.
+    if harness != 'opencode':
+        contract.update(native_timeout_seconds_per_owner_turn=600 if harness == 'claude_code' else 360,
+                        sandbox_wall_seconds_per_owner_turn=900 if harness == 'claude_code' else 360)
+    return contract
+
+
+def initial_binding(run):
+    run = Path(run)
+    paths = {'snapshot_sha256': run / 'initial_snapshot.json', 'run_manifest_sha256': run / 'run_manifest.json',
+             'case_manifest_sha256': run.parent / 'case_manifest.json'}
+    return {key: sha(path) if path.is_file() else None for key, path in paths.items()}
+
+
+def initial_acceptance(run, expected, contract):
     """A file or attempted case is never sufficient for strict H0 acceptance."""
     try:
         run = Path(run)
         manifest = read(run / 'run_manifest.json', {})
+        retained_manifest = run.parent / 'case_manifest.json'
+        if (not retained_manifest.is_file() or sha(retained_manifest) != contract['case_manifest_sha256']
+                or any(key not in manifest or manifest[key] != value for key, value in contract.items())):
+            return False
         snapshot = read(run / 'initial_snapshot.json', {})
         sid = snapshot['id']
         completed = read(run / 'completed.json', {})
         attempts = [json.loads(line) for line in (run / 'attempts.jsonl').read_text().splitlines() if line]
         if (snapshot.get('agent_type') != manifest.get('harness')
                 or manifest.get('snapshot_id') != sid
-                or manifest.get('host_script') != host or manifest.get('privacy_protocol') != 'harnessrisk-private-case-v1'
+                or manifest.get('privacy_protocol') != 'harnessrisk-private-case-v1'
                 or completed.get('snapshot_id') != sid or completed.get('completed_scored') != 128
                 or completed.get('attempts') != 128 or {r['case_id'] for r in attempts} != expected or len(attempts) != 128
                 or any(r.get('exit_code') != 0 or r.get('rule_evaluation_present') is not True for r in attempts)):
@@ -185,6 +228,43 @@ class Queue:
         self.out, self.tasks, self.judges, self.judge = Path(out), {}, [], None
         self.model_pid = None
 
+    def check_cleanup(self):
+        # These receipts survive their host/stage subprocess. Descendants may
+        # no longer match the lane scanner after that direct process exits.
+        block_path = self.out / 'queue_cleanup_block.json'
+        block = read(block_path)
+        if block is None and block_path.exists():
+            block = {'type': 'QueueCleanupUncertain', 'error': 'unreadable_existing_sticky_cleanup_block'}
+        uncertain = []
+        receipt_paths = []
+        for pattern in ('*/*/host_observability/*/host_execution.json',
+                        '*/*/evidence/*/host_execution.json', 'stage_receipts/*.json'):
+            receipt_paths.extend(self.out.glob(pattern))
+        for run in getattr(self, 'predecessor_scopes', []):
+            receipt_paths.extend(run.glob('evidence/*/host_execution.json'))
+        for path in receipt_paths:
+            receipt = read(path)
+            if (not isinstance(receipt, dict) or receipt.get('timed_out') is True
+                    or receipt.get('cleanup_confirmed') is False
+                    or receipt.get('owned_child_still_running') is True):
+                uncertain.append({'path': str(path), 'sha256': sha(path)})
+        if block is None and not uncertain:
+            return
+        if block is None:
+            block = {'type': 'QueueCleanupUncertain', 'receipts': uncertain,
+                     'identity_based_descendant_reconciliation_required': True,
+                     'automatic_unblock_or_retry': False}
+            save(block_path, block)
+        for task in self.tasks.values():
+            task['dispatch_blocked_by_cleanup'] = str(block_path)
+            if task.get('status') in ('queued', 'running'):
+                task['status'] = 'blocked_cleanup_uncertain'
+        ready = read(self.out / 'ready.json', {})
+        ready.update(ready_for_authorized_finite_queue=False, dispatch_blocked_cleanup=str(block_path))
+        save(self.out / 'ready.json', ready)
+        self.event('queue', 'blocked_cleanup_uncertain', blocker=str(block_path))
+        raise QueueCleanupUncertain('queue_wide_descendant_cleanup_unconfirmed:' + str(block_path))
+
     def board(self):
         save(self.out / 'pidboard.json', {'launcher': process_identity(os.getpid()), 'model_pid': self.model_pid,
              'judge_pid': self.judge[0].pid if self.judge is not None else None, 'port': 18764})
@@ -219,6 +299,7 @@ class Queue:
         self.poll_judge()
         if self.judge is not None or not self.judges:
             return
+        self.check_cleanup()
         verify_frozen(getattr(self, 'hashes', {}))
         guard = read(Path.home() / '.cache/harnessrisk-judge/billing-blocked.json', {})
         if guard.get('retry_after', 0) > time.time():
@@ -245,7 +326,11 @@ class Queue:
         self.event(key, 'judge_running', pid=child.pid, successful_existing_not_overwritten=True)
 
     def execute(self, key, command, env, hashes, case_hash):
+        self.check_cleanup()
         verify_frozen(hashes)
+        contract = self.contracts[env['HR_HARNESS']]
+        if '--algorithm' in command and not initial_acceptance(Path(env['HR_INITIAL_REFERENCE']), self.expected, contract):
+            raise RuntimeError('initial_reference_contract_drift_before_dispatch')
         for row in self.manifest['cases']:
             if sha(DATA / (row['case_id'] + '.json')) != row['sha256']:
                 raise RuntimeError('source_case_hash_drift:' + row['case_id'])
@@ -260,7 +345,9 @@ class Queue:
         receipt = {'command': [sys.executable, '-u', *command], 'port': 18764,
                    'host': env['HR_HOST_SCRIPT'], 'case_manifest_sha256': case_hash,
                    'frozen_protocol_sha256': sha(self.out / 'repair_protocol.json'),
-                   'initial_reference': env['HR_INITIAL_REFERENCE'], 'started_time_ns': time.time_ns()}
+                   'initial_reference': env['HR_INITIAL_REFERENCE'], 'started_time_ns': time.time_ns(),
+                   'expected_initial_contract': contract,
+                   'initial_binding_before': initial_binding(env['HR_INITIAL_REFERENCE'])}
         initial = Path(env['HR_INITIAL_REFERENCE']) / 'initial_snapshot.json'
         receipt['initial_snapshot_sha256_before'] = sha(initial) if initial.exists() else None
         receipt_path = self.out / 'stage_receipts' / (key.replace('/', '_') + '.json')
@@ -275,6 +362,8 @@ class Queue:
             while child.poll() is None:
                 self.schedule_judge(); time.sleep(5)
             verify_frozen(hashes)
+            if '--algorithm' in command and initial_binding(env['HR_INITIAL_REFERENCE']) != receipt['initial_binding_before']:
+                raise RuntimeError('initial_reference_contract_drift_during_stage')
             if receipt['initial_snapshot_sha256_before'] is not None and sha(initial) != receipt['initial_snapshot_sha256_before']:
                 raise RuntimeError('initial_snapshot_drift_during_stage')
             receipt['returncode'] = child.returncode
@@ -283,6 +372,7 @@ class Queue:
             log.close()
             receipt['finished_time_ns'] = time.time_ns()
             receipt['initial_snapshot_sha256_after'] = sha(initial) if initial.exists() else None
+            receipt['initial_binding_after'] = initial_binding(env['HR_INITIAL_REFERENCE'])
             save(receipt_path, receipt)
             still_running = child is not None and child.poll() is None
             receipt['owned_child_still_running'] = still_running
@@ -291,9 +381,17 @@ class Queue:
                 self.model_pid = None
             self.board()
 
-    def run(self, manifest, predecessors):
+    def run(self, manifest, predecessors, *, manifest_bytes=None):
         self.out.mkdir(mode=0o700, exist_ok=False)
         self.manifest = manifest
+        self.predecessor_scopes = [Path(row['run_scope']) for row in predecessors if row.get('run_scope')]
+        if manifest_bytes is None:
+            manifest_bytes = (json.dumps(manifest, ensure_ascii=False, indent=2) + '\n').encode()
+        if json.loads(manifest_bytes) != manifest:
+            raise ValueError('trusted_manifest_bytes_object_mismatch')
+        self.contracts = {harness: expected_initial_contract(manifest_bytes, harness)
+                          for harness in ('opencode', 'openclaw', 'codex')}
+        (self.out / 'case_manifest.json').write_bytes(manifest_bytes)
         self.tasks = {'opencode/' + a: {'status': 'queued'} for a in ('evoprompt', 'gepa')}
         self.tasks.update({h + '/' + a: {'status': 'queued'} for h in ('openclaw', 'codex', 'claude_code', 'pi') for a in ('initial', *ALGORITHMS)})
         for harness, samples in {'claude_code': ['action_041', 'action_042'], 'pi': ['action_041', 'action_043']}.items():
@@ -308,6 +406,8 @@ class Queue:
         protocol = {'protocol': 'gpu1-finite-strict-matrix/v17', 'port': 18764,
             'queue_launcher': 'scripts/flashrsi_matrix_gpu1_queue_v17.py', 'job_ids': list(self.tasks),
             'predecessors': predecessors, 'coverage': coverage,
+            'trusted_case_manifest_sha256': hashlib.sha256(manifest_bytes).hexdigest(),
+            'initial_contracts': self.contracts, 'opencode_reference_binding': initial_binding(REFERENCE),
             'backend_contract': {'context_window_tokens': 32768, 'max_reply_tokens': 4096,
                                  'existing_service_only': True, 'service_or_token_budget_changed': False}}
         save(self.out / 'repair_protocol.json', {**protocol, 'sources_frozen': False})
@@ -326,6 +426,7 @@ class Queue:
             except BlockingIOError:
                 self.event('queue', 'waiting_endpoint_capacity', reason='existing_gpu1_lane_lease')
                 time.sleep(15)
+        self.check_cleanup()
         hashes = freeze_sources(self.out / 'source_snapshot')
         self.hashes = hashes
         expected = {row['case_id'] for row in manifest['cases']}
@@ -341,7 +442,7 @@ class Queue:
         for harness in ('opencode', 'openclaw', 'codex'):
             base = self.out / harness
             base.mkdir()
-            save(base / 'case_manifest.json', manifest)
+            (base / 'case_manifest.json').write_bytes(manifest_bytes)
             case_hash = sha(base / 'case_manifest.json')
             env = {**os.environ, 'PYTHONPATH': 'scripts:src:vendor/FlashRSI', 'HR_HARNESS': harness,
                 'CUDA_VISIBLE_DEVICES': '',
@@ -365,7 +466,8 @@ class Queue:
                         self.event(key, 'blocked_declared_dependency_drift')
                         continue
                 code = self.execute(key, ['scripts/flashrsi_harnessrisk_initial_v17.py'], env, hashes, case_hash)
-                good = code == 0 and initial_acceptance(reference, expected, HOSTS[harness])
+                self.check_cleanup()
+                good = code == 0 and initial_acceptance(reference, expected, self.contracts[harness])
                 self.tasks[key] = {'status': 'source_valid_needs_judge' if good else 'blocked_initial_requires_repair',
                                    'returncode': code, 'path': str(reference)}
                 if good:
@@ -376,7 +478,7 @@ class Queue:
                         self.tasks[harness + '/' + algorithm] = {'status': 'blocked_same_protocol_initial', 'initial': str(reference)}
                     self.event(key, 'blocked_initial_requires_repair')
                     continue
-            elif not (initial_acceptance(reference, expected, HOSTS[harness])
+            elif not (initial_acceptance(reference, expected, self.contracts[harness])
                       and judge_acceptance(reference / 'cases', expected)):
                 raise RuntimeError('opencode_v11_reference_not_strictly_valid')
             reference_hash = sha(reference / 'initial_snapshot.json')
@@ -385,9 +487,10 @@ class Queue:
                 key = harness + '/' + algorithm
                 if sha(reference / 'initial_snapshot.json') != reference_hash:
                     raise RuntimeError('initial_snapshot_drift')
-                entry = 'flashrsi_harnessrisk_algorithm_reference_v18.py' if harness == 'opencode' and algorithm == 'gepa' else 'flashrsi_harnessrisk_algorithm_reference_v17.py'
+                entry = 'flashrsi_harnessrisk_algorithm_reference_v18.py' if harness == 'opencode' and algorithm == 'gepa' else 'flashrsi_harnessrisk_algorithm_reference_v19.py'
                 env['HR_GEPA_REFLECTION_PROTOCOL'] = 'opencode-v6-contextfit' if harness == 'opencode' else ''
                 code = self.execute(key, ['scripts/' + entry, '--algorithm', algorithm], env, hashes, case_hash)
+                self.check_cleanup()
                 run = base / (harness + '_' + algorithm + '_full')
                 accepted = inspect_run(run, expected, None)
                 good = code == 0 and accepted['status'] in ('needs_judge', 'complete')
@@ -424,12 +527,14 @@ def main():
     predecessors = [p for pid in args.predecessor_pid if (p := process_identity(pid)) is not None]
     queue = Queue(args.out)
     try:
-        queue.run(read(args.case_manifest), predecessors)
+        manifest_bytes = args.case_manifest.read_bytes()
+        queue.run(json.loads(manifest_bytes), predecessors, manifest_bytes=manifest_bytes)
     except BaseException as exc:
         for task in queue.tasks.values():
             if task.get('status') in ('running', 'queued'):
                 task.update(status='blocked_queue_exception', error_type=type(exc).__name__, error=str(exc))
-        queue.event('queue', 'blocked_requires_repair', error_type=type(exc).__name__, error=str(exc))
+        queue.event('queue', 'blocked_cleanup_uncertain' if isinstance(exc, QueueCleanupUncertain) else 'blocked_requires_repair',
+                    error_type=type(exc).__name__, error=str(exc))
         raise
     return 0 if all(task.get('status') == 'complete' for task in queue.tasks.values()) else 1
 

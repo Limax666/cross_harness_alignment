@@ -1,0 +1,30 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ test_initial_contract_rejects_same_ids_wrong_bytes_revision_port_and_budget __
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-277/test_initial_contract_rejects_0')
+
+    def test_initial_contract_rejects_same_ids_wrong_bytes_revision_port_and_budget(tmp_path):
+>       run,expected,contract=fixture_control(tmp_path)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_flashrsi_gpu1_queue_v17.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-277/test_initial_contract_rejects_0')
+
+    def fixture_control(tmp_path):
+        run=tmp_path/'control';run.mkdir()
+        manifest={'benchmark':'HarnessRisk','full_evaluation_count':128,
+                  'model_revision':'851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+                  'flashrsi_revision':'778e2d01a995491fe63db210dcf46db1723a4430',
+                  'cases':[{'case_id':f'case{i}','phase':'fixture','sha256':'0'*64,'owner_turns':3} for i in range(128)]}
+        queue.save(tmp_path/'case_manifest.json',manifest)
+>       contract=queue.expected_initial_contract((tmp_path/'case_manifest.json').read_bytes(),'openclaw')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'flashrsi_matrix_gpu1_queue_v17' has no attribute 'expected_initial_contract'
+
+tests/test_flashrsi_gpu1_queue_v17.py:62: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_gpu1_queue_v17.py::test_initial_contract_rejects_same_ids_wrong_bytes_revision_port_and_budget
+1 failed, 13 deselected in 0.14s

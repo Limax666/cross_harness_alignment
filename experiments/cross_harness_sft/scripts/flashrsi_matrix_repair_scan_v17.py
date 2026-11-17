@@ -17,7 +17,7 @@ def active_runs():
                 continue
             args = identity['command']
             names = {Path(arg).name for arg in args}
-            if not names.intersection({'flashrsi_harnessrisk_algorithm_reference_v17.py', 'flashrsi_harnessrisk_algorithm_reference_v18.py'}):
+            if not names.intersection({'flashrsi_harnessrisk_algorithm_reference_v17.py', 'flashrsi_harnessrisk_algorithm_reference_v18.py', 'flashrsi_harnessrisk_algorithm_reference_v19.py'}):
                 continue
             env = dict(v.split(b'=', 1) for v in (path / 'environ').read_bytes().split(b'\0') if b'=' in v)
             harness = env[b'HR_HARNESS'].decode()
