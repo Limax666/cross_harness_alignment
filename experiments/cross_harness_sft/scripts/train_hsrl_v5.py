@@ -268,7 +268,7 @@ def commit_checkpoint(out, policy, optimizer, scheduler, next_state, *, current_
 def _code_identity():
     root = Path(__file__).resolve().parent
     files = [Path(__file__).resolve(), root / 'hsrl_v3/policy.py', root / 'hsrl_v3/components.py',
-             root / 'hsrl_checkpoint_retention_v1.py']
+             root / 'hsrl_checkpoint_retention_v1.py', root / 'hsrl_selected_gpu_policy_v1.py']
     files += sorted((root / 'hsrl_v5').glob('*.py'))
     return {p.relative_to(root).as_posix(): file_hash(p) for p in files}
 
@@ -277,6 +277,23 @@ def validate_physical_gpu(physical_gpu):
     if type(physical_gpu) is not int or physical_gpu not in (0, 1):
         raise ValueError('physical_GPU_must_be_0_or_1')
     return physical_gpu
+
+
+def selected_policy_class(physical_gpu):
+    validate_physical_gpu(physical_gpu)
+    if physical_gpu == 0:
+        from hsrl_v3.policy import Policy
+        return Policy
+    from hsrl_selected_gpu_policy_v1 import SelectedGPU1PolicyV1, verify_initializer_contract
+    verify_initializer_contract()
+    return SelectedGPU1PolicyV1
+
+
+def selected_policy_identity(physical_gpu):
+    cls = selected_policy_class(physical_gpu)
+    module = __import__(cls.__module__, fromlist=['VERSION'])
+    return {'class': cls.__module__ + '.' + cls.__name__, 'version': module.VERSION,
+            'source_sha256': file_hash(Path(module.__file__))}
 
 
 def validate_lease(path, physical_gpu=0):
@@ -346,7 +363,7 @@ def run(args):
     if not (256 <= args.max_attempts <= 38400 and args.max_attempts % 256 == 0):
         raise ValueError('budget_must_be_complete_K2_blocks_up_to_38400_attempts')
     from hsrl_v5.dataset import Dataset
-    from hsrl_v3.policy import Policy
+    Policy = selected_policy_class(physical_gpu)
     out, model, lease_path = args.out.resolve(), args.model.resolve(strict=True), args.lease.resolve(strict=True)
     dataset = Dataset(args.dataset)
     official = verify_official_checkpoint(model)
@@ -372,7 +389,7 @@ def run(args):
             'READY_sha256': file_hash(dataset.root / 'READY.json'),
             'dataset_manifest_sha256': file_hash(dataset.root / 'manifest.json'),
             'reward_contract': REWARD_VERSION, 'runtime_version': RUNTIME_VERSION,
-            'policy_version': POLICY_VERSION, 'config': CONFIG, 'seed': args.seed,
+            'policy_version': POLICY_VERSION, 'selected_policy': selected_policy_identity(physical_gpu), 'config': CONFIG, 'seed': args.seed,
             'objective': args.objective, 'max_attempts': args.max_attempts,
             'model_root': str(model), 'base_artifact_sha256': official['verified_artifact_sha256'],
             'approved_model_identity': official['approved_identity'],

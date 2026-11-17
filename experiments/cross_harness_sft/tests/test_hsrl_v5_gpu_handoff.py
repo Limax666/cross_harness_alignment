@@ -116,3 +116,63 @@ def test_cli_forbidden_gpu_rejected_by_parser(selection, monkeypatch):
     with pytest.raises(SystemExit) as error:
         trainer.main()
     assert error.value.code == 2
+
+
+@pytest.mark.parametrize('gpu', [0, 1])
+def test_actual_selected_constructor_passes_its_guard_before_torch(gpu, monkeypatch):
+    """Stop at the import boundary: no torch import, CUDA call or model load."""
+    import builtins
+    from hsrl_v3.policy import Policy
+    from hsrl_selected_gpu_policy_v1 import SelectedGPU1PolicyV1
+    cls = trainer.selected_policy_class(gpu)
+    assert cls is (Policy if gpu == 0 else SelectedGPU1PolicyV1)
+    monkeypatch.setenv('CUDA_VISIBLE_DEVICES', str(gpu))
+    actual_import = builtins.__import__
+    class ReachedTorchImport(Exception):
+        pass
+    def stop_torch(name, *args, **kwargs):
+        if name == 'torch':
+            raise ReachedTorchImport('constructor passed actual physical-device guard')
+        return actual_import(name, *args, **kwargs)
+    monkeypatch.setattr(builtins, '__import__', stop_torch)
+    with pytest.raises(ReachedTorchImport):
+        cls(Path('/not/read'))
+    monkeypatch.setenv('CUDA_VISIBLE_DEVICES', str(1 - gpu))
+    with pytest.raises(RuntimeError, match=f'exclusive_physical_GPU{gpu}'):
+        cls(Path('/not/read'))
+
+
+def test_wrapper_exact_initializer_contract_and_inherited_methods():
+    from hsrl_v3 import policy
+    import hsrl_selected_gpu_policy_v1 as wrapper
+    assert wrapper.verify_initializer_contract() == trainer.file_hash(Path(policy.__file__))
+    assert wrapper.SelectedGPU1PolicyV1.__bases__ == (policy.Policy,)
+    assert {name for name in vars(wrapper.SelectedGPU1PolicyV1) if not name.startswith('__')} == set()
+    identity = trainer.selected_policy_identity(1)
+    assert identity == {'class': 'hsrl_selected_gpu_policy_v1.SelectedGPU1PolicyV1',
+                        'version': wrapper.VERSION,
+                        'source_sha256': trainer.file_hash(Path(wrapper.__file__))}
+    assert 'hsrl_selected_gpu_policy_v1.py' in trainer._code_identity()
+
+
+def test_contract_rejects_original_source_drift(tmp_path, monkeypatch):
+    import hsrl_selected_gpu_policy_v1 as wrapper
+    source = Path(wrapper.original_policy.__file__).read_bytes()
+    changed = tmp_path / 'changed_original.py'
+    changed.write_bytes(source + b'\n')
+    monkeypatch.setattr(wrapper.original_policy, '__file__', str(changed))
+    with pytest.raises(RuntimeError, match='original_source_changed'):
+        trainer.selected_policy_class(1)
+
+
+@pytest.mark.parametrize('old,new,error', [
+    ('r=16', 'r=32', 'initializer_semantics_changed'),
+    ("!= '1'", "!= '0'", 'guard_changed'),
+])
+def test_contract_rejects_wrapper_semantics_drift(tmp_path, monkeypatch, old, new, error):
+    import hsrl_selected_gpu_policy_v1 as wrapper
+    changed = tmp_path / 'changed_wrapper.py'
+    changed.write_text(Path(wrapper.__file__).read_text().replace(old, new))
+    monkeypatch.setattr(wrapper, '__file__', str(changed))
+    with pytest.raises(RuntimeError, match=error):
+        trainer.selected_policy_class(1)
