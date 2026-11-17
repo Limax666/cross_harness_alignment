@@ -20,5 +20,7 @@ Sourceidentitygateindependentlychecksactualexported compaction.py/models.py/prov
 Meaningfulpureboundary uses actualoriginalnative deterministiccompaction onlonghistory, proveoriginalv2 gate rejects it andnewv4 gateacceptsonlycorrectprojection/wire, rejecttamperedtail/rawprefix. No model/API/tasksourceprogram. Exactsame4-test-filecommand above final:
 
 ```
-..........```
+........................                                                 [100%]
+24 passed in 1.24s
+```
 Actualnative-source compatibility/full128/realtool transitions/judge stillpending.
