@@ -17,6 +17,25 @@ def eligible(run, expected):
     return len(expected) == 128 and inspect_run(Path(run), expected, None)['status'] in ('complete', 'needs_judge')
 
 
+def predecessor_alive(identity):
+    actual = process_identity(identity['pid'])
+    return actual is not None and (actual['pid'], actual['start_ticks']) == (identity['pid'], identity['start_ticks'])
+
+
+def drain_judges(queue, verify_binding, sleep=time.sleep):
+    while queue.judges or queue.judge is not None:
+        verify_binding()
+        queue.check_cleanup()
+        before = len(queue.judges)
+        queue.schedule_judge()
+        if queue.judge is not None:
+            sleep(5)
+        elif queue.judges and len(queue.judges) == before:
+            return False  # Only pending work can be lease/billing deferred.
+    verify_binding()
+    return True
+
+
 def run_followup(run, out, predecessors):
     run, out = Path(run).resolve(), Path(out).absolute()
     if out.exists():
@@ -36,7 +55,7 @@ def run_followup(run, out, predecessors):
     queue.tasks = {key: {'status': 'waiting_actual_final128', 'path': str(run)}}
     queue.expected = expected
     queue.predecessor_scopes = [run]
-    while any(process_identity(p['pid']) == p for p in predecessors):
+    while any(predecessor_alive(p) for p in predecessors):
         queue.event(key, 'waiting_actual_stage_exit')
         time.sleep(15)
     queue.check_cleanup()
@@ -50,18 +69,13 @@ def run_followup(run, out, predecessors):
                (run / 'result.json', run / 'run_manifest.json', run / 'snapshots/selected.json')}
     save(out / 'accepted_source_binding.json', binding)
     queue.judges = [(key, run / 'selected_cases')]
-    while queue.judges or queue.judge is not None:
+    def verify_binding():
         if any(sha(run / name) != value for name, value in binding.items()):
             raise ValueError('accepted_source_binding_changed')
-        queue.check_cleanup()
-        before = len(queue.judges)
-        queue.schedule_judge()
-        if queue.judge is not None:
-            time.sleep(5)
-        elif len(queue.judges) == before:
-            queue.tasks[key]['judge_status'] = 'needs_judge_lease_or_billing'
-            queue.event(key, 'cached_judge_deferred')
-            return 1
+    if not drain_judges(queue, verify_binding):
+        queue.tasks[key]['judge_status'] = 'needs_judge_lease_or_billing'
+        queue.event(key, 'cached_judge_deferred')
+        return 1
     accepted = inspect_run(run, expected, None)
     queue.tasks[key].update(status=accepted['status'], acceptance=accepted)
     queue.event(key, accepted['status'])

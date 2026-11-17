@@ -17,3 +17,31 @@ def test_actual_full_opro_is_eligible_but_incomplete_ace_and_wrong_case_set_are_
     if not (incomplete / 'result.json').exists():
         assert not eligible(incomplete, expected)
     assert not eligible(full, expected - {'action_041'})
+
+
+def test_predecessor_exec_does_not_end_immutable_identity_wait(monkeypatch):
+    import flashrsi_ace_judge_followup_v17 as follower
+    monkeypatch.setattr(follower, 'process_identity', lambda pid: {
+        'pid': pid, 'start_ticks': '123', 'command': ['exec-replacement']})
+    assert follower.predecessor_alive({'pid': 4, 'start_ticks': '123', 'command': ['old']})
+    assert not follower.predecessor_alive({'pid': 4, 'start_ticks': '124', 'command': ['old']})
+
+
+def test_judge_finished_success_and_failure_are_not_lease_deferral():
+    from flashrsi_ace_judge_followup_v17 import drain_judges
+    class Boundary:
+        def __init__(self, status):
+            self.judges, self.judge, self.status = [], object(), status
+            self.tasks = {'opencode/ace': {'status': 'source_valid_needs_judge'}}
+        def check_cleanup(self):
+            pass
+        def schedule_judge(self):
+            self.judge = None
+            self.tasks['opencode/ace']['status'] = self.status
+    for status in ('complete', 'source_valid_needs_judge'):
+        queue = Boundary(status)
+        assert drain_judges(queue, lambda: None, lambda _: None)
+        assert queue.tasks['opencode/ace']['status'] == status
+    queue = Boundary('source_valid_needs_judge')
+    queue.judge, queue.judges = None, [('opencode/ace', Path('/unused'))]
+    assert not drain_judges(queue, lambda: None, lambda _: None)
