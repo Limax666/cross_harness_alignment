@@ -109,19 +109,49 @@ def test_oversized_worker_count_is_rejected_before_source_access(tmp_path):
         run(tmp_path / 'missing', tmp_path / 'out', 17)
 
 
-def test_full_pinned_boundary_cache_rechecks_actual_checker_bytes(tmp_path):
+def test_pinned_boundary_cache_rejects_old_policy_and_rechecks_actual_checker_bytes(tmp_path):
     from hsrl_v5.quality_claw import prefilter_checker_boundaries
+    from hsrl_v5.workspace import CHECKER_BOUNDARY_VERSION
+    from hsrl_v5.io import atomic_json, file_hash
+    from hsrl_v5 import workspace
     exp = Path('/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft')
     prepared = Path(__file__).resolve().parents[1] / 'outputs/rl/hsrl_v5_claw_prepare_shell_contract_fix1_20261116'
     records = [r for r in map(json.loads, (prepared / 'accepted.jsonl').open()) if r['split'] == 'train']
-    cache = exp / 'outputs/rl/hsrl_v5_claw_runtime_quality_boundary_v2_20261116T193656'
+    old_cache = exp / 'outputs/rl/hsrl_v5_claw_runtime_quality_boundary_v2_20261116T193656'
+    # A lifecycle edit changes workspace.py identity. Do not rewrite historical
+    # evidence or silently reuse its decisions under the new protocol.
+    with pytest.raises(ValueError, match='policy_or_audit_identity_changed'):
+        prefilter_checker_boundaries(records, tmp_path / 'old_rejected', cache_dir=old_cache)
+    eligible = next(row['id'] for row in json.loads((old_cache / 'private_grader_boundary_audit.json').read_text())
+                    if row['private_grader_boundary']['status'] == 'readonly_data_checker_static_boundary_pass')
+    records = [next(row for row in records if row['id'] == eligible)]
+    cache = tmp_path / 'fresh_cache'
+    # Exercise the actual current AST gate on genuine original bytes to create
+    # this small fixture; the full production dispatch performs its own sweep.
+    prefilter_checker_boundaries(records, cache)
+    atomic_json(cache / 'protocol.json', {'private_grader_boundary_gate': CHECKER_BOUNDARY_VERSION,
+                'code_sha256': {'workspace.py': file_hash(workspace.__file__)}})
     runnable, pending, summary = prefilter_checker_boundaries(records, tmp_path / 'reused', cache_dir=cache)
-    assert len(runnable) == 7262 and len(pending) == 376
+    assert len(runnable) == 1 and not pending
     assert summary['verified_static_cache']['all_records_and_actual_checker_bytes_rechecked'] is True
     assert summary['source_execution_performed'] is False
     records[0] = {**records[0], 'exclusion_reasons': ['source_record_changed']}
     with pytest.raises(ValueError, match='source_record_changed'):
         prefilter_checker_boundaries(records, tmp_path / 'rejected', cache_dir=cache)
+    checker = Path(records[0]['private_checker_path'])
+    original_hash = file_hash(checker)
+    # No original source bytes are mutated: changing only the cache's expected
+    # hash establishes that it must be checked against the actual source file.
+    audit = json.loads((cache / 'private_grader_boundary_audit.json').read_text())
+    audit[0]['private_grader_boundary']['checker_sha256'] = '0' * 64
+    atomic_json(cache / 'private_grader_boundary_audit.json', audit)
+    cached_summary = json.loads((cache / 'private_grader_boundary_summary.json').read_text())
+    cached_summary['audit_sha256'] = file_hash(cache / 'private_grader_boundary_audit.json')
+    atomic_json(cache / 'private_grader_boundary_summary.json', cached_summary)
+    with pytest.raises(ValueError, match='original_checker_bytes_changed'):
+        prefilter_checker_boundaries([next(row for row in map(json.loads, (prepared / 'accepted.jsonl').open())
+                                          if row['id'] == eligible)], tmp_path / 'bytes_rejected', cache_dir=cache)
+    assert file_hash(checker) == original_hash
 
 
 def test_original_checker_crash_and_malformed_scores_are_invalid_not_zero():
@@ -584,3 +614,183 @@ def test_quality_resume_refuses_unconfirmed_previous_pool_cleanup_before_source_
     (pool_directory / 'cleanup.json').write_text('{"all_owned_containers_removal_confirmed":false}')
     with pytest.raises(IsolationError, match='previous_private_grader_pool_cleanup_unconfirmed'):
         run(tmp_path / 'missing_source', tmp_path / 'out')
+
+
+@pytest.fixture
+def lifecycle_worker(tmp_path):
+    from hsrl_v5.workspace import WorkspaceWorker
+    worker = WorkspaceWorker.__new__(WorkspaceWorker)
+    worker.name, worker.env = 'unit-owned-uuid', {}
+    worker.evidence = tmp_path / 'worker'
+    worker.evidence.mkdir()
+    worker.closed, worker.buffer = False, bytearray()
+    return worker
+
+
+def test_workspace_create_completes_before_attach_and_retains_commands(lifecycle_worker, monkeypatch):
+    import io
+    import subprocess
+    from hsrl_v5 import workspace
+    worker, events = lifecycle_worker, []
+    def run(command, **options):
+        events.append(('create', command))
+        assert command == ['docker', 'create', '--rm', '-i', '--name', worker.name, 'image', 'python3']
+        return subprocess.CompletedProcess(command, 0, 'a' * 64 + '\n', '')
+    class Client:
+        stdin, stdout = io.BytesIO(), io.BytesIO()
+    def popen(command, **options):
+        events.append(('attach', command))
+        assert (worker.evidence / 'create.json').exists()
+        return Client()
+    monkeypatch.setattr(workspace.subprocess, 'run', run)
+    monkeypatch.setattr(workspace.subprocess, 'Popen', popen)
+    class Selector:
+        def register(self, *args): pass
+    monkeypatch.setattr(workspace.selectors, 'DefaultSelector', Selector)
+    monkeypatch.setattr(workspace.os, 'set_blocking', lambda *args: None)
+    # BytesIO has no fd: only the transport boundary is replaced.
+    Client.stdin = type('Input', (), {'fileno': lambda self: 0})()
+    worker._launch(['docker', 'run', '--rm', '-i', '--name', worker.name, 'image', 'python3'])
+    assert events[1] == ('attach', ['docker', 'start', '--attach', '--interactive', worker.name])
+    state = json.loads((worker.evidence / 'lifecycle.json').read_text())
+    assert state['creation_state'] == 'confirmed' and state['container_id'] == 'a' * 64
+    assert json.loads((worker.evidence / 'create.json').read_text())['duration_seconds'] >= 0
+    worker.stderr.close()
+
+
+def test_workspace_unknown_create_cannot_confirm_absence(lifecycle_worker, monkeypatch):
+    import subprocess
+    from hsrl_v5 import workspace
+    from hsrl_v5.isolation import CleanupUncertain
+    worker = lifecycle_worker
+    def timeout(command, **options):
+        raise subprocess.TimeoutExpired(command, options['timeout'])
+    monkeypatch.setattr(workspace.subprocess, 'run', timeout)
+    monkeypatch.setattr(worker, '_docker', lambda command: subprocess.CompletedProcess(command, 1, '', 'No such container'))
+    with pytest.raises(CleanupUncertain, match='creation_outcome_unknown'):
+        worker._launch(['docker', 'run', '--name', worker.name, 'image'])
+    with pytest.raises(CleanupUncertain, match='creation_outcome_unknown'):
+        worker.close()
+    cleanup = json.loads((worker.evidence / 'cleanup.json').read_text())
+    assert cleanup['removal_confirmed'] is False
+    assert json.loads((worker.evidence / 'create.json').read_text())['outcome'] == 'unknown'
+    assert worker.closed is False
+
+
+def test_workspace_cleanup_settles_attach_before_terminal_absence(lifecycle_worker, monkeypatch):
+    import subprocess
+    from hsrl_v5.io import atomic_json
+    worker, events = lifecycle_worker, []
+    worker.creation_state = 'confirmed'
+    worker.container_id = 'a' * 64
+    class Client:
+        stdin = stdout = None
+        def poll(self): return None
+        def kill(self): events.append('kill')
+        def wait(self, timeout): events.append('wait'); return -9
+    worker.process = Client()
+    worker.stderr = worker.selector = None
+    def docker(command):
+        events.append(command[0])
+        return subprocess.CompletedProcess(command, 1, '', 'No such container')
+    monkeypatch.setattr(worker, '_docker', docker)
+    worker.close()
+    assert events.index('wait') < events.index('container')
+    cleanup = json.loads((worker.evidence / 'cleanup.json').read_text())
+    assert cleanup['removal_confirmed'] is True and cleanup['creation_state'] == 'confirmed'
+    assert cleanup['container'] == worker.name
+
+
+def test_quality_resume_refuses_unknown_actor_creation_before_source_access(tmp_path):
+    from hsrl_v5.quality_claw import run
+    from hsrl_v5.isolation import IsolationError
+    evidence = tmp_path / 'out/cases/case/attempt_old/actual_episode/tool_worker'
+    evidence.mkdir(parents=True)
+    (evidence / 'lifecycle.json').write_text('{"container":"owned","creation_state":"unknown"}')
+    (evidence / 'cleanup.json').write_text('{"container":"owned","removal_confirmed":false}')
+    with pytest.raises(IsolationError, match='previous_workspace_cleanup_unconfirmed'):
+        run(tmp_path / 'missing_source', tmp_path / 'out')
+
+
+def test_workspace_explicit_socket_must_stay_in_owned_runtime(tmp_path, monkeypatch):
+    from hsrl_v5.workspace import WorkspaceWorker
+    from hsrl_v5.isolation import IsolationError
+    monkeypatch.setenv('HSRL_WORKSPACE_DOCKER_SOCKET', str(tmp_path / 'docker.sock'))
+    with pytest.raises(IsolationError, match='socket_outside_owned_runtime'):
+        WorkspaceWorker(tmp_path / 'worker', assets=tmp_path)
+
+
+def test_quality_only_retries_deadline_after_confirmed_owned_cleanup(tmp_path, monkeypatch):
+    from hsrl_v5 import quality_claw as qc
+    from hsrl_v5.io import atomic_json
+    calls = []
+    def once(record, directory, *, grader_pool=None):
+        attempt = directory / f'attempt_{len(calls)}'
+        calls.append(attempt)
+        worker = attempt / 'actual_episode/tool_worker'
+        atomic_json(worker / 'lifecycle.json', {'creation_state': 'confirmed', 'container': str(attempt)})
+        atomic_json(worker / 'cleanup.json', {'removal_confirmed': True, 'container': str(attempt)})
+        return {'id': record['id'], 'ready': len(calls) == 2, 'attempt_directory': str(attempt),
+                'reasons': ['IsolationError:source_worker_deadline'] if len(calls) == 1 else [],
+                'failure_class': 'isolation_or_runtime_infrastructure' if len(calls) == 1 else None}
+    monkeypatch.setattr(qc, '_validate_record_once', once)
+    result = qc.validate_record({'id': 'real'}, tmp_path)
+    assert result['ready'] and len(calls) == 2
+    assert result['runtime_admission_recovery']['attempts'] == 2
+    assert calls[0] != calls[1]
+
+
+@pytest.mark.parametrize('reason,confirmed,poisoned', [
+    ('CleanupUncertain:workspace_creation_outcome_unknown', True, False),
+    ('IsolationError:source_worker_deadline', False, False),
+    ('IsolationError:source_worker_deadline', True, True),
+    ('IsolationError:initial_public_asset_hash_mismatch', True, False),
+    ('ValueError:private_original_checker_failed', True, False),
+])
+def test_quality_never_retries_uncertain_cleanup_source_or_identity_errors(tmp_path, monkeypatch, reason, confirmed, poisoned):
+    from hsrl_v5 import quality_claw as qc
+    from hsrl_v5.io import atomic_json
+    calls = []
+    def once(record, directory, *, grader_pool=None):
+        calls.append(record)
+        worker = directory / 'attempt_0/actual_episode/tool_worker'
+        atomic_json(worker / 'lifecycle.json', {'creation_state': 'confirmed', 'container': 'owned'})
+        atomic_json(worker / 'cleanup.json', {'removal_confirmed': confirmed, 'container': 'owned'})
+        return {'ready': False, 'attempt_directory': str(worker.parents[1]), 'reasons': [reason],
+                'failure_class': 'isolation_or_runtime_infrastructure'}
+    monkeypatch.setattr(qc, '_validate_record_once', once)
+    pool = type('Pool', (), {'poisoned': poisoned, 'closed': False})()
+    result = qc.validate_record({'id': 'real'}, tmp_path, grader_pool=pool)
+    assert not result['ready'] and len(calls) == 1
+
+
+def test_workspace_selected_socket_is_recorded_and_host_environment_is_not_forwarded(tmp_path, monkeypatch):
+    import os
+    import subprocess
+    from types import SimpleNamespace
+    from hsrl_v5 import workspace
+    socket = Path(f'/run/user/{os.getuid()}/hsrl-private-test/docker.sock')
+    original_stat, original_socket = Path.stat, Path.is_socket
+    monkeypatch.setattr(Path, 'is_socket', lambda path: True if path == socket else original_socket(path))
+    monkeypatch.setattr(Path, 'stat', lambda path, *args, **kwargs:
+                        SimpleNamespace(st_uid=os.getuid()) if path == socket else original_stat(path, *args, **kwargs))
+    monkeypatch.setenv('HSRL_WORKSPACE_DOCKER_SOCKET', str(socket))
+    monkeypatch.setenv('PRIVATE_SECRET_TEST', 'never-forward')
+    def docker(worker, command):
+        assert worker.env['DOCKER_HOST'] == 'unix://' + str(socket)
+        assert 'PRIVATE_SECRET_TEST' not in worker.env
+        return subprocess.CompletedProcess(command, 0,
+            '["name=rootless"]' if command[0] == 'info' else workspace.IMAGE + '\n', '')
+    def launch(worker, command):
+        worker.creation_state = 'confirmed'
+        assert command[1] == 'run' and '--network=none' in command
+        assert '--memory=1g' in command and '--pids-limit=64' in command
+        assert not any('PRIVATE_SECRET_TEST' in value for value in command)
+    monkeypatch.setattr(workspace.WorkspaceWorker, '_docker', docker)
+    monkeypatch.setattr(workspace.WorkspaceWorker, '_launch', launch)
+    monkeypatch.setattr(workspace.WorkspaceWorker, 'read', lambda *args, **kwargs: {'ready': True, 'mode': 'file_tools'})
+    worker = workspace.WorkspaceWorker(tmp_path / 'worker', assets=tmp_path)
+    isolation = json.loads((worker.evidence / 'isolation.json').read_text())
+    assert isolation['docker_socket'] == str(socket)
+    assert isolation['mount_targets'] == ['/runner/worker.py', '/inputs']
+    assert json.loads((worker.evidence / 'lifecycle.json').read_text())['ready_wait_seconds'] >= 0

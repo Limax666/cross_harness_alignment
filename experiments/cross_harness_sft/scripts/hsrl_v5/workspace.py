@@ -9,9 +9,10 @@ import os
 from pathlib import Path
 import selectors
 import subprocess
+import time
 import uuid
 
-from .isolation import JSONWorker, IMAGE, IsolationError
+from .isolation import JSONWorker, IMAGE, IsolationError, CleanupUncertain
 from .io import atomic_json, file_hash
 from .workspace_worker import safe_path, snapshot_entries, PUBLIC
 
@@ -228,7 +229,10 @@ class WorkspaceWorker(JSONWorker):
         self.closed, self.buffer = False, bytearray()
         self.evidence = Path(evidence_dir)
         self.evidence.mkdir(parents=True, exist_ok=False)
-        socket = Path(f'/run/user/{os.getuid()}/docker.sock')
+        runtime = Path(f'/run/user/{os.getuid()}').resolve(strict=True)
+        socket = Path(os.environ.get('HSRL_WORKSPACE_DOCKER_SOCKET', str(runtime / 'docker.sock')))
+        if not socket.is_absolute() or not socket.resolve().is_relative_to(runtime):
+            raise IsolationError('workspace_docker_socket_outside_owned_runtime')
         if not socket.is_socket() or socket.stat().st_uid != os.getuid():
             raise IsolationError('owned_rootless_docker_socket_missing')
         self.env = {'PATH': os.environ.get('PATH', '/usr/bin:/bin'), 'HOME': str(Path.home()),
@@ -264,13 +268,10 @@ class WorkspaceWorker(JSONWorker):
         if grader:
             command.append('--grader')
         self.command = command
-        self.stderr = (self.evidence / 'worker.stderr.log').open('ab')
-        self.process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                        stderr=self.stderr, env=self.env, bufsize=0)
-        self.selector = selectors.DefaultSelector()
-        self.selector.register(self.process.stdout, selectors.EVENT_READ)
-        os.set_blocking(self.process.stdin.fileno(), False)
+        started = None
         try:
+            self._launch(command)
+            started = time.monotonic()
             ready = self.read(timeout=30)
             if ready != {'ready': True, 'mode': 'file_grader' if grader else 'file_tools'}:
                 raise IsolationError('file_worker_start_contract')
@@ -278,10 +279,109 @@ class WorkspaceWorker(JSONWorker):
                 'image': IMAGE, 'container': self.name, 'rootless': True, 'network': 'none',
                 'rootfs': 'readonly', 'all_host_mounts': 'readonly', 'workspace': '256MiB_tmpfs',
                 'memory_bytes': 1073741824, 'pids': 64, 'private_grader': grader,
-                'mount_targets': [target for _, target in mounts]})
-        except BaseException:
-            self.close()
+                'mount_targets': [target for _, target in mounts], 'docker_socket': str(socket)})
+            self._lifecycle(ready_wait_seconds=time.monotonic() - started, ready=True)
+        except BaseException as exc:
+            if started is not None:
+                self._lifecycle(ready_wait_seconds=time.monotonic() - started, ready=False, error=repr(exc))
+            try:
+                self.close()
+            except BaseException as cleanup:
+                atomic_json(self.evidence / 'startup_and_cleanup_error.json',
+                            {'startup': repr(exc), 'cleanup': repr(cleanup)})
+                raise CleanupUncertain('workspace_start_failed:' + repr(exc) + ';cleanup:' + repr(cleanup)) from exc
             raise
+
+    def _lifecycle(self, **extra):
+        atomic_json(self.evidence / 'lifecycle.json', {
+            'schema': 'workspace-create-attach/v1', 'container': self.name,
+            'container_id': getattr(self, 'container_id', None),
+            'docker_host': self.env.get('DOCKER_HOST'),
+            'creation_state': self.creation_state, **extra})
+
+    def _launch(self, command):
+        # A synchronous, acknowledged create is the ownership boundary. A start
+        # client cannot recreate a removed container. In contrast, killing a
+        # docker run/create client does not cancel a daemon-side pending create.
+        self.process = self.selector = self.stderr = None
+        self.creation_state = 'pending'
+        self._lifecycle()
+        create = ['docker', 'create', *command[2:]]
+        started = time.monotonic()
+        evidence = {'command': create, 'started_time_ns': time.time_ns()}
+        try:
+            result = subprocess.run(create, env=self.env, capture_output=True, text=True, timeout=20)
+            evidence.update(returncode=result.returncode, stdout=result.stdout, stderr=result.stderr)
+            identifier = result.stdout.strip()
+            if result.returncode or len(identifier) != 64 or any(c not in '0123456789abcdef' for c in identifier):
+                raise IsolationError('workspace_create_not_acknowledged')
+            self.container_id, self.creation_state = identifier, 'confirmed'
+            evidence['outcome'] = 'confirmed'
+        except BaseException as exc:
+            self.creation_state = 'unknown'
+            evidence.update(outcome='unknown', error=repr(exc))
+            raise CleanupUncertain('workspace_creation_outcome_unknown:' + self.name) from exc
+        finally:
+            evidence['duration_seconds'] = time.monotonic() - started
+            atomic_json(self.evidence / 'create.json', evidence)
+            self._lifecycle()
+        attach = ['docker', 'start', '--attach', '--interactive', self.name]
+        atomic_json(self.evidence / 'attach.json', {'command': attach, 'started_time_ns': time.time_ns()})
+        self.stderr = (self.evidence / 'worker.stderr.log').open('ab')
+        self.process = subprocess.Popen(attach, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                        stderr=self.stderr, env=self.env, bufsize=0)
+        self.selector = selectors.DefaultSelector()
+        self.selector.register(self.process.stdout, selectors.EVENT_READ)
+        os.set_blocking(self.process.stdin.fileno(), False)
+
+    def close(self):
+        if self.closed:
+            return
+        started = time.monotonic()
+        commands, error, confirmed = [], None, False
+        try:
+            # Settle the attach client first. Creation has already returned or
+            # is explicitly unknown; absence cannot settle the latter case.
+            process = getattr(self, 'process', None)
+            if process is not None:
+                if process.poll() is None:
+                    process.kill()
+                process.wait(timeout=20)
+            if self.creation_state != 'confirmed':
+                raise CleanupUncertain('workspace_creation_outcome_unknown:' + self.name)
+            command = ['rm', '-f', self.name]
+            result = self._docker(command)
+            commands.append({'command': ['docker', *command], 'returncode': result.returncode,
+                             'stdout': result.stdout, 'stderr': result.stderr})
+            deadline = time.monotonic() + 30
+            while True:
+                command = ['container', 'inspect', self.name]
+                result = self._docker(command)
+                commands.append({'command': ['docker', *command], 'returncode': result.returncode,
+                                 'stdout': result.stdout, 'stderr': result.stderr})
+                if result.returncode and 'No such' in result.stderr:
+                    confirmed = True
+                    break
+                if result.returncode or time.monotonic() >= deadline:
+                    raise CleanupUncertain('owned_worker_cleanup_unconfirmed:' + self.name)
+                time.sleep(.25)
+        except BaseException as exc:
+            error = repr(exc)
+            if isinstance(exc, CleanupUncertain):
+                raise
+            raise CleanupUncertain('owned_worker_cleanup_unconfirmed:' + self.name + ':' + error) from exc
+        finally:
+            for resource in (getattr(self, 'selector', None),
+                             getattr(getattr(self, 'process', None), 'stdin', None),
+                             getattr(getattr(self, 'process', None), 'stdout', None),
+                             getattr(self, 'stderr', None)):
+                if resource is not None:
+                    resource.close()
+            atomic_json(self.evidence / 'cleanup.json', {
+                'container': self.name, 'container_id': getattr(self, 'container_id', None),
+                'creation_state': self.creation_state, 'removal_confirmed': confirmed,
+                'commands': commands, 'error': error, 'duration_seconds': time.monotonic() - started})
+            self.closed = confirmed
 
     def export_snapshot(self, destination):
         result = self.request({'op': 'snapshot'})

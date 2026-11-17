@@ -91,7 +91,47 @@ def prefilter_checker_boundaries(records, out, *, cache_dir=None):
     return runnable, pending, summary
 
 
+def _confirmed_actor_cleanup(attempt):
+    workers = list(Path(attempt).glob('*/tool_worker/lifecycle.json'))
+    if not workers:
+        return False
+    for state_path in workers:
+        try:
+            state = json.loads(state_path.read_text())
+            cleanup = json.loads(state_path.with_name('cleanup.json').read_text())
+            if (state.get('creation_state') != 'confirmed'
+                    or cleanup.get('removal_confirmed') is not True
+                    or cleanup.get('container') != state['container']):
+                return False
+        except (OSError, ValueError, KeyError):
+            return False
+    return True
+
+
 def validate_record(record, directory, *, grader_pool=None):
+    directory = Path(directory)
+    history = []
+    for index in range(2):
+        proof = _validate_record_once(record, directory, grader_pool=grader_pool)
+        history.append({key: proof.get(key) for key in ('attempt_directory', 'ready', 'reasons', 'failure_class')})
+        transient = (proof.get('failure_class') == 'isolation_or_runtime_infrastructure'
+                     and len(proof.get('reasons', [])) == 1
+                     and (proof['reasons'][0] == 'IsolationError:source_worker_deadline'
+                          or proof['reasons'][0].startswith('IsolationError:source_worker_closed:')))
+        if (index or not transient or not proof.get('attempt_directory')
+                or not _confirmed_actor_cleanup(proof['attempt_directory'])
+                or grader_pool is not None and (grader_pool.poisoned or grader_pool.closed)):
+            break
+        atomic_json(directory / 'runtime_admission_recovery.json', {
+            'policy': 'one_transport_retry_after_confirmed_actor_cleanup/v1', 'attempts': history})
+    if len(history) > 1:
+        proof['runtime_admission_recovery'] = {'attempts': len(history), 'history': history}
+        atomic_json(directory / 'quality.json', proof)
+        atomic_json(directory / 'runtime_admission_recovery.json', proof['runtime_admission_recovery'])
+    return proof
+
+
+def _validate_record_once(record, directory, *, grader_pool=None):
     directory = Path(directory)
     terminal, identity = directory / 'quality.json', digest(record)
     if terminal.exists():
@@ -159,6 +199,7 @@ def validate_record(record, directory, *, grader_pool=None):
         proof['reasons'].append(type(exc).__name__ + ':' + str(exc))
         proof['failure_class'] = 'isolation_or_runtime_infrastructure' if isinstance(exc, IsolationError) else 'source_quality_or_control_pending'
         (attempt / 'error.traceback.txt').write_text(traceback.format_exc())
+    atomic_json(attempt / 'quality.json', proof)
     atomic_json(terminal, proof)
     return proof
 
@@ -203,6 +244,17 @@ def run(source_dir, out, workers=4, *, boundary_cache=None, priority_case=None):
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
             raise IsolationError('quality_run_already_active') from exc
+        for state_path in (out / 'cases').glob('*/attempt_*/*/tool_worker/lifecycle.json'):
+            try:
+                state = json.loads(state_path.read_text())
+                cleanup = json.loads(state_path.with_name('cleanup.json').read_text())
+                valid = (cleanup.get('removal_confirmed') is True
+                         and cleanup.get('container') == state['container']
+                         and state.get('creation_state') == 'confirmed')
+            except (OSError, ValueError, KeyError):
+                valid = False
+            if not valid:
+                raise IsolationError('previous_workspace_cleanup_unconfirmed:' + str(state_path.parent))
         # A fresh dispatch cannot replace containers left uncertain by a prior
         # interruption. Preserve their evidence for exact-container recovery.
         for previous in (out / 'private_grader_pools').glob('dispatch_*'):
@@ -230,7 +282,7 @@ def _run_locked(source_dir, out, workers, *, boundary_cache=None, priority_case=
         raise ValueError('duplicate_train_record_id')
     out.mkdir(parents=True, exist_ok=True, mode=0o700)
     os.chmod(out, 0o700)
-    protocol = {'schema': 'hsrl-v5-claw-real-quality/v5', 'source_manifest_sha256': file_hash(source_dir / 'source_manifest.json'),
+    protocol = {'schema': 'hsrl-v5-claw-real-quality/v6', 'source_manifest_sha256': file_hash(source_dir / 'source_manifest.json'),
                 'records': len(records), 'workers': workers,
                 'source_dir': str(source_dir.resolve()), 'train_record_id_sha256': digest([r['id'] for r in records]),
                 'private_grader_boundary_gate': CHECKER_BOUNDARY_VERSION,
@@ -241,6 +293,9 @@ def _run_locked(source_dir, out, workers, *, boundary_cache=None, priority_case=
                     'fresh_actor_containers_per_case': 2, 'fresh_python_child_per_grade': True,
                     'tmp_cleared_before_each_grade': True, 'case_local_source_and_isolation_evidence': True},
                 'numeric_library_threads': 1, 'command_nice_increment': 10,
+                'workspace_lifecycle': 'acknowledged_create_then_attach/v1',
+                'workspace_docker_socket': os.environ.get('HSRL_WORKSPACE_DOCKER_SOCKET', f'/run/user/{os.getuid()}/docker.sock'),
+                'runtime_admission_recovery': 'one_transport_retry_after_confirmed_actor_cleanup/v1',
                 'unsupported_checker_execution': 'pending_without_source_execution_or_utility',
                 'code_sha256': {p.name: file_hash(p) for p in sorted(Path(__file__).parent.glob('*.py'))},
                 'controls': 'actual_input_read_and_private_original_checker_plus_fresh_os_process_tmpfs_reset',
