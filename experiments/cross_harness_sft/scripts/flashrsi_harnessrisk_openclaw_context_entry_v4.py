@@ -4,13 +4,17 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'scripts'), str(ROOT / 'vendor/FlashRSI')]
 from flashrsi_harnessrisk_openclaw_context_v4 import CONTEXT, apply_context, replace_once
+from flashrsi_harnessrisk_openclaw_projection_v4 import ProjectionObserver
 
 
 def build_source():
     source = Path(__file__).with_name('flashrsi_harnessrisk_openclaw_environment_entry_v2.py').read_text()
     source = replace_once(source, "config=request['config'];", "config=apply_context(request['config']);")
+    source = replace_once(source,
+        "  result=await native.run(config,request['question'],task_dir,snapshot,**kwargs)",
+        "  with ProjectionObserver(native) as projection:\n   result=await native.run(config,request['question'],task_dir,snapshot,**kwargs)")
     return replace_once(source, "'usage':result.get('usage',{}),",
-                        "'usage':result.get('usage',{}),'runtime_context_metadata':CONTEXT_METADATA,")
+        "'usage':result.get('usage',{}),'runtime_context_metadata':CONTEXT_METADATA,'context_projections':projection.rows,'context_projection_source_sha256':projection.source,")
 
 
 if __name__ == '__main__':

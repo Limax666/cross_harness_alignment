@@ -2,6 +2,7 @@
 import copy
 from pathlib import Path
 import sys
+import pytest
 
 sys.path[:0] = [str(Path(__file__).resolve().parents[1] / x) for x in ('scripts', 'src', 'vendor/FlashRSI')]
 
@@ -37,3 +38,36 @@ def test_future_v19_profile_has_actual_host_metadata_and_preserves_codex_repair(
     assert contract['host_script'] == 'flashrsi_harnessrisk_host_openclaw_context_v4.py'
     assert contract['native_context_metadata'] == queue.OPENCLAW_CONTEXT
     assert namespace['expected_initial_contract'](raw, 'codex')['native_context_metadata'] == queue.CODEX_CONTEXT
+
+
+def test_original_native_compaction_and_wire_are_authenticated_without_losing_sqlite_history(tmp_path):
+    from flashrsi_harnessrisk_openclaw_projection_v4 import trusted_compact, PINS
+    from flashrsi_harnessrisk_openclaw_session_audit_v2 import _chat_messages
+    from flashrsi_harnessrisk_openclaw_session_audit_v4 import verify_turn
+    source_root = Path(__file__).resolve().parents[1] / 'vendor/FlashRSI/flashrsi/agents/openclaw'
+    previous = 'earlier owner ' + 'retained text ' * 12000
+    owners = [previous, 'next original owner']
+    before = [{'role': 'user', 'content': previous}, {'role': 'assistant', 'content': 'previous answer'}]
+    initial = [{'role': 'system', 'content': 'native system'}] + before + [{'role': 'user', 'content': owners[-1]}]
+    arguments = {'max_tokens': 19660, 'preserve_recent_tokens': None, 'tail_turns': None, 'prune': False}
+    projected = trusted_compact()(initial, **arguments)
+    assert projected != initial  # Exercise actual native compaction, not identity.
+    path = tmp_path / 'native.sqlite'
+    result = {'messages': [{'type': 'agent_start', 'session_file': str(path)}],
+        'context_projection_source_sha256': PINS,
+        'context_projections': [{'input': initial, 'arguments': arguments, 'output': projected}]}
+    after = before + [{'role': 'user', 'content': owners[-1]}, {'role': 'assistant', 'content': 'actual answer'}]
+    wire = [{'messages': _chat_messages(projected)}]
+    proof = verify_turn(before, after, owners, wire, result, path, source_root)
+    assert proof['raw_native_history_preserved'] and proof['actual_wire_matches_authenticated_native_projection']
+    from flashrsi_harnessrisk_openclaw_session_audit_v2 import verify_turn as old_verify
+    with pytest.raises(ValueError, match='first actual request differs'):
+        old_verify(before, after, owners, wire, result, path)
+    changed = copy.deepcopy(result)
+    changed['context_projections'][0]['output'][-1]['content'] = 'tampered tail'
+    with pytest.raises(ValueError, match='pinned_compaction'):
+        verify_turn(before, after, owners, wire, changed, path, source_root)
+    changed_after = copy.deepcopy(after)
+    changed_after[0]['content'] = 'lost prior owner'
+    with pytest.raises(ValueError, match='prefix'):
+        verify_turn(before, changed_after, owners, wire, result, path, source_root)

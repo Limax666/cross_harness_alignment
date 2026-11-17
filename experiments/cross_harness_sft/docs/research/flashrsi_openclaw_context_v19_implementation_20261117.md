@@ -10,3 +10,15 @@ Puretestactualconfigurationcompatibility: preserveinputdict/llm/maxturn/timeout/
 23 passed in 0.67s
 ```
 REDmissingmodules2failretained. NoactualOpenClawnewprotocolrunorjudgeclaim.
+
+## Independent review fixround1
+
+Accepted newbudget/nativecompactionvsoldfirstwireImportantfinding. Originalv2auditorunchanged; newv4 audits originalrawSQLiteprefix+exactallowners/session/file and authenticatesactualnativecompaction+providerwire. Newentry read-onlyobserver wrapsactual selectedrun.globalcompact, passesexactargs andreturnsoriginalresult, capturesbefore/kwargs/after; restoresoriginalonexit. Hostneverexecutescandidatecode: recomputesonlycode-ownedpinnedpureoriginalcompaction/modules againstrecordedinputs, comparesactualallwiremessages andrawdelta(sequenceconversiondropsonlyoriginalnativefreshappendstop_reason/receiptmetafields, keepingactualreceiptattachments). Actualinputbudgetmustremain<=24576; fullrawhistory retained.
+
+Sourceidentitygateindependentlychecksactualexported compaction.py/models.py/providers.py against3code-ownedpins andentryreceipt. Unknowncompaction/provider-sourcechangesarenotblindlyaccepted; theyremainunsupported/invalidfornewprofile, notscorezero. ThisisexplicitcompatibilitylimitforEvo-Harness/candidatecodeevolution; otherSnapshotresource/loopchangesarepreservedifobservationalAPI/projectioncontractpasses. Disablednativecompactiondoesnotgetenabled; firstwiremuststillmatchoriginalrawhistory. No source/Vendor/Snapshot/nativefunctionbytesmutated. Publicbusinessmessagesonlyinprivateobservations; noadditionaltool/contextcapability.
+
+Meaningfulpureboundary uses actualoriginalnative deterministiccompaction onlonghistory, proveoriginalv2 gate rejects it andnewv4 gateacceptsonlycorrectprojection/wire, rejecttamperedtail/rawprefix. No model/API/tasksourceprogram. Exactsame4-test-filecommand above final:
+
+```
+..........```
+Actualnative-source compatibility/full128/realtool transitions/judge stillpending.
