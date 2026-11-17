@@ -1,0 +1,634 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_implementation_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_implementation_20261117.md
+new file mode 100644
+index 0000000..3bcace6
+--- /dev/null
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_implementation_20261117.md
+@@ -0,0 +1,56 @@
++# Future GPU1 queue v21 registration checkpoint — 2026-11-17
++
++This is a future controller prepared for independent review. **Claude v9's own independent review is pending; registration is not native runtime acceptance or permission to bypass that review.** Root controls deployment after both reviews. No queue/workload/native agent/source task/model/API/network/GPU/Docker operation was launched. Only owned new v21 code, tests, report and verification evidence were written. Reviewed v20/Pi/Claude implementations and old results remain unchanged.
++
++## Actual integration contract
++
++`scripts/flashrsi_matrix_gpu1_queue_v21.py` exactly composes reviewed v20 (`cfa44ec`) in its own module globals and registers Claude after Pi. Protocol, queue launcher and private launcher lock become `gpu1-finite-strict-matrix/v21`, `scripts/flashrsi_matrix_gpu1_queue_v21.py`, and `.flashrsi_gpu1_finite_queue_v21.lock`. The common GPU1 lane lease, exact predecessor identity wait before source/resource freeze, existing endpoint18764, frozen source/case/H0/profile/resource checks, post-wait pre-dispatch validation, sticky lane-wide cleanup barrier and finite cached-judge/billing/worker-lease behavior remain inherited. Importing the module does not invoke a queue or native entry point.
++
++The model harness order is OpenCode → OpenClaw → Codex → Pi → Claude Code. OpenCode retains its two pending EvoPrompt/GEPA tasks and the reviewed exact existing H0. Each of the other four harnesses has a fresh H0 followed by all six unchanged names: `opro`, `gepa`, `evoprompt`, `ace`, `skillopt`, `evo_harness`. All 30 tasks remain explicit. No harness is deferred by this future registration; full-five-harness objective completion still remains false until actual evidence proves it. Root can inspect the explicit `remaining_tasks.json`, `repair_protocol.json`, `predecessors.json`, `ready.json`, stage receipts and pidboard, and the new read-only v21 scanner described below.
++
++Claude's actual current files were read, and the implementation agent confirmed stable interfaces:
++
++- Host: `flashrsi_harnessrisk_host_claude_native_owner_v9.py`.
++- Initial: `flashrsi_harnessrisk_claude_native_owner_initial_v9.py --base FRESH_BASE --snapshot ORIGINAL_RESOURCE`, with `HR_HARNESS=claude_code`, exact host and port18764. The fresh base receives the trusted manifest bytes.
++- RSI: `flashrsi_harnessrisk_claude_native_owner_reference_v9.py --algorithm NAME`, using that fresh `HR_INITIAL_REFERENCE`; strict evolution, one case attempt and Worker1024 are inherited.
++- Trusted callbacks: initial `source_pins()`, reference `validate_reference(initial)`, helper `PROFILE`, `CONTRACT`, `validate_case(...)` and `snapshot_source_map(...)`. These are actual trusted modules; no Snapshot/native candidate code is imported.
++
++The current Claude initial manifest exactly fits shared native admission: `max_turns_per_owner_turn=16`, `native_timeout_seconds_per_owner_turn=600`, `sandbox_wall_seconds_per_owner_turn=900`, reply4096, temperature0, port18764, original model/runtime/case-manifest bindings, execution protocol and full native contract. Its attempt rows use `returncode` and `measurement_valid`; its completion receipt uses `status=all_cases_attempted`,128 attempts/scored,0 failed/unscored, exact Snapshot ID and `all128_measurement_valid=true`. Shared admission checks all those fields and the exact128 case/attempt identities, then invokes the real Claude reference verifier with scoped/restored `HR_OUTPUT_ROOT`; that verifier rechecks source pins and all128 source/owner/native/private/host receipts.
++
++The actual Claude reference transform emits `target_execution_protocol`, **`target_contract`**, `initial_reference_dir` and initial Snapshot ID. v21 additionally requires its exact `target_contract` during selected proof. Existing generic selected acceptance and v20 native selected source/Snapshot/lineage/strict-worker/per-case evidence revalidation remain. Both native inventories retain the known canonical judge artifact directory exception while rejecting foreign cases.
++
++## Original resource bindings
++
++Claude resource is `outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/initial_snapshot.json`. Its SHA-256 is `45d6efd89a4b0f3696ec2ad79bcc06c43c6e125890ed43251a0d462c4580713d`, Snapshot ID `26a1fb7c061e3aec310e5fb266d9083c5b5ab8a754dec4b4ae292a1792357f3b`, agent type `claude_code`. The canonical path is identical to that configured path. Pi's reviewed resource path, canonical path, SHA and ID remain unchanged. These agree with root's `outputs/flashrsi_gpu1_baseline_resume_20261117/native_h0_resource_bindings_20261117.json`.
++
++Only Snapshot resource bytes are read from those old runs; old cases, native observations and scores are never imported. Trusted core loading checks content-addressed schema/type/ID. The shared controller retains both resources and exact profile source pins only after predecessor/lease waiting, verifies original/retained bytes and profile source pins around every candidate, and records observed original resource bindings before/after. Neither resource's embedded code is executed by admission.
++
++The narrow v20 review diagnostic observation is addressed only in v21's composed body: `failure_feedback` now recognizes successful native `returncode=0, measurement_valid=true` rows as well as legacy `exit_code=0`, and still requires a completed case result. A valid bounded native outcome therefore does not produce a false diagnostic failure. Invalid native rows and existing failure evidence remain preserved; this condition is diagnostic only and does not change acceptance or retry policy.
++
++## Read-only scanner registration
++
++`scripts/flashrsi_matrix_repair_scan_v21.py` extends the reviewed v19 scanner without changing it. It registers finite queue roots v17 through v21 and examines exactly one harness-directory level inside each queue root. It reports queue protocol, launch state, complete retained task manifest and launcher identity status. It never scans copied sources/snapshots/cache/evidence recursively and never writes matrix state, calls a tick/repair loop, schedules work, or launches a subprocess.
++
++Both actual native reference names are included in active-run registration. Their PIDs are attached only through the trusted identity-derived `run_scope`, which requires the recognized harness/algorithm, port18764 and actual `HR_OUTPUT_ROOT`. New native host/profile markers or a Pi/Claude run under a v20/v21 queue require v21's strict selected proof. Historical non-native runs retain legacy inspection. Live future queued jobs are surfaced as `queued_launches`; a queue owns those pending jobs only when the current process identity exactly matches retained pidboard PID/start/command and its launcher script and `--out` scope match the root. A reused PID does not claim queue ownership. H0 tasks remain fully visible in the queue's retained task manifest.
++
++The eventual read-only command is `PYTHONPATH=scripts:src:vendor/FlashRSI .venv-rl-pilot/bin/python scripts/flashrsi_matrix_repair_scan_v21.py --scan`. It was **not** executed against live outputs or processes here; root controls that empirical observation after deployment/review.
++
++## Reproducible verification
++
++The installed create-verification workflow was applied using the existing project controller-test workflow. Commands from the experiment root:
++
++```bash
++PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:src:vendor/FlashRSI .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_gpu1_queue_v21.py tests/test_flashrsi_gpu1_queue_v20.py tests/test_flashrsi_gpu1_queue_v17.py
++.venv-rl-pilot/bin/python -m py_compile scripts/flashrsi_matrix_gpu1_queue_v21.py scripts/flashrsi_matrix_repair_scan_v21.py tests/test_flashrsi_gpu1_queue_v21.py
++git diff --exit-code -- scripts/flashrsi_matrix_gpu1_queue_v20.py tests/test_flashrsi_gpu1_queue_v20.py
++```
++
++Observed **78 passed in 3.89s**, exit 0: 28 new v21 checks and all 50 existing v20/v17 checks. Compilation and reviewed-v20 unchanged check exited 0. Retained output is `flashrsi_gpu1_queue_v21_green_20261117.log`; `flashrsi_gpu1_queue_v21_red_20261117.log` records the expected missing-v21-module collection failure before implementation. `flashrsi_gpu1_queue_v21_scanner_red_20261117.log` records the four expected missing-scanner-module failures before scanner implementation.
++
++The new tests cover actual registry/commands/budgets/manifest/reference field names, both actual trusted reference verifiers walking 128 inert fixtures with only the per-case native boundary stubbed, environment restoration after success/drift rejection, Claude host/profile/model/turn/port/attempt/completion/resource mismatch rejection, all-five finite routing with every failure retained, failed-H0 isolation, sticky timeout, selected target-contract/native proof, canonical judge artifacts, both resource and retained-copy bindings, exact predecessor waiting before freeze, imported main-guard/process/native-import inactivity, CLI help/existing-output preservation and native feedback schema adaptation. Scanner fixtures additionally prove native reference scope/PID mapping, both nested v20/v21 native runs discovered exactly once, strict native proof/legacy fallback, both queue state/task manifests retained, live queued ownership versus reused PID rejection, no recursive output traversal and no writes. Unit dispatch/profile/host/process boundaries are stubs; no fixtures are claimed as experiments.
++
++`flashrsi_gpu1_queue_v21_resource_20261117.log` records a separate resource-only check of both actual configured Snapshots: trusted-core load/save to isolated temporary files preserved identical bytes/IDs, original bindings remained unchanged, and evidence survives temporary-directory cleanup. No native agents or candidate code were imported/executed. The owned review diff is `flashrsi_gpu1_queue_v21_review.diff`; it excludes unrelated workspace changes and its own copy.
++
++## Remaining empirical gates
++
++Claude implementation review is still pending at this checkpoint. Genuine queue CLI waiting/lease/supersession, Claude/Pi H0 and six RSI algorithms, selected full128, native continuation/compaction/context/tool/mock/provider/namespace cleanup and actual cached/paid judge outcomes remain unverified here. No process existence, helper test, source hash or resource roundtrip is presented as runtime/full128 acceptance or baseline improvement. Root must complete independent reviews and preserve the live predecessor/active ACE before any waiting-queue replacement or genuine dispatch.
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v21.py b/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v21.py
+new file mode 100644
+index 0000000..ec038c5
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v21.py
+@@ -0,0 +1,70 @@
++"""Future GPU1 queue v21: v20 plus actual Claude v9 native profile registration.
++
++Claude profile review and genuine native runtime acceptance remain external
++deployment gates. Importing this controller never starts queue or native work.
++"""
++from pathlib import Path
++
++from flashrsi_harnessrisk_codex_context_v18 import replace_once
++
++
++def build_source():
++    """Extend the reviewed v20 controller in a separate module/global scope."""
++    source = Path(__file__).with_name('flashrsi_matrix_gpu1_queue_v20.py').read_text()
++    # Keep this outer build_source callable; the embedded reviewed builder still
++    # composes its original v19 base with the new versioned metadata below.
++    source = replace_once(source, 'def build_source():', 'def build_inherited_source():')
++    source = replace_once(source, "exec(compile(build_source(), __file__, 'exec'))",
++                          "exec(compile(build_inherited_source(), __file__, 'exec'))")
++    for old, new in (
++        ('gpu1-finite-strict-matrix/v20', 'gpu1-finite-strict-matrix/v21'),
++        ('scripts/flashrsi_matrix_gpu1_queue_v20.py', 'scripts/flashrsi_matrix_gpu1_queue_v21.py'),
++        ('.flashrsi_gpu1_finite_queue_v20.lock', '.flashrsi_gpu1_finite_queue_v21.lock'),
++    ):
++        source = replace_once(source, old, new)
++    imports = '''from flashrsi_claude_owner_profile_v9 import CONTRACT as CLAUDE_CONTRACT, PROFILE as CLAUDE_PROFILE
++from flashrsi_claude_owner_profile_v9 import snapshot_source_map as claude_snapshot_source_map
++from flashrsi_claude_owner_profile_v9 import validate_case as validate_claude_case
++from flashrsi_harnessrisk_claude_native_owner_reference_v9 import validate_reference as validate_claude_reference
++from flashrsi_harnessrisk_claude_native_owner_initial_v9 import source_pins as claude_source_pins
++'''
++    marker = 'from flashrsi_pi_owner_profile_v6 import validate_case as validate_native_case\n'
++    source = replace_once(source, marker, marker + imports)
++    # Preserve Pi's existing insertion order; Claude follows it in this finite
++    # lane. Every callback is from the actual v9 files, never guessed imports.
++    marker = "}\nHOSTS.update({h: p['host'] for h, p in NATIVE_PROFILES.items()})"
++    registration = '''    'claude_code': {
++        'profile': CLAUDE_PROFILE, 'contract': CLAUDE_CONTRACT,
++        'host': 'flashrsi_harnessrisk_host_claude_native_owner_v9.py',
++        'initial': 'flashrsi_harnessrisk_claude_native_owner_initial_v9.py',
++        'reference': 'flashrsi_harnessrisk_claude_native_owner_reference_v9.py',
++        'snapshot': OUTPUTS / 'flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/initial_snapshot.json',
++        'snapshot_sha256': '45d6efd89a4b0f3696ec2ad79bcc06c43c6e125890ed43251a0d462c4580713d',
++        'snapshot_id': '26a1fb7c061e3aec310e5fb266d9083c5b5ab8a754dec4b4ae292a1792357f3b',
++        'source_pins': lambda: claude_source_pins(),
++        'validate_reference': lambda initial: validate_claude_reference(initial),
++        'validate_case': lambda *args, **kwargs: validate_claude_case(*args, **kwargs),
++        'native_source_map': claude_snapshot_source_map,
++    },
++'''
++    source = replace_once(source, marker, registration + marker)
++    source = replace_once(source, "if (manifest.get('target_execution_protocol') != profile['profile']",
++        "if (manifest.get('target_execution_protocol') != profile['profile']\n"
++        "                or (harness == 'claude_code' and manifest.get('target_contract') != profile['contract'])")
++    # A diagnostic-only adaptation for native attempts. Native bounded outcomes
++    # measured valid under their profile are not classified as failures merely
++    # because the ledger calls its exit field returncode. Invalid rows remain.
++    old = "if row.get('exit_code') == 0 and result.get('status') == 'completed':"
++    new = ("if (row.get('exit_code') == 0 or (row.get('returncode') == 0 "
++           "and row.get('measurement_valid') is True)) and result.get('status') == 'completed':")
++    source = replace_once(source, '    return source\n',
++        '    source = replace_once(source, ' + repr(old) + ', ' + repr(new) + ')\n    return source\n')
++    source = source.replace('Future-only finite GPU1 queue: reviewed v19 plus fresh native-owner Pi H0/RSI.',
++                            'Future finite GPU1 queue v21: reviewed v20 plus native-owner Pi and Claude H0/RSI.')
++    return source
++
++
++# The embedded controller retains its bottom __main__ guard. In an imported
++# module it only defines trusted helpers/classes; when invoked as a CLI that
++# guard runs after every actual native registry callback has been defined.
++exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py
+new file mode 100644
+index 0000000..a13ab0d
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py
+@@ -0,0 +1,89 @@
++"""Read-only finite GPU1 view with v20/v21 tasks and strict native results."""
++from flashrsi_matrix_repair_scan_v19 import build_source as prior_source
++from flashrsi_harnessrisk_codex_context_v18 import replace_once
++
++FINITE_PROTOCOLS = tuple('gpu1-finite-strict-matrix/v' + str(v) for v in (17, 18, 19, 20, 21))
++NATIVE_REFERENCES = {'flashrsi_harnessrisk_pi_native_owner_reference_v6.py',
++                     'flashrsi_harnessrisk_claude_native_owner_reference_v9.py'}
++
++
++def inspect_scanned_run(run, expected, pid):
++    """Use native proof for new profiles; retain historical legacy inspection."""
++    manifest = read(run / 'run_manifest.json', {})
++    native = (manifest.get('target_execution_protocol') in {p['profile'] for p in NATIVE_PROFILES.values()}
++              or manifest.get('host_script') in {p['host'] for p in NATIVE_PROFILES.values()}
++              or (run.parent.name in NATIVE_PROFILES and
++                  read(run.parent.parent / 'repair_protocol.json', {}).get('protocol') in FINITE_PROTOCOLS[-2:]))
++    return strict_inspect_run(run, expected, pid) if native else matrix.inspect_run(run, expected, pid)
++
++
++def collect_queue_entries(roots):
++    queues = []
++    for root in roots:
++        protocol = read(root / 'repair_protocol.json', {})
++        if protocol.get('protocol') not in FINITE_PROTOCOLS:
++            continue
++        state = read(root / 'launch_state.json', {})
++        retained = read(root / 'pidboard.json', {}).get('launcher')
++        pid = state.get('launcher_pid')
++        identity = process_identity(pid) if isinstance(pid, int) else None
++        command = identity.get('command', []) if identity else []
++        scope = None
++        if '--out' in command and command.index('--out') + 1 < len(command):
++            scope = command[command.index('--out') + 1]
++        else:
++            scope = next((arg[len('--out='):] for arg in command if arg.startswith('--out=')), None)
++        launcher = protocol.get('queue_launcher')
++        matches = bool(identity is not None and identity == retained and launcher and scope
++            and Path(scope).resolve() == root.resolve()
++            and any(Path(arg).name == Path(launcher).name for arg in command))
++        queues.append({'path': str(root), 'protocol': protocol.get('protocol'), 'state': state,
++            'tasks': read(root / 'remaining_tasks.json', {}),
++            'launcher_identity_matches': matches, 'launcher_identity': identity if matches else None})
++    return queues
++
++
++def queued_job_entries(queues, key):
++    return [{'path': q['path'], 'task': q['tasks']['tasks'][key], 'launcher_identity': q['launcher_identity']}
++        for q in queues if q['launcher_identity_matches']
++        and q['tasks'].get('tasks', {}).get(key, {}).get('status') == 'queued']
++
++
++def build_source():
++    source = prior_source()
++    old = "('gpu1-finite-strict-matrix/v17', 'gpu1-finite-strict-matrix/v18', 'gpu1-finite-strict-matrix/v19')"
++    if source.count(old) != 2:
++        raise ValueError('reviewed_scanner_protocol_shape_changed')
++    source = source.replace(old, 'FINITE_PROTOCOLS')
++    source = replace_once(source, 'from flashrsi_matrix_gpu1_queue_v17 import read, process_identity',
++        'from flashrsi_matrix_gpu1_queue_v21 import read, process_identity, NATIVE_PROFILES, inspect_run as strict_inspect_run')
++    names = "{'flashrsi_harnessrisk_algorithm_reference_v17.py', 'flashrsi_harnessrisk_algorithm_reference_v18.py', 'flashrsi_harnessrisk_algorithm_reference_v19.py'}"
++    source = replace_once(source, names, '(' + names + ' | NATIVE_REFERENCES)')
++    marker = "            env = dict(v.split(b'=', 1) for v in (path / 'environ').read_bytes().split(b'\\0') if b'=' in v)"
++    source = replace_once(source, marker,
++        "            if names.intersection(NATIVE_REFERENCES):\n"
++        "                if identity.get('run_scope'):\n"
++        "                    runs[identity['run_scope']] = int(path.name)\n"
++        "                continue\n" + marker)
++    source = replace_once(source, '    jobs = []\n', '    queues = collect_queue_entries(roots)\n    jobs = []\n')
++    source = replace_once(source, 'runs.append(matrix.inspect_run(', 'runs.append(inspect_scanned_run(')
++    source = replace_once(source, "            states = {row['status'] for row in runs}",
++        "            queued = queued_job_entries(queues, harness + '/' + algorithm)\n"
++        "            states = {row['status'] for row in runs}")
++    source = replace_once(source, ", 'needs_repair' if runs else 'pending')",
++                          ", 'queued' if queued else 'needs_repair' if runs else 'pending')")
++    source = replace_once(source, "'status': status, 'runs': runs}",
++                          "'status': status, 'runs': runs, 'queued_launches': queued}")
++    old_queue_report = '''    queues = []
++    for root in roots:
++        protocol = read(root / 'repair_protocol.json', {})
++        if protocol.get('protocol') in FINITE_PROTOCOLS:
++            queues.append({'path': str(root), 'state': read(root / 'launch_state.json'), 'tasks': read(root / 'remaining_tasks.json')})
++'''
++    source = replace_once(source, old_queue_report, '')
++    source = replace_once(source, 'v17/v18 registered; original strict acceptance',
++                          'v17-v21 registered; native full proof and scoped live queue tasks')
++    return source
++
++
++exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v21.py b/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v21.py
+new file mode 100644
+index 0000000..73a2af8
+--- /dev/null
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v21.py
+@@ -0,0 +1,395 @@
++"""Pure future v21 integration fixtures; no native, task, model or process runs."""
++import json
++import os
++from pathlib import Path
++
++import pytest
++
++import flashrsi_matrix_gpu1_queue_v21 as queue
++from flashrsi.core.snapshot import Snapshot
++
++
++def resource(tmp_path, monkeypatch, harness):
++    tree = tmp_path / (harness + '-tree')
++    (tree / 'runtime/pi_native').mkdir(parents=True)
++    (tree / 'runtime/pi_native/loop.py').write_text('# inert controller fixture\n')
++    snapshot = Snapshot.from_directory(tree, agent_type=harness, component_rules={'runtime': ('runtime/**',)})
++    path = tmp_path / (harness + '-resource.json'); snapshot.save(path)
++    monkeypatch.setitem(queue.NATIVE_PROFILES, harness, {**queue.NATIVE_PROFILES[harness],
++        'snapshot': path, 'snapshot_sha256': queue.sha(path), 'snapshot_id': snapshot.id})
++    return path, snapshot
++
++
++def native_h0(tmp_path, monkeypatch, harness):
++    _, snapshot = resource(tmp_path, monkeypatch, harness)
++    base = tmp_path / harness
++    run = base / (harness + '_initial_full'); run.mkdir(parents=True)
++    data = tmp_path / 'original-cases'; data.mkdir(exist_ok=True)
++    rows = []
++    for index in range(128):
++        cid = f'case{index}'
++        path = data / (cid + '.json'); path.write_text(json.dumps({'task': {'user_messages': ['original owner']}}))
++        rows.append({'case_id': cid, 'sha256': queue.sha(path)})
++        queue.save(run / 'cases' / cid / 'harness_result.json', {})
++    manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
++                'flashrsi_revision': 'unit-runtime', 'cases': rows}
++    queue.save(base / 'case_manifest.json', manifest)
++    snapshot.save(run / 'initial_snapshot.json')
++    contract = queue.expected_initial_contract((base / 'case_manifest.json').read_bytes(), harness)
++    queue.save(run / 'run_manifest.json', {**contract, 'snapshot_id': snapshot.id,
++        'initial_snapshot_sha256': queue.sha(run / 'initial_snapshot.json'), 'code_sha256': {'unit': 'pin'}})
++    queue.save(run / 'completed.json', {'status': 'all_cases_attempted', 'execution_protocol': contract['execution_protocol'],
++        'snapshot_id': snapshot.id, 'all128_measurement_valid': True, 'attempts': 128,
++        'completed_scored': 128, 'failed_or_unscored': 0})
++    attempts = [{'case_id': row['case_id'], 'returncode': 0, 'measurement_valid': True} for row in rows]
++    (run / 'attempts.jsonl').write_text(''.join(json.dumps(row) + '\n' for row in attempts))
++    monkeypatch.setattr(queue, 'DATA', data)
++    return run, {row['case_id'] for row in rows}, contract, data
++
++
++def test_v21_registry_and_commands_use_actual_interfaces():
++    assert tuple(queue.NATIVE_PROFILES) == ('pi', 'claude_code')
++    assert queue.model_harnesses() == ('opencode', 'openclaw', 'codex', 'pi', 'claude_code')
++    assert queue.deferred_profiles() == {}
++    profile = queue.NATIVE_PROFILES['claude_code']
++    assert profile['profile'] == queue.CLAUDE_PROFILE
++    assert profile['contract'] == queue.CLAUDE_CONTRACT
++    assert queue.HOSTS['claude_code'] == 'flashrsi_harnessrisk_host_claude_native_owner_v9.py'
++    assert queue.initial_command('claude_code', Path('/fresh')) == [
++        'scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py', '--base', '/fresh', '--snapshot', str(profile['snapshot'])]
++    assert all(queue.algorithm_entry('claude_code', a) == 'flashrsi_harnessrisk_claude_native_owner_reference_v9.py'
++               for a in queue.ALGORITHMS)
++    raw = b'{"model_revision":"model","flashrsi_revision":"runtime"}'
++    contract = queue.expected_initial_contract(raw, 'claude_code')
++    assert contract['max_turns_per_owner_turn'] == 16
++    assert contract['native_timeout_seconds_per_owner_turn'] == 600
++    assert contract['sandbox_wall_seconds_per_owner_turn'] == 900
++    assert contract['max_tokens_per_turn'] == 4096 and contract['model_port'] == 18764
++    assert contract['contract'] == queue.CLAUDE_CONTRACT
++    assert contract['execution_protocol'] == queue.CLAUDE_PROFILE
++
++
++def test_composed_metadata_and_native_reference_schema():
++    source = queue.build_source(); compile(source, '<future-v21>', 'exec')
++    assert 'gpu1-finite-strict-matrix/v21' in source
++    assert 'scripts/flashrsi_matrix_gpu1_queue_v21.py' in source
++    assert '.flashrsi_gpu1_finite_queue_v21.lock' in source
++    assert "'target_contract'" in source
++    from flashrsi_harnessrisk_claude_native_owner_reference_v9 import build_source
++    reference = build_source(); compile(reference, '<Claude-reference-schema>', 'exec')
++    assert "'target_execution_protocol':PROFILE,'target_contract':CONTRACT,'initial_reference_dir':str(initial)" in reference
++    assert "initial=validate_reference(Path(os.environ['HR_INITIAL_REFERENCE']))" in reference
++    initial = (queue.ROOT / 'scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py').read_text()
++    for field in ("'max_turns_per_owner_turn': 16", "'native_timeout_seconds_per_owner_turn': 600",
++                  "'sandbox_wall_seconds_per_owner_turn': 900", "proof['returncode'] = proc.returncode",
++                  "measurement_valid=True", "'status': 'all_cases_attempted'", "'all128_measurement_valid': valid == 128"):
++        assert field in initial
++
++
++@pytest.mark.parametrize('harness', ['pi', 'claude_code'])
++def test_actual_registry_reference_walks_all128_and_restores_environment(tmp_path, monkeypatch, harness):
++    run, expected, contract, data = native_h0(tmp_path, monkeypatch, harness)
++    if harness == 'pi':
++        import flashrsi_harnessrisk_pi_native_owner_initial_v6 as initial
++        import flashrsi_harnessrisk_pi_native_owner_reference_v6 as reference
++    else:
++        import flashrsi_harnessrisk_claude_native_owner_initial_v9 as initial
++        import flashrsi_harnessrisk_claude_native_owner_reference_v9 as reference
++    monkeypatch.setattr(initial, 'DATA', data)
++    monkeypatch.setattr(initial, 'source_pins', lambda: {'unit': 'pin'})
++    calls = []
++    monkeypatch.setattr(reference, 'validate_case', lambda path, cid, sid, owners, source, **kw:
++                        calls.append((cid, sid, owners, source, kw)))
++    monkeypatch.setenv('HR_OUTPUT_ROOT', '/unrelated/prior')
++    assert queue.initial_acceptance(run, expected, contract)
++    assert len(calls) == 128 and {row[0] for row in calls} == expected
++    assert all(row[2] == ['original owner'] and row[4]['native_source'] for row in calls)
++    assert os.environ['HR_OUTPUT_ROOT'] == '/unrelated/prior'
++    monkeypatch.setattr(initial, 'source_pins', lambda: {'unit': 'drift'})
++    assert not queue.initial_acceptance(run, expected, contract)
++    assert os.environ['HR_OUTPUT_ROOT'] == '/unrelated/prior'
++
++
++@pytest.mark.parametrize('mutation', ['host', 'contract', 'model', 'turns', 'port', 'attempt', 'duplicate', 'completed', 'resource'])
++def test_claude_native_admission_rejects_drift(tmp_path, monkeypatch, mutation):
++    run, expected, contract, _ = native_h0(tmp_path, monkeypatch, 'claude_code')
++    monkeypatch.setattr(queue, 'validate_claude_reference', lambda initial: initial)
++    if mutation in ('host', 'contract', 'model', 'turns', 'port'):
++        row = queue.read(run / 'run_manifest.json')
++        row[{'host': 'host_script', 'contract': 'contract', 'model': 'model_revision',
++             'turns': 'max_turns_per_owner_turn', 'port': 'model_port'}[mutation]] = 'wrong'
++        queue.save(run / 'run_manifest.json', row)
++    elif mutation in ('attempt', 'duplicate'):
++        rows = [json.loads(line) for line in (run / 'attempts.jsonl').read_text().splitlines()]
++        if mutation == 'attempt': rows[-1]['measurement_valid'] = False
++        else: rows[-1] = rows[0]
++        (run / 'attempts.jsonl').write_text(''.join(json.dumps(row) + '\n' for row in rows))
++    elif mutation == 'completed': queue.save(run / 'completed.json', {'completed_scored': 128})
++    else: queue.NATIVE_PROFILES['claude_code']['snapshot'].write_text('{}')
++    assert not queue.initial_acceptance(run, expected, contract)
++
++
++def plan(tmp_path, monkeypatch):
++    for harness in queue.NATIVE_PROFILES: resource(tmp_path, monkeypatch, harness)
++    data = tmp_path / 'cases'; data.mkdir()
++    manifest = {'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a', 'flashrsi_revision': 'unit', 'cases': []}
++    for i in range(128):
++        path = data / f'case{i}.json'; path.write_text('{}')
++        manifest['cases'].append({'case_id': f'case{i}', 'sha256': queue.sha(path)})
++    ref = tmp_path / 'reference'; ref.mkdir(); (ref / 'initial_snapshot.json').write_text('{}')
++    monkeypatch.setattr(queue, 'DATA', data)
++    monkeypatch.setattr(queue, 'REFERENCE', ref)
++    monkeypatch.setattr(queue, 'LANE_LOCK', tmp_path / 'lane.lock')
++    monkeypatch.setattr(queue, 'lane_clients', lambda **kw: [])
++    monkeypatch.setattr(queue, 'freeze_sources', lambda destination: {})
++    monkeypatch.setattr(queue, 'native_source_pins', lambda h: {'unit': h})
++    monkeypatch.setattr(queue, 'initial_acceptance', lambda path, expected, contract:
++                        Path(path) == ref or contract['harness'] in queue.NATIVE_PROFILES)
++    monkeypatch.setattr(queue, 'judge_acceptance', lambda *args: True)
++    monkeypatch.setattr(queue, 'inspect_run', lambda *args: {'status': 'needs_repair'})
++    monkeypatch.setattr(queue.importlib.metadata, 'version', lambda name: {'tree-sitter': '0.25.2', 'tree-sitter-bash': '0.25.1'}[name])
++    controller = queue.Queue(tmp_path / 'queue'); calls = []
++    def execute(key, command, env, *args):
++        calls.append((key, command, dict(env)))
++        if key in ('pi/initial', 'claude_code/initial'):
++            run = Path(env['HR_INITIAL_REFERENCE']); run.mkdir()
++            (run / 'initial_snapshot.json').write_bytes(queue.NATIVE_PROFILES[env['HR_HARNESS']]['snapshot'].read_bytes())
++            return 0
++        return 2
++    monkeypatch.setattr(controller, 'execute', execute)
++    monkeypatch.setattr(controller, 'schedule_judge', lambda: None)
++    return controller, manifest, calls
++
++
++def test_full_finite_dispatch_retains_five_harnesses_and_all_native_failures(tmp_path, monkeypatch):
++    controller, manifest, calls = plan(tmp_path, monkeypatch)
++    controller.run(manifest, [])
++    assert [key for key, _, _ in calls] == ['opencode/evoprompt', 'opencode/gepa', 'openclaw/initial', 'codex/initial',
++        *['pi/' + a for a in ('initial', *queue.ALGORITHMS)],
++        *['claude_code/' + a for a in ('initial', *queue.ALGORITHMS)]]
++    assert all(env['HARNESSRISK_MODEL_PORT'] == '18764' and env['CUDA_VISIBLE_DEVICES'] == '' for _, _, env in calls)
++    assert all(controller.tasks['claude_code/' + a]['status'] == 'requires_repair' for a in queue.ALGORITHMS)
++    assert controller.tasks['claude_code/initial']['judge_status'] == 'needs_judge_lease_or_billing'
++    protocol = queue.read(controller.out / 'repair_protocol.json')
++    assert protocol['protocol'] == 'gpu1-finite-strict-matrix/v21'
++    assert protocol['queue_launcher'] == 'scripts/flashrsi_matrix_gpu1_queue_v21.py'
++    assert protocol['coverage']['model_harnesses_this_queue'] == list(queue.model_harnesses())
++    assert protocol['coverage']['deferred_harnesses'] == []
++    assert protocol['coverage']['full_five_harness_objective_complete'] is False
++    assert set(protocol['native_profiles']) == {'pi', 'claude_code'}
++
++
++def test_failed_claude_h0_blocks_its_six_without_dropping_tasks(tmp_path, monkeypatch):
++    controller, manifest, calls = plan(tmp_path, monkeypatch)
++    gate = queue.initial_acceptance
++    monkeypatch.setattr(queue, 'initial_acceptance', lambda path, expected, contract:
++                        contract['harness'] != 'claude_code' and gate(path, expected, contract))
++    controller.run(manifest, [])
++    assert calls[-1][0] == 'claude_code/initial'
++    assert controller.tasks['claude_code/initial']['status'] == 'blocked_initial_requires_repair'
++    assert all(controller.tasks['claude_code/' + a]['status'] == 'blocked_same_protocol_initial' for a in queue.ALGORITHMS)
++
++
++def test_claude_timeout_is_sticky_for_entire_lane(tmp_path, monkeypatch):
++    controller, manifest, calls = plan(tmp_path, monkeypatch)
++    execute = controller.execute
++    def uncertain(key, command, env, *args):
++        code = execute(key, command, env, *args)
++        if key == 'claude_code/initial':
++            queue.save(Path(env['HR_INITIAL_REFERENCE']) / 'host_observability/case0/host_execution.json',
++                       {'timed_out': True, 'cleanup_confirmed': False})
++        return code
++    monkeypatch.setattr(controller, 'execute', uncertain)
++    with pytest.raises(queue.QueueCleanupUncertain): controller.run(manifest, [])
++    assert calls[-1][0] == 'claude_code/initial'
++    with pytest.raises(queue.QueueCleanupUncertain): controller.check_cleanup()
++
++
++def test_claude_selected_proof_requires_actual_target_contract(tmp_path, monkeypatch):
++    initial, expected, _, _ = native_h0(tmp_path, monkeypatch, 'claude_code')
++    run = initial.parent / 'claude_code_opro_full'; run.mkdir()
++    snapshot = Snapshot.load(initial / 'initial_snapshot.json')
++    (run / 'snapshots').mkdir(); snapshot.save(run / 'snapshots/selected.json')
++    for cid in expected: queue.save(run / 'selected_cases' / cid / 'harness_result.json', {})
++    profile = queue.NATIVE_PROFILES['claude_code']
++    manifest = {'target_execution_protocol': profile['profile'], 'target_contract': profile['contract'],
++        'host_script': profile['host'], 'initial_reference_dir': str(initial), 'initial_snapshot_id': snapshot.id,
++        'model_port': 18764, 'worker_max_tokens': 1024, 'evolution_case_attempts': 1,
++        'scoring_contract': 'reject_unscorable_during_evolution'}
++    queue.save(run / 'run_manifest.json', manifest)
++    queue.save(run / 'result.json', {'initial_snapshot_id': snapshot.id})
++    monkeypatch.setattr(queue, 'legacy_inspect_run', lambda *args: {'status': 'needs_judge', 'reasons': []})
++    calls = []
++    monkeypatch.setattr(queue, 'validate_claude_case', lambda path, cid, *args, **kw: calls.append(cid))
++    queue.save(run / 'selected_cases/llm_judge_multi_harness/manifest.json', [])
++    assert queue.inspect_run(run, expected, None)['status'] == 'needs_judge'
++    assert len(calls) == 128 and set(calls) == expected
++    queue.save(run / 'run_manifest.json', {**manifest, 'target_contract': {'wrong': True}})
++    assert queue.inspect_run(run, expected, None)['status'] == 'needs_repair'
++
++
++def test_before_dispatch_native_bindings_cover_both_profiles(tmp_path, monkeypatch):
++    controller, manifest, _ = plan(tmp_path, monkeypatch)
++    controller.run(manifest, [])
++    controller.verify_native_bindings()
++    queue.NATIVE_PROFILES['claude_code']['snapshot'].write_text('resource drift')
++    with pytest.raises(ValueError, match='resource_hash_changed'): controller.verify_native_bindings()
++
++
++def test_help_and_existing_output_never_launch_queue(tmp_path, monkeypatch, capsys):
++    monkeypatch.setattr(queue.sys, 'argv', ['v21', '--help'])
++    with pytest.raises(SystemExit) as exc: queue.main()
++    assert exc.value.code == 0 and '--predecessor-pid' in capsys.readouterr().out
++    out = tmp_path / 'existing'; out.mkdir(); (out / 'evidence').write_text('retain')
++    monkeypatch.setattr(queue.sys, 'argv', ['v21', '--out', str(out)])
++    with pytest.raises(RuntimeError, match='output_exists_preserved'): queue.main()
++    assert (out / 'evidence').read_text() == 'retain'
++
++
++def test_native_feedback_preserves_only_actual_invalid_rows(tmp_path):
++    run = tmp_path / 'native-run'; run.mkdir()
++    attempts = [
++        {'case_id': 'bounded_valid', 'returncode': 0, 'measurement_valid': True},
++        {'case_id': 'invalid', 'returncode': 2, 'measurement_valid': False},
++        {'case_id': 'legacy_valid', 'exit_code': 0},
++    ]
++    (run / 'attempts.jsonl').write_text(''.join(json.dumps(row) + '\n' for row in attempts))
++    queue.save(run / 'cases/bounded_valid/harness_result.json',
++               {'status': 'completed', 'turns': [{'stop_reason': 'max_turns'}]})
++    queue.save(run / 'cases/invalid/harness_result.json',
++               {'status': 'error', 'turns': [{'stop_reason': 'context length invalid'}]})
++    queue.save(run / 'cases/legacy_valid/harness_result.json', {'status': 'completed'})
++    feedback = queue.failure_feedback(run)
++    assert feedback['classification_counts'] == {'context_capacity': 1}
++    assert feedback['evidence_paths'] == [str(run / 'host_observability/invalid')]
++    assert feedback['repair_needed'] is True and feedback['unchanged_retry_allowed'] is False
++
++
++def test_imported_v21_guard_never_calls_process_or_native_entry(tmp_path, monkeypatch):
++    import importlib.util
++    import sys
++    before = {name for name in sys.modules if name.startswith('flashrsi.agents.')}
++    monkeypatch.setattr(queue.subprocess, 'Popen', lambda *a, **kw: pytest.fail('import must not dispatch'))
++    spec = importlib.util.spec_from_file_location('future_v21_import_probe', queue.__file__)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    assert module.model_harnesses() == queue.model_harnesses()
++    assert {name for name in sys.modules if name.startswith('flashrsi.agents.')} == before
++
++
++def test_native_resource_copies_and_source_pins_remain_checked_after_run(tmp_path, monkeypatch):
++    controller, manifest, _ = plan(tmp_path, monkeypatch)
++    controller.run(manifest, [])
++    controller.verify_native_bindings()
++    copy = controller.out / 'native_resources/claude_code_initial_snapshot.json'
++    copy.write_text('retained copy changed')
++    with pytest.raises(RuntimeError, match='profile_or_original_H0_resource_drift'):
++        controller.verify_native_bindings()
++
++
++def test_predecessor_blocks_all_five_harnesses_before_freeze(tmp_path, monkeypatch):
++    controller, manifest, calls = plan(tmp_path, monkeypatch)
++    predecessor = {'pid': 999, 'start_ticks': '1234', 'command': ['exact-owned-predecessor']}
++    monkeypatch.setattr(queue, 'process_identity', lambda pid: predecessor if pid == 999 else None)
++    monkeypatch.setattr(queue, 'freeze_sources', lambda *args: pytest.fail('must wait before freezing'))
++    def stop(seconds): raise InterruptedError('fixture stops during exact wait')
++    monkeypatch.setattr(queue.time, 'sleep', stop)
++    with pytest.raises(InterruptedError): controller.run(manifest, [predecessor])
++    assert calls == [] and not (controller.out / 'native_resources').exists()
++
++
++def test_scanner_registers_v20_v21_and_native_pid_scopes(tmp_path, monkeypatch):
++    import flashrsi_matrix_repair_scan_v21 as scanner
++    compile(scanner.build_source(), '<scanner-v21>', 'exec')
++    monkeypatch.setattr(scanner, 'prior_active_runs', lambda: {'/legacy': 7})
++    identities = {
++        101: {'pid': 101, 'command': ['python', 'scripts/flashrsi_harnessrisk_pi_native_owner_reference_v6.py', '--algorithm', 'opro'], 'run_scope': '/queue/pi/pi_opro_full'},
++        102: {'pid': 102, 'command': ['python', 'scripts/flashrsi_harnessrisk_claude_native_owner_reference_v9.py', '--algorithm', 'gepa'], 'run_scope': '/queue/claude_code/claude_code_gepa_full'},
++        103: {'pid': 103, 'command': ['python', 'scripts/flashrsi_harnessrisk_claude_native_owner_reference_v9.py', '--algorithm', 'opro']},
++    }
++    class Proc:
++        def glob(self, pattern): return [Path(str(pid)) for pid in identities]
++    real_path = Path
++    monkeypatch.setattr(scanner, 'Path', lambda value: Proc() if value == '/proc' else real_path(value))
++    monkeypatch.setattr(scanner, 'process_identity', lambda pid: identities[pid])
++    assert scanner.active_runs() == {'/legacy': 7, '/queue/pi/pi_opro_full': 101,
++                                    '/queue/claude_code/claude_code_gepa_full': 102}
++
++
++def test_scanner_uses_strict_native_proof_with_legacy_fallback(tmp_path, monkeypatch):
++    import flashrsi_matrix_repair_scan_v21 as scanner
++    calls = []
++    monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid: calls.append(('native', run)) or {'status': 'needs_repair'})
++    monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda run, expected, pid: calls.append(('legacy', run)) or {'status': 'complete'})
++    native = tmp_path / 'native/pi_opro_full'; native.mkdir(parents=True)
++    queue.save(native / 'run_manifest.json', {'target_execution_protocol': queue.PI_PROFILE})
++    legacy = tmp_path / 'old/pi_opro_full'; legacy.mkdir(parents=True)
++    queue.save(legacy / 'run_manifest.json', {'host_script': 'flashrsi_harnessrisk_host_pi_interpreter_v4.py'})
++    assert scanner.inspect_scanned_run(native, {'case'}, None)['status'] == 'needs_repair'
++    assert scanner.inspect_scanned_run(legacy, {'case'}, None)['status'] == 'complete'
++    queued_native = tmp_path / 'queue/claude_code/claude_code_opro_full'; queued_native.mkdir(parents=True)
++    queue.save(tmp_path / 'queue/repair_protocol.json', {'protocol': 'gpu1-finite-strict-matrix/v21'})
++    assert scanner.inspect_scanned_run(queued_native, {'case'}, None)['status'] == 'needs_repair'
++    assert [kind for kind, _ in calls] == ['native', 'legacy', 'native']
++
++
++@pytest.mark.parametrize('identity_matches', [True, False])
++def test_scanner_shallow_roots_report_live_queue_tasks_without_writes(tmp_path, monkeypatch, identity_matches):
++    import flashrsi_matrix_repair_scan_v21 as scanner
++    outputs = tmp_path / 'outputs'; outputs.mkdir()
++    queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json',
++               {'cases': [{'case_id': f'case{i}'} for i in range(128)]})
++    roots = []
++    for version, pid in ((20, 120), (21, 121)):
++        root = outputs / f'flashrsi_future_v{version}'; roots.append(root)
++        script = f'scripts/flashrsi_matrix_gpu1_queue_v{version}.py'
++        identity = {'pid': pid, 'start_ticks': 'one', 'command': ['python', script, '--out', str(root)]}
++        queue.save(root / 'repair_protocol.json', {'protocol': f'gpu1-finite-strict-matrix/v{version}', 'queue_launcher': script})
++        queue.save(root / 'launch_state.json', {'launcher_pid': pid, 'status': 'waiting_endpoint_capacity'})
++        queue.save(root / 'pidboard.json', {'launcher': identity})
++        queue.save(root / 'remaining_tasks.json', {'tasks': {'pi/opro': {'status': 'queued'}}})
++        (root / 'pi').mkdir()
++    identities = {120: queue.read(roots[0] / 'pidboard.json')['launcher'], 121: queue.read(roots[1] / 'pidboard.json')['launcher']}
++    if not identity_matches:
++        identities = {pid: {**identity, 'start_ticks': 'reused'} for pid, identity in identities.items()}
++    monkeypatch.setattr(scanner, 'process_identity', lambda pid: identities.get(pid))
++    monkeypatch.setattr(scanner, 'active_runs', lambda: {})
++    monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
++    monkeypatch.setattr(scanner.matrix, 'HARNESSES', ('pi',))
++    monkeypatch.setattr(scanner.matrix, 'ALGORITHMS', ('opro',))
++    monkeypatch.setattr(scanner.matrix, 'save', lambda *a, **kw: pytest.fail('read-only scanner must not save'))
++    monkeypatch.setattr(Path, 'rglob', lambda *a, **kw: pytest.fail('no recursive output scan'))
++    result = scanner.scan()
++    assert result['read_only'] is True and len(result['queues']) == 2
++    assert {entry['path'] for entry in result['queues']} == {str(root) for root in roots}
++    assert all(entry['launcher_identity_matches'] is identity_matches for entry in result['queues'])
++    job = result['jobs'][0]
++    assert job['status'] == ('queued' if identity_matches else 'pending')
++    assert len(job['queued_launches']) == (2 if identity_matches else 0)
++
++
++def test_scanner_discovers_both_nested_native_runs_with_actual_scope_pids(tmp_path, monkeypatch):
++    import flashrsi_matrix_repair_scan_v21 as scanner
++    outputs = tmp_path / 'outputs'; outputs.mkdir()
++    queue.save(outputs / 'flashrsi_harnessrisk_4b_private_v1_20261113/case_manifest.json',
++               {'cases': [{'case_id': f'case{i}'} for i in range(128)]})
++    runs = {}
++    for version, harness, pid in ((20, 'pi', 210), (21, 'claude_code', 211)):
++        root = outputs / f'flashrsi_v{version}'
++        queue.save(root / 'repair_protocol.json', {'protocol': f'gpu1-finite-strict-matrix/v{version}'})
++        run = root / harness / (harness + '_opro_full'); run.mkdir(parents=True)
++        runs[str(run.resolve())] = pid
++        # A deeper snapshot/cache directory must never become a root.
++        (root / 'source_snapshot' / harness / (harness + '_opro_full')).mkdir(parents=True)
++    calls = []
++    monkeypatch.setattr(scanner.matrix, 'OUTPUTS', outputs)
++    monkeypatch.setattr(scanner.matrix, 'HARNESSES', ('pi', 'claude_code'))
++    monkeypatch.setattr(scanner.matrix, 'ALGORITHMS', ('opro',))
++    monkeypatch.setattr(scanner, 'active_runs', lambda: runs)
++    monkeypatch.setattr(scanner, 'strict_inspect_run', lambda run, expected, pid:
++                        calls.append((str(run.resolve()), pid)) or {'status': 'needs_judge'})
++    monkeypatch.setattr(scanner.matrix, 'inspect_run', lambda *a: pytest.fail('native queue run must get strict proof'))
++    monkeypatch.setattr(Path, 'rglob', lambda *a, **kw: pytest.fail('no recursive root scan'))
++    result = scanner.scan()
++    assert dict(calls) == runs and len(calls) == 2
++    assert all(job['status'] == 'needs_judge' for job in result['jobs'])

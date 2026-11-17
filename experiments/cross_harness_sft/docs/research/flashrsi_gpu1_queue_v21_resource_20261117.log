@@ -1,0 +1,21 @@
+{
+  "resources": {
+    "pi": {
+      "path": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/flashrsi_harnessrisk_4b_private_pi_gepa_interpreter_v4_20261114/pi_initial_full/initial_snapshot.json",
+      "canonical_path": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/flashrsi_harnessrisk_4b_private_pi_v3_20261114/pi_initial_full/initial_snapshot.json",
+      "sha256": "285e34f76191883d544f9d3fc3397c62e6c8d1480bb3726beb9ab7f95718a201",
+      "snapshot_id": "dd0db4bf42de4f0c6888fff1b287bb56d1d58832ceb7e21b285887d832f4ead2",
+      "agent_type": "pi"
+    },
+    "claude_code": {
+      "path": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/initial_snapshot.json",
+      "canonical_path": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/initial_snapshot.json",
+      "sha256": "45d6efd89a4b0f3696ec2ad79bcc06c43c6e125890ed43251a0d462c4580713d",
+      "snapshot_id": "26a1fb7c061e3aec310e5fb266d9083c5b5ab8a754dec4b4ae292a1792357f3b",
+      "agent_type": "claude_code"
+    }
+  },
+  "trusted_core_load_save_roundtrip": "identical bytes and Snapshot IDs",
+  "original_resources_unchanged": true,
+  "native_agents_or_candidate_code_imported_or_executed": false
+}

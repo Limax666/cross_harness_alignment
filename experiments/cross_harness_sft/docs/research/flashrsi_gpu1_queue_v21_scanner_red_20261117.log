@@ -1,0 +1,52 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_____________ test_scanner_registers_v20_v21_and_native_pid_scopes _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-329/test_scanner_registers_v20_v210')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x716d7cdc7210>
+
+    def test_scanner_registers_v20_v21_and_native_pid_scopes(tmp_path, monkeypatch):
+>       import flashrsi_matrix_repair_scan_v21 as scanner
+E       ModuleNotFoundError: No module named 'flashrsi_matrix_repair_scan_v21'
+
+tests/test_flashrsi_gpu1_queue_v21.py:302: ModuleNotFoundError
+__________ test_scanner_uses_strict_native_proof_with_legacy_fallback __________
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-329/test_scanner_uses_strict_nativ0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x716d7cdbfe10>
+
+    def test_scanner_uses_strict_native_proof_with_legacy_fallback(tmp_path, monkeypatch):
+>       import flashrsi_matrix_repair_scan_v21 as scanner
+E       ModuleNotFoundError: No module named 'flashrsi_matrix_repair_scan_v21'
+
+tests/test_flashrsi_gpu1_queue_v21.py:320: ModuleNotFoundError
+___ test_scanner_shallow_roots_report_live_queue_tasks_without_writes[True] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-329/test_scanner_shallow_roots_rep0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x716d7cd5ac10>
+identity_matches = True
+
+    @pytest.mark.parametrize('identity_matches', [True, False])
+    def test_scanner_shallow_roots_report_live_queue_tasks_without_writes(tmp_path, monkeypatch, identity_matches):
+>       import flashrsi_matrix_repair_scan_v21 as scanner
+E       ModuleNotFoundError: No module named 'flashrsi_matrix_repair_scan_v21'
+
+tests/test_flashrsi_gpu1_queue_v21.py:338: ModuleNotFoundError
+___ test_scanner_shallow_roots_report_live_queue_tasks_without_writes[False] ___
+
+tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-329/test_scanner_shallow_roots_rep1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x716d7d098990>
+identity_matches = False
+
+    @pytest.mark.parametrize('identity_matches', [True, False])
+    def test_scanner_shallow_roots_report_live_queue_tasks_without_writes(tmp_path, monkeypatch, identity_matches):
+>       import flashrsi_matrix_repair_scan_v21 as scanner
+E       ModuleNotFoundError: No module named 'flashrsi_matrix_repair_scan_v21'
+
+tests/test_flashrsi_gpu1_queue_v21.py:338: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_scanner_registers_v20_v21_and_native_pid_scopes
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_scanner_uses_strict_native_proof_with_legacy_fallback
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_scanner_shallow_roots_report_live_queue_tasks_without_writes[True]
+FAILED tests/test_flashrsi_gpu1_queue_v21.py::test_scanner_shallow_roots_report_live_queue_tasks_without_writes[False]
+4 failed, 23 deselected in 0.87s
