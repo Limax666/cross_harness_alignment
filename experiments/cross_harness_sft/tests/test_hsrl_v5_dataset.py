@@ -438,6 +438,42 @@ def test_real_pooled_claw_requires_complete_private_request_and_cleanup(tmp_path
         validate_proof(record, proof, path, root)
 
 
+def test_v6_lifecycle_protocol_cannot_downgrade_genuine_pool_proof(tmp_path):
+    from hsrl_v5.release import validate_proof
+    record, proof, path, root = copied_case(tmp_path, source='clawgym_pool', role='benign')
+    (root / 'protocol.json').write_text(json.dumps({'schema': 'hsrl-v5-claw-real-quality/v6'}))
+    validate_proof(record, proof, path, root)
+    proof.pop('private_grader_pool')
+    for episode in ('actual_episode', 'reset_episode'):
+        result_path = Path(proof['attempt_directory']) / episode / 'result.json'
+        result = json.loads(result_path.read_text())
+        result['evidence']['private_grader'] = None
+        result_path.write_text(json.dumps(result))
+    with pytest.raises(ValueError, match='pool'):
+        validate_proof(record, proof, path, root)
+
+
+def test_v6_lifecycle_real_partial_admission_is_recognized_not_completed(tmp_path):
+    from hsrl_v5.release import inspect_source
+    record, proof, path, root = copied_case(tmp_path, source='clawgym_pool', role='benign')
+    original = MAIN / 'outputs/rl/hsrl_v6_claw_real_quality_20261116_r2'
+    protocol = json.loads((original / 'protocol.json').read_text())
+    protocol['schema'] = 'hsrl-v5-claw-real-quality/v6'
+    (root / 'protocol.json').write_text(json.dumps(protocol))
+    shutil.copytree(original / 'source_snapshot', root / 'source_snapshot')
+    cases = root / 'cases'
+    cases.mkdir()
+    moved = cases / path.parent.name
+    shutil.move(str(path.parent), moved)
+    proof['attempt_directory'] = str(moved / Path(proof['attempt_directory']).name)
+    (moved / 'quality.json').write_text(json.dumps(proof))
+    state, admitted = inspect_source('clawgym', CLAW_SOURCE, root)
+    assert state['protocol_schema'] == 'hsrl-v5-claw-real-quality/v6'
+    assert state['completed'] == state['admitted'] == 1
+    assert state['complete'] is False and state['pending_unprocessed'] == 7637
+    assert admitted[0][0]['id'] == record['id']
+
+
 @pytest.mark.parametrize('field', ['child_pid', 'request_nonce'])
 def test_real_pooled_claw_rejects_coherent_actual_reset_child_reuse(tmp_path, field):
     from hsrl_v5.release import validate_proof

@@ -29,6 +29,7 @@ SOURCE_PINS = {
 }
 GRADER_SHA256 = '0f08a890ab7aaadc88f526ab997fd438c07c6dc10c5e30f4b73c8549af1f56e2'
 BOUNDARY = 'readonly_private_grader_no_actor_code_v2'
+POOLED_CLAW_PROTOCOLS = frozenset({'hsrl-v5-claw-real-quality/v5', 'hsrl-v5-claw-real-quality/v6'})
 QUOTAS = {'clawgym:benign': 7000, 'agentdog:attack': 5500,
           'agentdog:clean': 1000, 'agentdog:query_target': 500}
 LIMITS = {'context_tokens': 16384, 'call_tokens': 2048, 'episode_tokens': 8192, 'max_rounds': 12}
@@ -41,7 +42,7 @@ REQUIRED_RUNTIME_MODULES = frozenset(
         'agentdog_backend', 'agentdog_source', 'agentdog_worker', 'quality_agentdog',
         'claw_backend', 'claw_source', 'claw_contracts', 'workspace',
         'workspace_worker', 'grader_pool', 'isolation')]
-    + ['hsrl_v3/' + name + '.py' for name in ('__init__', 'backends', 'claw_backend', 'pool')])
+    + ['hsrl_v3/' + name + '.py' for name in ('__init__', 'backends', 'claw_backend', 'pool', 'components')])
 GRADER_PATH = 'vendor/agentdog/runtime_evaluators.py'
 SAMPLER_CONTRACT = {'G': 8, 'K': 2, 'groups': 16, 'general_groups': 8,
                     'safety_groups': 8, 'blocks_per_pass': 875}
@@ -433,7 +434,7 @@ def validate_proof(record, proof, path, quality_root):
             validate_agentdog_evidence(record, proof, attempt)
         elif record['source'] == 'clawgym':
             protocol_path = Path(quality_root) / 'protocol.json'
-            require_pool = protocol_path.exists() and read_json(protocol_path).get('schema') == 'hsrl-v5-claw-real-quality/v5'
+            require_pool = protocol_path.exists() and read_json(protocol_path).get('schema') in POOLED_CLAW_PROTOCOLS
             validate_claw_evidence(record, proof, attempt, require_pool)
         else:
             raise ValueError('unsupported_release_source')
@@ -466,7 +467,7 @@ def inspect_source(source, source_dir, quality_dir):
         state['gate'] = 'missing_quality_protocol'
         return state, []
     protocol = read_json(protocol_path)
-    schemas = {'hsrl-v5-claw-real-quality/v3', 'hsrl-v5-claw-real-quality/v4', 'hsrl-v5-claw-real-quality/v5'} if source == 'clawgym' else {'hsrl-v5-agentdog-real-quality/v2'}
+    schemas = {'hsrl-v5-claw-real-quality/v3', 'hsrl-v5-claw-real-quality/v4', *POOLED_CLAW_PROTOCOLS} if source == 'clawgym' else {'hsrl-v5-agentdog-real-quality/v2'}
     if protocol.get('source_manifest_sha256') != manifest_sha or protocol.get('schema') not in schemas or protocol.get('records') != len(records):
         raise ValueError('quality_protocol_source_identity_mismatch:' + source)
     if source == 'clawgym' and protocol.get('private_grader_boundary_gate') != BOUNDARY:
@@ -499,7 +500,7 @@ def inspect_source(source, source_dir, quality_dir):
                 validate_proof(record, proof, path, quality_dir)
                 admitted.append((record, path))
             except (ValueError, KeyError, OSError, TypeError) as exc:
-                if (source == 'clawgym' and protocol['schema'] == 'hsrl-v5-claw-real-quality/v5'
+                if (source == 'clawgym' and protocol['schema'] in POOLED_CLAW_PROTOCOLS
                         and isinstance(exc, FileNotFoundError) and Path(str(exc.filename)).name == 'cleanup.json'):
                     state['pending_retained_evidence'].append(record['id'] + ':private_grader_removal_confirmation_pending')
                 else:
@@ -518,7 +519,7 @@ def inspect_source(source, source_dir, quality_dir):
             and summary.get('planned') == summary.get('completed') == len(records) == state['completed']
             and not state['identity_errors'] and not state['pending_retained_evidence'] and state['code_snapshot_verified']
             and not rejected.get('isolation_or_runtime_infrastructure', 0))
-        if source == 'clawgym' and protocol['schema'] == 'hsrl-v5-claw-real-quality/v5':
+        if source == 'clawgym' and protocol['schema'] in POOLED_CLAW_PROTOCOLS:
             try:
                 cleanup = read_json(contained(quality_dir, summary['private_grader_pool_cleanup']))
                 state['private_grader_pool_cleanup_confirmed'] = (
@@ -595,8 +596,8 @@ def status(claw_source, claw_quality, agentdog_source, agentdog_quality):
         report['pending_gates'].insert(0, 'real_admitted_role_quotas')
     if any(not s.get('consumer_execution_code_matches_QC') for s in states.values()):
         report['pending_gates'].insert(0, 'consumer_execution_code_must_match_completed_QC')
-    if states['clawgym'].get('protocol_schema') != 'hsrl-v5-claw-real-quality/v5':
-        report['pending_gates'].insert(0, 'final_new_Claw_v5_pooled_quality_required')
+    if states['clawgym'].get('protocol_schema') not in POOLED_CLAW_PROTOCOLS:
+        report['pending_gates'].insert(0, 'final_new_Claw_pooled_quality_required')
     proofs = {(r['source'], r['id']): path for rows in admitted.values() for r, path in rows}
     return report, chosen, proofs
 
@@ -668,8 +669,8 @@ def verify_execution_code(source, protocol, runtime):
 def export_candidate(report, selected, proofs, sources, qualities, out, grader):
     """Construct an unpublished candidate only after both complete admissions."""
     require_admission(report)
-    if report['sources']['clawgym'].get('protocol_schema') != 'hsrl-v5-claw-real-quality/v5':
-        raise ValueError('final_new_Claw_v5_pooled_quality_required')
+    if report['sources']['clawgym'].get('protocol_schema') not in POOLED_CLAW_PROTOCOLS:
+        raise ValueError('final_new_Claw_pooled_quality_required')
     out = Path(out).absolute()
     if out.exists():
         raise ValueError('export_destination_exists')
@@ -762,7 +763,7 @@ def export_candidate(report, selected, proofs, sources, qualities, out, grader):
         code_root = Path(__file__).resolve().parent.parent
         runtime = {}
         for package, names in (('hsrl_v5', [p.name for p in (code_root / 'hsrl_v5').glob('*.py')]),
-                               ('hsrl_v3', ['__init__.py', 'backends.py', 'claw_backend.py', 'pool.py'])):
+                               ('hsrl_v3', ['__init__.py', 'backends.py', 'claw_backend.py', 'pool.py', 'components.py'])):
             for name in sorted(names):
                 source = code_root / package / name
                 target = stage / 'code' / package / name
