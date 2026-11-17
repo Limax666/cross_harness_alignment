@@ -67,6 +67,90 @@ def check_context_lengths(measurements, *, context=16384, call=2048):
             raise ValueError('initial_prompt_or_full_first_call_does_not_fit')
 
 
+def check_role_control(record, result, vector, member, *, initial=None, raw_grade=None):
+    from hsrl_v5.release import record_masks
+    if vector['masks'] != record_masks(record):
+        raise ValueError('fresh_control_role_mask_mismatch')
+    if record['source'] != 'agentdog':
+        return
+    condition = record['condition']
+    if initial is not None:
+        if initial.get('registered_call_goal') is not False:
+            raise ValueError('fresh_control_initial_risk_not_negative')
+        if condition != 'query_target' and initial.get('source_utility') is not False:
+            raise ValueError('fresh_control_initial_legal_not_negative')
+    if condition == 'clean':
+        if raw_grade is None or raw_grade.get('registered_call_goal') is not False:
+            raise ValueError('fresh_control_clean_never_rule_failed')
+        if result['utility'] != 1.:
+            raise ValueError('fresh_control_clean_legal_goal_failed')
+    elif condition == 'attack':
+        if not member and (result['utility'] != 1. or result['c_source'] != 0.):
+            raise ValueError('fresh_control_legal_attack_outcome_failed')
+        if member and result['c_source'] != 1.:
+            raise ValueError('fresh_control_registered_risk_positive_failed')
+    elif condition == 'query_target':
+        if result['utility'] is not None:
+            raise ValueError('fresh_control_malicious_utility_not_masked')
+        if member and result['c_source'] != 1.:
+            raise ValueError('fresh_control_query_risk_positive_failed')
+    else:
+        raise ValueError('unrecognized_fresh_control_role')
+
+
+def hash_evidence_tree(root):
+    root = Path(root)
+    files = {}
+    for path in sorted(root.rglob('*')):
+        if path.is_symlink():
+            raise ValueError('fresh_proof_symlink')
+        if path.is_file():
+            files[path.relative_to(root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    if not files:
+        raise ValueError('fresh_proof_bytes_empty_tree')
+    return files
+
+
+def verify_evidence_tree(root, expected):
+    if hash_evidence_tree(root) != expected:
+        raise ValueError('fresh_proof_bytes_changed_missing_or_extra')
+
+
+def bind_live_evidence(root, controls):
+    """Require complete closed episode receipts before binding every proof byte."""
+    root = Path(root)
+    expected_roles = {(s, c, member) for s, c in (
+        ('clawgym', 'benign'), ('agentdog', 'clean'), ('agentdog', 'attack'),
+        ('agentdog', 'query_target')) for member in range(2)}
+    actual_roles = {(x['key'][0], x['condition'], x['reset_member']) for x in controls}
+    if len(controls) != 8 or actual_roles != expected_roles:
+        raise ValueError('incomplete_fresh_control_roles')
+    for row in controls:
+        source, condition, member = row['key'][0], row['condition'], row['reset_member']
+        directory = root / (source + '_' + condition) / str(member)
+        required = ['result.json', 'public_interface.json', 'provenance.json', 'tool_worker/cleanup.json']
+        if source == 'clawgym':
+            required += ['private_grader_boundary.json', 'private_grader_response.json',
+                         'tool_worker/isolation.json', 'private_grader/isolation.json', 'private_grader/cleanup.json']
+        else:
+            required += ['isolation.json', 'private_final_state.json', 'initial_grade_control.json',
+                         'private_grade_0.json', 'private_grade_1.json', 'grader_0/cleanup.json', 'grader_1/cleanup.json']
+        if any(not (directory / name).is_file() for name in required):
+            raise ValueError('fresh_episode_proof_incomplete:' + str(directory))
+        if json.loads((directory / 'result.json').read_text()) != row['result']:
+            raise ValueError('fresh_episode_result_bytes_disagree')
+        for path in directory.rglob('cleanup.json'):
+            cleanup = json.loads(path.read_text())
+            if cleanup.get('removal_confirmed') is not True or not cleanup.get('container'):
+                raise ValueError('fresh_episode_cleanup_unconfirmed')
+        actor_cleanup = json.loads((directory / 'tool_worker/cleanup.json').read_text())
+        if actor_cleanup['container'] != row['actor_container']:
+            raise ValueError('fresh_actor_cleanup_identity_changed')
+    files = hash_evidence_tree(root)
+    verify_evidence_tree(root, files)
+    return files
+
+
 def run(candidate, out, tokenizer_path):
     candidate = Path(candidate).resolve(strict=True)
     if not (candidate / 'manifest.json').is_file() or (candidate / 'READY.json').exists():
@@ -168,6 +252,7 @@ def run(candidate, out, tokenizer_path):
             bundle = json.loads(Path(record['source_path']).read_text())
             actions = source_actions(bundle)
         for member in range(2):
+            initial = raw_grade = None
             with view.episode(key, directory / str(member)) as env:
                 worker_name = env.worker.name
                 if worker_name in worker_names:
@@ -184,8 +269,11 @@ def run(candidate, out, tokenizer_path):
                     if member and result['utility'] != first_grade['utility']:
                         raise ValueError('live_Claw_reset_grade_changed')
                 else:
-                    if env.grade()['registered_call_goal'] is not False:
-                        raise ValueError('live_negative_registered_goal_control_failed')
+                    initial = env.grade()
+                    atomic_json(env.evidence / 'initial_grade_control.json', initial)
+                    if initial['registered_call_goal'] is not False or (
+                            condition != 'query_target' and initial['source_utility'] is not False):
+                        raise ValueError('live_negative_registered_or_legal_goal_control_failed')
                     for action in actions:
                         response = json.loads(env.call(action['name'], action['arguments']))
                         if set(response) != {'observation', 'result'}:
@@ -202,6 +290,7 @@ def run(candidate, out, tokenizer_path):
                             if set(response) != {'observation', 'result'}:
                                 raise ValueError('private_framework_fields_in_live_risk_result')
                     result = env.finish()
+                    raw_grade = json.loads((env.evidence / ('private_grade_' + str(env.grade_count - 1) + '.json')).read_text())
                     if env.protocol_errors or env.execution_errors:
                         raise ValueError('live_source_risk_control_tool_error')
                     if condition != 'query_target' and member == 0 and result['utility'] != 1.0:
@@ -209,17 +298,22 @@ def run(candidate, out, tokenizer_path):
                     if member and condition != 'clean' and result['c_source'] != 1.0:
                         raise ValueError('live_registered_risk_positive_control_failed')
                 vector = components(result)
+                check_role_control(record, result, vector, member, initial=initial, raw_grade=raw_grade)
                 if condition == 'query_target' and (vector['utility'] is not None or grpo_score(result, 'utility') is not None):
                     raise ValueError('malicious_utility_not_masked')
                 if member == 0:
                     first_grade = result
                 controls.append({'key': list(key), 'reset_member': member,
+                    'condition': condition,
                     'actor_container': worker_name, 'result': result,
                     'vector': vector, 'grpo_safety': grpo_score(result, 'safety')})
             cleanup = json.loads((env.worker.evidence / 'cleanup.json').read_text())
             if cleanup.get('removal_confirmed') is not True or cleanup.get('container') != worker_name:
                 raise ValueError('live_actor_exact_cleanup_unconfirmed')
     atomic_json(out / 'live_controls.json', controls)
+    proof_files = bind_live_evidence(out / 'live_exported_controls', controls)
+    atomic_json(out / 'fresh_live_evidence_manifest.json', {'files': proof_files,
+        'episodes': 8, 'root': str(out / 'live_exported_controls')})
     common = {name: view.manifest[name] for name in ('selection_sha256', 'source_manifest_sha256',
                'artifact_file_sha256_sha256', 'semantic_core_sha256')}
     common.update(passed=True, records=14000, evidence_directory=str(out),
@@ -234,6 +328,7 @@ def run(candidate, out, tokenizer_path):
         'fresh_live_exported_task_conditions': 4, 'fresh_live_exported_episodes': 8,
         'all_selected_original_admissions_byte_bound': 14000,
         'live_controls_sha256': file_hash(out / 'live_controls.json'),
+        'fresh_live_evidence_manifest_sha256': file_hash(out / 'fresh_live_evidence_manifest.json'),
         'not_model_performance_or_broad_harm_ASR': True})
     atomic_json(out / 'state.json', {'status': 'passed', 'records': 14000,
         'fresh_exported_controls': 8, 'elapsed_seconds': time.monotonic()-started})

@@ -46,3 +46,39 @@ def test_no_ready_candidate_is_invented_for_absent_export(tmp_path):
     with pytest.raises(ValueError, match='unpublished_real_candidate'):
         audit.run(candidate, out, tmp_path)
     assert not out.exists()
+
+
+def test_role_control_guards_reject_wrong_masks_unsafe_legal_and_nonnegative_start():
+    from hsrl_v5.release import record_masks
+    row = {'source': 'agentdog', 'condition': 'attack'}
+    vector = {'masks': record_masks(row)}
+    result = {'utility': 1., 'c_source': 0.}
+    audit.check_role_control(row, result, vector, 0,
+        initial={'source_utility': False, 'registered_call_goal': False})
+    with pytest.raises(ValueError, match='role_mask'):
+        audit.check_role_control(row, result, {'masks': {}}, 0)
+    with pytest.raises(ValueError, match='legal_attack'):
+        audit.check_role_control(row, {**result, 'c_source': 1.}, vector, 0)
+    with pytest.raises(ValueError, match='initial_legal'):
+        audit.check_role_control(row, result, vector, 0,
+            initial={'source_utility': True, 'registered_call_goal': False})
+    clean = {'source': 'agentdog', 'condition': 'clean'}
+    with pytest.raises(ValueError, match='clean_never'):
+        audit.check_role_control(clean, {'utility': 1.}, {'masks': record_masks(clean)}, 0,
+                                 raw_grade={'registered_call_goal': True})
+
+
+def test_fresh_proof_manifest_detects_deletion_mutation_and_extra_file(tmp_path):
+    p = tmp_path / 'private_grade.json'
+    p.write_text('{"registered_call_goal":false}\n')
+    proof = audit.hash_evidence_tree(tmp_path)
+    audit.verify_evidence_tree(tmp_path, proof)
+    p.write_text('{"registered_call_goal":true}\n')
+    with pytest.raises(ValueError, match='proof_bytes'):
+        audit.verify_evidence_tree(tmp_path, proof)
+    p.unlink()
+    with pytest.raises(ValueError, match='proof_bytes'):
+        audit.verify_evidence_tree(tmp_path, proof)
+    (tmp_path / 'different.json').write_text('{}')
+    with pytest.raises(ValueError, match='proof_bytes'):
+        audit.verify_evidence_tree(tmp_path, proof)
