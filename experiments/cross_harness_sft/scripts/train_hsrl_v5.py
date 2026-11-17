@@ -1,4 +1,4 @@
-"""Single physical GPU0, real READY-v5 online LoRA GRPO. No synthetic fallback.
+"""Single selected physical GPU0 or GPU1, real READY-v5 online LoRA GRPO. No synthetic fallback.
 
 The durable journal reserves every real attempt before environment execution.
 An interrupted in-flight episode requires explicit reconciliation; it is never
@@ -273,25 +273,53 @@ def _code_identity():
     return {p.relative_to(root).as_posix(): file_hash(p) for p in files}
 
 
-def validate_lease(path):
+def validate_physical_gpu(physical_gpu):
+    if type(physical_gpu) is not int or physical_gpu not in (0, 1):
+        raise ValueError('physical_GPU_must_be_0_or_1')
+    return physical_gpu
+
+
+def validate_lease(path, physical_gpu=0):
+    validate_physical_gpu(physical_gpu)
     lease = json.loads(Path(path).read_text())
-    if (lease.get('schema') != 'hsrl-gpu0-training-handoff/v1'
-            or lease.get('physical_gpu') != 0 or lease.get('exclusive') is not True
-            or lease.get('gpu1_baselines_preserved') is not True
-            or lease.get('forbidden_gpus') != [2, 3]
-            or lease.get('boundary_status') not in ('accepted_complete', 'stages_ended_preserved_unresolved_work')):
-        raise ValueError('explicit_GPU0_only_boundary_handoff_required')
-    if any(Path('/proc', str(pid)).exists() for pid in lease['old_service_pids']):
-        raise ValueError('old_GPU0_service_or_waiter_still_live')
-    ledger = Path(lease['baseline_ledger_path'])
-    if not ledger.is_absolute() or file_hash(ledger) != lease['baseline_ledger_sha256']:
+    if not isinstance(lease, dict):
+        raise ValueError('malformed_GPU_handoff')
+    if (lease.get('schema') != f'hsrl-gpu{physical_gpu}-training-handoff/v1'
+            or type(lease.get('physical_gpu')) is not int
+            or lease.get('physical_gpu') != physical_gpu or lease.get('exclusive') is not True
+            or lease.get('forbidden_gpus') != [2, 3]):
+        raise ValueError('explicit_selected_GPU_boundary_handoff_required')
+    if physical_gpu == 0:
+        if (lease.get('gpu1_baselines_preserved') is not True
+                or lease.get('boundary_status') not in (
+                    'accepted_complete', 'stages_ended_preserved_unresolved_work')):
+            raise ValueError('explicit_GPU0_only_boundary_handoff_required')
+    elif (lease.get('baseline_status') != 'paused_with_preserved_results'
+            or lease.get('boundary_status') != 'stages_ended_preserved_unresolved_work'
+            or 'gpu1_baselines_preserved' in lease):
+        raise ValueError('GPU1_requires_paused_baselines_with_preserved_results')
+    pid_keys = ['old_service_pids'] + (['old_controller_pids'] if physical_gpu == 1 else [])
+    for key in pid_keys:
+        pids = lease.get(key)
+        if not isinstance(pids, list) or any(type(pid) is not int or pid <= 0 for pid in pids):
+            raise ValueError('malformed_old_owned_process_pids')
+        if any(Path('/proc', str(pid)).exists() for pid in pids):
+            raise ValueError(f'old_GPU{physical_gpu}_service_or_waiter_still_live')
+    if physical_gpu == 1 and not lease['old_service_pids']:
+        raise ValueError('GPU1_requires_old_owned_service_identity')
+    ledger_value, lock_value = lease.get('baseline_ledger_path'), lease.get('lock_path')
+    if not isinstance(ledger_value, str) or not isinstance(lock_value, str):
+        raise ValueError('absolute_ledger_and_lease_lock_required')
+    ledger = Path(ledger_value)
+    if not ledger.is_absolute() or file_hash(ledger) != lease.get('baseline_ledger_sha256'):
         raise ValueError('baseline_migration_ledger_identity_changed')
-    if not Path(lease['lock_path']).is_absolute():
-        raise ValueError('absolute_GPU0_lease_lock_required')
+    if not Path(lock_value).is_absolute():
+        raise ValueError('absolute_GPU_lease_lock_required')
     return lease
 
 
-def resource_gate(out, *, initial=False):
+def resource_gate(out, *, initial=False, physical_gpu=0):
+    validate_physical_gpu(physical_gpu)
     available = next(int(line.split()[1]) * 1024 for line in Path('/proc/meminfo').read_text().splitlines()
                      if line.startswith('MemAvailable:'))
     free = shutil.disk_usage(out).free
@@ -303,17 +331,18 @@ def resource_gate(out, *, initial=False):
     if run_bytes >= CONFIG['max_new_run_disk_GiB'] * 2**30:
         raise RuntimeError('registered_60GiB_run_growth_cap_reached')
     if initial:
-        pids = subprocess.run(['nvidia-smi', '--id=0', '--query-compute-apps=pid', '--format=csv,noheader,nounits'],
+        pids = subprocess.run(['nvidia-smi', f'--id={physical_gpu}', '--query-compute-apps=pid', '--format=csv,noheader,nounits'],
             check=True, capture_output=True, text=True).stdout.strip()
         if pids:
-            raise RuntimeError('GPU0_has_compute_processes_before_exclusive_load:' + pids)
+            raise RuntimeError(f'GPU{physical_gpu}_has_compute_processes_before_exclusive_load:' + pids)
     return {'mem_available_bytes': available, 'disk_free_bytes': free, 'run_bytes': run_bytes,
             'host_maxrss_kib': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss}
 
 
 def run(args):
-    if os.environ.get('CUDA_VISIBLE_DEVICES') != '0':
-        raise ValueError('CUDA_VISIBLE_DEVICES_must_be_exactly_physical_0')
+    physical_gpu = validate_physical_gpu(getattr(args, 'physical_gpu', 0))
+    if os.environ.get('CUDA_VISIBLE_DEVICES') != str(physical_gpu):
+        raise ValueError(f'CUDA_VISIBLE_DEVICES_must_be_exactly_physical_{physical_gpu}')
     if not (256 <= args.max_attempts <= 38400 and args.max_attempts % 256 == 0):
         raise ValueError('budget_must_be_complete_K2_blocks_up_to_38400_attempts')
     from hsrl_v5.dataset import Dataset
@@ -321,7 +350,7 @@ def run(args):
     out, model, lease_path = args.out.resolve(), args.model.resolve(strict=True), args.lease.resolve(strict=True)
     dataset = Dataset(args.dataset)
     official = verify_official_checkpoint(model)
-    lease = validate_lease(lease_path)
+    lease = validate_lease(lease_path, physical_gpu)
     if args.resume:
         if not (out / 'journal.pt').is_file():
             raise ValueError('resume_requires_existing_durable_journal')
@@ -336,8 +365,10 @@ def run(args):
     with lock_path.open('a+') as lease_lock, (out / 'run.lock').open('a+') as run_lock:
         fcntl.flock(lease_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fcntl.flock(run_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        resources = resource_gate(out, initial=True)
-        identity = {'schema': SCHEMA, 'dataset_root': str(dataset.root),
+        if validate_lease(lease_path, physical_gpu) != lease:
+            raise ValueError('lease_changed_before_exclusive_load')
+        resources = resource_gate(out, initial=True, physical_gpu=physical_gpu)
+        identity = {'schema': SCHEMA, 'physical_gpu': physical_gpu, 'dataset_root': str(dataset.root),
             'READY_sha256': file_hash(dataset.root / 'READY.json'),
             'dataset_manifest_sha256': file_hash(dataset.root / 'manifest.json'),
             'reward_contract': REWARD_VERSION, 'runtime_version': RUNTIME_VERSION,
@@ -543,6 +574,7 @@ def main():
     parser.add_argument('--model', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--lease', type=Path, required=True)
+    parser.add_argument('--physical-gpu', type=int, choices=(0, 1), default=0)
     parser.add_argument('--max-attempts', type=int, default=38400)
     parser.add_argument('--seed', type=int, default=267)
     parser.add_argument('--objective', choices=('safety', 'utility'), default='safety')
