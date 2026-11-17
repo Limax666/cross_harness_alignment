@@ -16,11 +16,11 @@ Exact final command from `experiments/cross_harness_sft`:
 CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=scripts /data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python -m pytest -q tests/test_hsrl_batched_policy_v2.py tests/test_hsrl_batched_policy_v1.py tests/test_hsrl_v5_training.py > ../../.superpowers/sdd/2026-11-17-hsrl-fast-batched/scale8-policy-final-tests.log 2>&1
 ```
 
-Exit0, exact summary `38 passed in 8.40s`, no warnings. Focused initial green:4passed7.98s. Test-first red retained in `scale8-policy-red.log`:1failed because missing v2 module (exit1). An initial construction command used a repository-relative path from experiment cwd and failed before writing source; its subsequent expected missing-module test failures are retained in `scale8-policy-first-green.log` (1failed3errors). Corrected path, without relaxing tests. Logs remain in the plan directory; no cleanup deletes evidence. Read-only AST comparison printed `generate_batch AST: only cap 2->8 and validation message changed`. Git staged whitespace check passed.
+Exit0, exact summary `38 passed in 8.40s`, no warnings. Focused initial green:4passed7.98s. Test-first red retained in `scale8-policy-red.log`:1failed because missing v2 module (exit1). An initial construction command used a repository-relative path from experiment cwd and failed before writing source; its subsequent expected missing-module test failures are retained in `scale8-policy-first-green.log` (1failed3errors). Corrected path, without relaxing tests. Logs remain in the plan directory; no cleanup deletes evidence. Read-only AST comparison printed `generate_batch AST: only cap 2->8 and validation message changed`. Initial staged whitespace check flagged a trailing blank line; removed it and reran the check successfully. No behavior changed.
 
 Hashes:
 
-- v2 policy: a6ceffc0640820101db08065f635476a67be29cab42aa678bb9cf0640ec4ae28
+- v2 policy: 085daeaac527babfca7dd6b6f80a5b8cb9161db83b8cee6273ce9276ad0ee324
 - v2 tests: 3753e279591829e7c58aba44df96dec2bad4672285a61e03fc57e053cf2c482d
 - unchanged v1 policy: 7bfe4948f5c4c417d87bbd00f7908e6b61526818eaebce45c04bf1ec4843559b
 

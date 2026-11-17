@@ -102,4 +102,3 @@ class BatchedPolicy(previous.BatchedPolicy):
                 peak_pending_logits_elements=capture.peak_pending_logits_elements,
                 generation_seconds=(generated if generated is not None else now) - start,
                 reference_seconds=now - generated if generated is not None else 0.)
-
