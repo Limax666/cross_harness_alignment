@@ -11,6 +11,7 @@ import argparse
 import copy
 from datetime import datetime, timezone
 import fcntl
+import hashlib
 import importlib.metadata
 import json
 import math
@@ -29,6 +30,7 @@ from hsrl_v3.policy import LOGPROB_CONTRACT, VERSION as POLICY_VERSION
 from hsrl_v3.components import config_name
 
 SCHEMA = 'hsrl-v5-real-online-grpo/v1'
+OFFICIAL_IDENTITY_PATH = Path(__file__).resolve().parents[1] / 'configs/hsrl_official4b_851bf6e.json'
 CONFIG = {'optimizer': 'AdamW', 'lr': 1e-5, 'betas': [0.9, 0.999], 'eps': 1e-8,
     'weight_decay': 0., 'warmup_actual_updates': 2, 'grad_clip_norm': 1.,
     'ppo_clip': .2, 'kl_coefficient': .001, 'optimization_epochs': 1,
@@ -134,13 +136,64 @@ def persist_journal(out, state, policy):
     atomic_json(out / 'state.json', state)
 
 
-def _artifact_identity(model):
-    names = sorted(p for p in model.iterdir() if p.is_file() and (
-        p.suffix in ('.json', '.safetensors', '.jinja', '.txt', '.model')
-        or p.name in ('tokenizer_config.json',)))
-    if not any(p.suffix == '.safetensors' for p in names):
-        raise ValueError('official_base_artifacts_missing')
-    return {p.name: file_hash(p) for p in names}
+def verify_pinned_artifact(path, pin):
+    """Compare actual bytes with a source object ID, returning measured SHA256."""
+    path = Path(path)
+    if path.is_symlink() or not path.is_file():
+        raise ValueError('official_artifact_missing_or_symlink:' + path.name)
+    sha256, blob = hashlib.sha256(), hashlib.sha1()
+    blob.update(b'blob ' + str(path.stat().st_size).encode() + b'\0')
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(4 * 1024 * 1024), b''):
+            sha256.update(block)
+            blob.update(block)
+    algorithm = pin.get('algorithm')
+    if algorithm not in ('sha256', 'git_blob_sha1'):
+        raise ValueError('unsupported_official_artifact_source_identity')
+    observed = sha256.hexdigest() if algorithm == 'sha256' else blob.hexdigest()
+    if observed != pin['digest']:
+        raise ValueError('official_artifact_content_differs_from_trusted_source:' + path.name)
+    return sha256.hexdigest()
+
+
+def verify_official_checkpoint(model):
+    """Authenticate initial input against the separately frozen source map.
+
+    The approval map is code-owned, not supplied by the checkpoint or run. HF
+    LFS ETags are SHA256; regular repository object IDs use Git blob SHA1.
+    Download metadata is retained provenance, never runtime authorization.
+    """
+    approved = json.loads(OFFICIAL_IDENTITY_PATH.read_text())
+    if (approved.get('schema') != 'hsrl-trusted-official-checkpoint/v1'
+            or approved.get('source_repo') != 'Qwen/Qwen3.5-4B'
+            or approved.get('source_revision') != '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a'):
+        raise ValueError('trusted_official_identity_missing_or_incompatible')
+    model = Path(model)
+    if model.resolve() != Path(approved['canonical_path']) or model.is_symlink():
+        raise ValueError('model_differs_from_trusted_canonical_official_path')
+    model = model.resolve(strict=True)
+    names = {p.name for p in model.iterdir() if p.is_file() and p.suffix in (
+        '.json', '.safetensors', '.jinja', '.txt', '.model', '.bin', '.pt', '.pth', '.py')}
+    pins = approved['artifacts']
+    if names != set(pins) or any(Path(name).name != name for name in pins):
+        raise ValueError('official_artifact_load_relevant_file_map_changed')
+    measured = {name: verify_pinned_artifact(model / name, pin) for name, pin in sorted(pins.items())}
+    return {'approved_identity': approved, 'approved_identity_sha256': file_hash(OFFICIAL_IDENTITY_PATH),
+            'verified_artifact_sha256': measured}
+
+
+def commit_checkpoint(out, policy, optimizer, scheduler, next_state, *, current_state=None):
+    """Only a completely installed durable recovery point may enter the journal."""
+    policy.save(Path(next_state['checkpoint']), optimizer, next_state, scheduler)
+    if current_state is not None:
+        # After durable installation, even an error writing the readable mirror
+        # must leave the exception handler pointing at the installed recovery
+        # state. Before successful save the previous state remains untouched.
+        current_state.clear()
+        current_state.update(next_state)
+        next_state = current_state
+    persist_journal(out, next_state, policy)
+    return next_state
 
 
 def _code_identity():
@@ -197,14 +250,18 @@ def run(args):
     from hsrl_v3.policy import Policy
     out, model, lease_path = args.out.resolve(), args.model.resolve(strict=True), args.lease.resolve(strict=True)
     dataset = Dataset(args.dataset)
-    if model.name != 'qwen35-4b-instruct-official-851bf6e':
-        raise ValueError('this_run_requires_frozen_official_4B_851bf6e_base')
+    official = verify_official_checkpoint(model)
     lease = validate_lease(lease_path)
     if args.resume:
         if not (out / 'journal.pt').is_file():
             raise ValueError('resume_requires_existing_durable_journal')
     else:
         out.mkdir(parents=True, exist_ok=False)
+        descriptor = os.open(out.parent, os.O_DIRECTORY)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
     lock_path = Path(lease['lock_path'])
     with lock_path.open('a+') as lease_lock, (out / 'run.lock').open('a+') as run_lock:
         fcntl.flock(lease_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -216,8 +273,10 @@ def run(args):
             'reward_contract': REWARD_VERSION, 'runtime_version': RUNTIME_VERSION,
             'policy_version': POLICY_VERSION, 'config': CONFIG, 'seed': args.seed,
             'objective': args.objective, 'max_attempts': args.max_attempts,
-            'model_root': str(model), 'base_artifact_sha256': _artifact_identity(model),
-            'model_revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+            'model_root': str(model), 'base_artifact_sha256': official['verified_artifact_sha256'],
+            'approved_model_identity': official['approved_identity'],
+            'approved_model_identity_sha256': official['approved_identity_sha256'],
+            'model_revision': official['approved_identity']['source_revision'],
             'code_sha256': _code_identity(), 'lease_path': str(lease_path),
             'lease_sha256': file_hash(lease_path), 'resource_handoff': lease,
             'reference': 'same_immutable_official_base_with_LoRA_disabled',
@@ -267,8 +326,7 @@ def run(args):
                 'checkpoint': str(initial), 'status': 'ready', 'policy_version': 0,
                 'adapter_hash': policy.adapter_hash(), 'covered_task_conditions': [],
                 'covered_families': [], 'next_K_member': 0, 'effective_updates': 0, 'assignment': None}
-            policy.save(initial, optimizer, state, scheduler)
-            persist_journal(out, state, policy)
+            commit_checkpoint(out, policy, optimizer, scheduler, state)
         if state['manifest_sha256'] != file_hash(manifest_path):
             raise ValueError('journal_manifest_identity_changed')
         if state['policy_version'] != policy.version or state['adapter_hash'] != policy.adapter_hash():
@@ -388,9 +446,7 @@ def run(args):
                     'cuda_max_allocated': torch.cuda.max_memory_allocated(),
                     'cuda_max_reserved': torch.cuda.max_memory_reserved(), 'checkpoint': str(checkpoint)}
                 next_state['last_update'] = metrics
-                policy.save(checkpoint, optimizer, next_state, scheduler)
-                state = next_state
-                persist_journal(out, state, policy)
+                state = commit_checkpoint(out, policy, optimizer, scheduler, next_state, current_state=state)
                 append_jsonl(out / 'training_metrics.jsonl', metrics)
             state['status'] = 'budget_complete'
             persist_journal(out, state, policy)

@@ -13,6 +13,50 @@ VERSION = 'hsrl-single-base-lora-raw-policy-v2'
 LOGPROB_CONTRACT = 'raw_model_log_softmax_before_temperature_top_p_v1'
 
 
+def _fsync_directory(path):
+    descriptor = os.open(path, os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def install_durable_checkpoint(temporary, directory):
+    """Persist all populated directory entries before publishing the checkpoint.
+
+    A failed barrier leaves the old journal authoritative. Staging/unreferenced
+    directories survive as evidence; callers must never point at a failed save.
+    """
+    temporary, directory = Path(temporary), Path(directory)
+    if temporary.parent != directory.parent or directory.exists():
+        raise ValueError('checkpoint_install_requires_new_same_parent_destination')
+    subdirectories = [p for p in temporary.rglob('*') if p.is_dir()]
+    for path in sorted(subdirectories, key=lambda p: len(p.parts), reverse=True):
+        _fsync_directory(path)
+    _fsync_directory(temporary)
+    _fsync_directory(directory.parent)
+    os.rename(temporary, directory)
+    _fsync_directory(directory.parent)
+    # Also persist the entry for a newly created checkpoints/ directory.
+    _fsync_directory(directory.parent.parent)
+
+
+def validate_checkpoint_files(directory):
+    """Filesystem-only recovery validation shared by restore and control tests."""
+    from hsrl_v5.io import file_hash
+    directory = Path(directory)
+    marker = json.loads((directory / 'COMPLETE.json').read_text())
+    files = marker.get('files', {})
+    actual = {p.relative_to(directory).as_posix() for p in directory.rglob('*')
+              if p.is_file() and p.name != 'COMPLETE.json'}
+    if (marker.get('schema') != 'hsrl-atomic-checkpoint/v1'
+            or set(files) != actual or 'resume.pt' not in files
+            or 'adapter/adapter_model.safetensors' not in files
+            or any(Path(name).is_absolute() or '..' in Path(name).parts for name in files)
+            or any(file_hash(directory / name) != sha for name, sha in files.items())):
+        raise ValueError('incomplete_or_changed_checkpoint')
+
+
 class Policy:
     def __init__(self, model_path: Path, seed=267):
         if os.environ.get('CUDA_VISIBLE_DEVICES') != '0':
@@ -212,28 +256,13 @@ class Policy:
             with (temporary / name).open('rb') as stream:
                 os.fsync(stream.fileno())
         atomic_json(temporary / 'COMPLETE.json', {'schema': 'hsrl-atomic-checkpoint/v1', 'files': files})
-        os.rename(temporary, directory)
-        descriptor = os.open(directory.parent, os.O_DIRECTORY)
-        try:
-            os.fsync(descriptor)
-        finally:
-            os.close(descriptor)
+        install_durable_checkpoint(temporary, directory)
 
     def load(self, directory: Path, optimizer, scheduler=None):
         from peft import set_peft_model_state_dict
         from safetensors.torch import load_file
-        from hsrl_v5.io import file_hash
         directory = Path(directory)
-        marker = json.loads((directory / 'COMPLETE.json').read_text())
-        files = marker.get('files', {})
-        actual = {p.relative_to(directory).as_posix() for p in directory.rglob('*')
-                  if p.is_file() and p.name != 'COMPLETE.json'}
-        if (marker.get('schema') != 'hsrl-atomic-checkpoint/v1'
-                or set(files) != actual or 'resume.pt' not in files
-                or 'adapter/adapter_model.safetensors' not in files
-                or any(Path(name).is_absolute() or '..' in Path(name).parts for name in files)
-                or any(file_hash(directory / name) != sha for name, sha in files.items())):
-            raise ValueError('incomplete_or_changed_checkpoint')
+        validate_checkpoint_files(directory)
         state = self.torch.load(directory / 'resume.pt', map_location='cpu', weights_only=False)
         set_peft_model_state_dict(self.model, load_file(directory / 'adapter/adapter_model.safetensors'))
         optimizer.load_state_dict(state['optimizer'])

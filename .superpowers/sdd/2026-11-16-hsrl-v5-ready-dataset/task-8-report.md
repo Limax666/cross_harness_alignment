@@ -13,3 +13,26 @@ Implementation commits:55d6649 (collector/driver/policy/components/tests/docs),3
 No GPU/model/API/source-payload/Docker/actual rollout/optimizer run was performed by this agent. Root owns genuine final-data audit, publication, exclusive GPU0 handoff and real budgeted training. Real kernel/forward/backward fit, optimizer/adapter mutation, dynamic context read, successor-policy sampling and checkpoint restore remain unverified until that run.
 
 Remaining material implementation constraint: retaining every r16 full optimizer recovery point can exceed the registered60GiB run cap before300 steps; the driver stops rather than deleting evidence. Root was notified before handoff. Full-budget completion requires an explicit frozen current-run recovery retention policy or disk budget change. Baseline repair/judge work must be preserved on GPU1 before the resident GPU0 service is retired.
+
+## Review fix round1: T8-I1 / T8-I2
+
+Read the independent review and `superpowers/subagent-driven-development/references/fix-loop.md` before changing the code. Both Important findings apply to the implemented guards; no plan exception was claimed.
+
+T8-I1: retained canonical checkpoint `.cache/huggingface/download/*.metadata` provides revision851bf6e and11 official load-relevant object IDs. The two weight LFS SHA256s are `26a93f066e1916adb13453dae5a0c707c0fbc71299ed98779571a907b8e74c61` and `cb544bd9bfae93dc59b0f22b292f5933573854a7f9b97835c67060d7d910e188`. New code-owned `configs/hsrl_official4b_851bf6e.json` freezes that independent source identity and provenance hashes. Initial model acceptance requires the exact trusted resolved canonical path, exact load-relevant file map and byte agreement with each pinned LFS SHA256/Git blob SHA1. The manifest records the approved identity/hash separately from verified actual file SHA256s. Same-basename locations, changed small official config bytes and changed weight-byte fixtures are rejected. Source revision is taken from verified approved identity instead of inferred from a name.
+
+T8-I2: checkpoint save now fsyncs populated adapter/nested directories bottom-up, staging root and destination parent before installation; after rename it fsyncs the destination parent and its parent before the shared commit controller can write the authoritative journal. New-run output parent is also fsynced. Restore and filesystem-only tests share `validate_checkpoint_files`. Focused serialization-boundary tests preserve/select a real previous private checkpoint when either the adapter-directory barrier or post-install parent barrier fails. An installed but unreferenced checkpoint is retained and never selected automatically. No historical checkpoint was deleted.
+
+TDD: the first amended-guard run had4 expected failures for missing identity/commit APIs. Adding shared loader validation coverage then had2 expected failures for the absent extracted validator. After the fixes, scoped amended guards passed4 checks, and the full owned focused file passed12 in2.02s. The final retained run/compilation evidence follows below. These tests use small private serialization-boundary byte fixtures, no actual model or optimizer; they do not claim real Torch serialization, CUDA execution or host power-loss validation. All11 source metadata provenance files and the actual small official config were checked. Full9GB model-byte verification remains an actual-launch guard and was not run here. Root's PID3834678 admission work was untouched.
+
+Root's future retention authorization (preserve all adapters/metrics/evidence, full resume only last2 plus registered development/terminal) was recorded but deferred from this narrow review fix. The existing60GiB stop guard remains; no pruning was implemented or historical evidence removed.
+
+Covering command, from `WT/experiments/cross_harness_sft`:
+
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts /data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python -m pytest -q tests/test_hsrl_v5_training.py
+/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python -m py_compile scripts/train_hsrl_v5.py scripts/hsrl_v3/policy.py
+```
+
+`MAIN=/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft`. Retained output: `.superpowers/sdd/2026-11-16-hsrl-v5-ready-dataset/task-8-fix1-focused.log`. Runtime model loading, real optimizer change, successor-policy rollout, dynamic context evidence and real checkpoint restore remain root-owned and unverified here.
+
+Final output: `12 passed in 5.75s`, pytest exit0; both amended modules compiled with exit0 and no output. No broader suite or source-I/O admission run was launched for this fix.

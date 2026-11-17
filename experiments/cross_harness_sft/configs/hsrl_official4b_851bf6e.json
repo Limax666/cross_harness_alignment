@@ -1,0 +1,64 @@
+{
+  "artifacts": {
+    "chat_template.jinja": {
+      "algorithm": "git_blob_sha1",
+      "digest": "a585dec894e63da457d9440ec6aa7caa16d20860",
+      "download_metadata_sha256": "a878b2159f6e3e1a27b6a7b7530834f2c21473fb18641071f87951b7a54cdb8d"
+    },
+    "config.json": {
+      "algorithm": "git_blob_sha1",
+      "digest": "557d961b205319c6a7da5f757f565b69b3967b7d",
+      "download_metadata_sha256": "d5876de967a9ac473fae3a4bc6818cec21122d368164658cfa08125f37eea7af"
+    },
+    "merges.txt": {
+      "algorithm": "git_blob_sha1",
+      "digest": "a494e019ca1502219fd0128658b979e5f05ae8e8",
+      "download_metadata_sha256": "0b91bda0376fd266292f2256d7ee3ae4236d87982e34a60bf1e2bae27599fd4b"
+    },
+    "model.safetensors-00001-of-00002.safetensors": {
+      "algorithm": "sha256",
+      "digest": "26a93f066e1916adb13453dae5a0c707c0fbc71299ed98779571a907b8e74c61",
+      "download_metadata_sha256": "921e022cbd6da801ee5804464295d936910374ea6e5482cb8fa02342238ed135"
+    },
+    "model.safetensors-00002-of-00002.safetensors": {
+      "algorithm": "sha256",
+      "digest": "cb544bd9bfae93dc59b0f22b292f5933573854a7f9b97835c67060d7d910e188",
+      "download_metadata_sha256": "b2a8c0a4c7489ca86dac2ba2219759e09c921343d3c183812304470f2f319140"
+    },
+    "model.safetensors.index.json": {
+      "algorithm": "git_blob_sha1",
+      "digest": "fddda6039f7c1d17260c9e923b8a72fd025d9a86",
+      "download_metadata_sha256": "15cc4aaa9ed5ea9da5805c0b6bcf4844435f3c3b60ce4662ee9fafc03d29bca3"
+    },
+    "preprocessor_config.json": {
+      "algorithm": "git_blob_sha1",
+      "digest": "2ea84a437d448ff71b08df68fdd949d5cc4ebb64",
+      "download_metadata_sha256": "69e60a9e77884a65bf15983a92dfa00700758b958d224a0c53b048eb8c4f9f98"
+    },
+    "tokenizer.json": {
+      "algorithm": "sha256",
+      "digest": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "download_metadata_sha256": "5f58bc244b37263f89ccc25a5314f92b83104ff68976af9c32a9590a763a9915"
+    },
+    "tokenizer_config.json": {
+      "algorithm": "git_blob_sha1",
+      "digest": "eda48d3e75a8e59a8479ee4ec8b37f76e711d9c1",
+      "download_metadata_sha256": "6eed1ca2b41c73f8745b281d9aec6f56280f84f0c974b4dec906f2edbee9313a"
+    },
+    "video_preprocessor_config.json": {
+      "algorithm": "git_blob_sha1",
+      "digest": "3ba673a5ad7d4d13f54155ecd38b2a94a6dac8fe",
+      "download_metadata_sha256": "00c243187fef2e1b7dd56589cf47ad4e0ed78670fb9c3ff7b5e5047e99e8a61c"
+    },
+    "vocab.json": {
+      "algorithm": "git_blob_sha1",
+      "digest": "0aa0ce0658d60ac4a5d609f4eadb0e8e43514176",
+      "download_metadata_sha256": "32bc4522ada6d8c4151ae1bd25de0f085ff4052c8b6a86c5467caffd26995d3f"
+    }
+  },
+  "authority": "Fixed source revision and object IDs from retained Hugging Face download provenance, frozen independently of trainer arguments and run artifacts.",
+  "canonical_path": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/checkpoints/qwen35-4b-instruct-official-851bf6e",
+  "schema": "hsrl-trusted-official-checkpoint/v1",
+  "source_repo": "Qwen/Qwen3.5-4B",
+  "source_revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+}

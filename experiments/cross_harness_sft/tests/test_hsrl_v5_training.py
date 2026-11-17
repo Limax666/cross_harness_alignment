@@ -104,3 +104,132 @@ def test_published_checkpoint_metadata_preserves_tool_framing_and_model_shape():
     assert config['text_config']['hidden_size'] == 2560
     assert config['text_config']['num_hidden_layers'] == 32
     assert config['architectures'] == ['Qwen3_5ForConditionalGeneration']
+
+
+def test_official_identity_rejects_same_basename_and_pins_download_authority(tmp_path):
+    import hashlib
+    import train_hsrl_v5 as trainer
+    with pytest.raises(ValueError, match='canonical'):
+        trainer.verify_official_checkpoint(tmp_path / 'qwen35-4b-instruct-official-851bf6e')
+    approved = json.loads(trainer.OFFICIAL_IDENTITY_PATH.read_text())
+    root = Path(approved['canonical_path'])
+    assert approved['source_repo'] == 'Qwen/Qwen3.5-4B'
+    assert approved['source_revision'] == '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a'
+    for name, pin in approved['artifacts'].items():
+        metadata = root / '.cache/huggingface/download' / (name + '.metadata')
+        assert metadata.read_text().splitlines()[:2] == [approved['source_revision'], pin['digest']]
+        assert hashlib.sha256(metadata.read_bytes()).hexdigest() == pin['download_metadata_sha256']
+    # Actual small official artifact bytes, without reading model shards.
+    sha = trainer.verify_pinned_artifact(root / 'config.json', approved['artifacts']['config.json'])
+    assert len(sha) == 64
+
+
+def test_official_content_guard_rejects_changed_small_artifact_and_weight_bytes(tmp_path, monkeypatch):
+    import train_hsrl_v5 as trainer
+    approved = json.loads(trainer.OFFICIAL_IDENTITY_PATH.read_text())
+    root = Path(approved['canonical_path'])
+    config = tmp_path / 'config.json'
+    config.write_bytes((root / 'config.json').read_bytes() + b'\n')
+    with pytest.raises(ValueError, match='official_artifact'):
+        trainer.verify_pinned_artifact(config, approved['artifacts']['config.json'])
+    # Drive the complete verifier on a private approved-map fixture retaining
+    # the actual official config object ID. No real checkpoint file is edited.
+    canonical = tmp_path / 'canonical'
+    canonical.mkdir()
+    (canonical / 'config.json').write_bytes((root / 'config.json').read_bytes())
+    fixture = {**approved, 'canonical_path': str(canonical),
+               'artifacts': {'config.json': approved['artifacts']['config.json']}}
+    fixture_path = tmp_path / 'approved.json'
+    fixture_path.write_text(json.dumps(fixture))
+    monkeypatch.setattr(trainer, 'OFFICIAL_IDENTITY_PATH', fixture_path)
+    assert trainer.verify_official_checkpoint(canonical)['approved_identity'] == fixture
+    (canonical / 'config.json').write_bytes(config.read_bytes())
+    with pytest.raises(ValueError, match='official_artifact'):
+        trainer.verify_official_checkpoint(canonical)
+    # Small byte fixture exercises the same LFS hash guard as the real shards.
+    shard = tmp_path / 'model.safetensors'
+    pin = {'algorithm': 'sha256', 'digest': 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'}
+    shard.write_bytes(b'abc')
+    assert trainer.verify_pinned_artifact(shard, pin) == pin['digest']
+    shard.write_bytes(b'abd')
+    with pytest.raises(ValueError, match='official_artifact'):
+        trainer.verify_pinned_artifact(shard, pin)
+
+
+@pytest.mark.parametrize('failed_barrier', ['none', 'adapter', 'installed_parent'])
+def test_checkpoint_directory_barriers_precede_authoritative_journal(tmp_path, monkeypatch, failed_barrier):
+    import os
+    from hsrl_v3 import policy as policy_module
+    import train_hsrl_v5 as trainer
+
+    class ArtifactWriter:
+        def save_pretrained(self, directory, **kwargs):
+            (directory / 'nested').mkdir(parents=True)
+            (directory / 'adapter_model.safetensors').write_bytes(b'adapter-serialization-boundary')
+            (directory / 'nested/metadata.json').write_text('{}')
+
+    class Serializer:
+        def save(self, value, destination):
+            data = json.dumps(value).encode()
+            if hasattr(destination, 'write'):
+                destination.write(data)
+            else:
+                Path(destination).write_bytes(data)
+
+    policy = object.__new__(policy_module.Policy)
+    policy.model, policy.torch = ArtifactWriter(), Serializer()
+    policy.version, policy.frozen_signature = 1, 'metadata-guard'
+    policy.adapter_hash, policy.rng_state = lambda: 'adapter-hash', lambda: {}
+    optimizer = type('OptimizerState', (), {'state_dict': lambda self: {}})()
+    checkpoint = tmp_path / 'checkpoints/update1'
+    previous = tmp_path / 'checkpoints/previous-complete'
+    policy.save(previous, optimizer, {'checkpoint': str(previous)})
+    old = {'state': {'checkpoint': str(previous)}, 'rng': {}}
+    (tmp_path / 'journal.pt').write_text(json.dumps(old))
+    state = {'checkpoint': str(checkpoint)}
+    events = []
+    real_fsync, real_rename = os.fsync, os.rename
+
+    def fsync(fd):
+        path = Path(os.readlink(f'/proc/self/fd/{fd}'))
+        events.append(('fsync', path))
+        if failed_barrier == 'adapter' and path.is_dir() and path.name == 'adapter':
+            raise OSError('injected_adapter_directory_barrier_failure')
+        if (failed_barrier == 'installed_parent' and path == checkpoint.parent
+                and any(kind == 'rename' for kind, _ in events)):
+            raise OSError('injected_installed_parent_directory_barrier_failure')
+        real_fsync(fd)
+
+    def rename(source, destination):
+        events.append(('rename', Path(source)))
+        real_rename(source, destination)
+
+    monkeypatch.setattr(policy_module.os, 'fsync', fsync)
+    monkeypatch.setattr(policy_module.os, 'rename', rename)
+    if failed_barrier != 'none':
+        with pytest.raises(OSError, match='directory_barrier_failure'):
+            trainer.commit_checkpoint(tmp_path, policy, optimizer, None, state, current_state=old['state'])
+        assert json.loads((tmp_path / 'journal.pt').read_text()) == old
+        policy_module.validate_checkpoint_files(Path(json.loads((tmp_path / 'journal.pt').read_text())['state']['checkpoint']))
+        if failed_barrier == 'adapter':
+            assert not checkpoint.exists()
+            assert any((p / 'COMPLETE.json').is_file() for p in checkpoint.parent.glob('.update1-*'))
+            assert not any(kind == 'rename' for kind, _ in events)
+        else:
+            # Installed but unreferenced recovery point is retained, and it is
+            # never selected over the last authoritative journal checkpoint.
+            policy_module.validate_checkpoint_files(checkpoint)
+    else:
+        trainer.commit_checkpoint(tmp_path, policy, optimizer, None, state)
+        install = next(i for i, event in enumerate(events) if event[0] == 'rename')
+        staging = events[install][1]
+        # Paths moved during rename no longer exist; compare their recorded names.
+        all_barriers = [path for kind, path in events[:install] if kind == 'fsync']
+        assert all_barriers.index(staging / 'adapter/nested') < all_barriers.index(staging / 'adapter')
+        assert all_barriers.index(staging / 'adapter') < all_barriers.index(staging)
+        assert staging.parent in all_barriers
+        journal_sync = next(i for i, (kind, path) in enumerate(events)
+                            if kind == 'fsync' and path.name == '.journal.pt.tmp')
+        assert any(kind == 'fsync' and path == checkpoint.parent for kind, path in events[install+1:journal_sync])
+        assert json.loads((tmp_path / 'journal.pt').read_text())['state'] == state
+        policy_module.validate_checkpoint_files(checkpoint)
