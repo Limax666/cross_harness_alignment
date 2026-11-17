@@ -7,7 +7,7 @@ import json
 import socket
 import threading
 import time
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlparse, urlsplit
 
 from flashrsi_pi_owner_profile_v6 import ProfileError, byte_hash, digest
 
@@ -38,7 +38,12 @@ def response_settled(path, status, raw):
     """A gateway599 can hide a still-running downstream service after its5s timeout."""
     if status == 599:
         return False
-    if path.split('?', 1)[0].startswith(('/proxy/', '/admin/')):
+    # Match original MockHandler._dispatch -> path_parts exactly: URL parse,
+    # split/filter, then decode each segment once (not before splitting).
+    parts = [unquote(part) for part in urlparse(path).path.strip('/').split('/') if part]
+    proxy = len(parts) >= 2 and parts[0] == 'proxy'
+    admin = parts in (['admin', 'reset_case'], ['admin', 'destroy_case'])
+    if proxy or admin:
         try: value = json.loads(raw)
         except (ValueError, UnicodeError): return False
         if isinstance(value, dict) and (value.get('status') == 599 or

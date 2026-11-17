@@ -315,6 +315,64 @@ def test_mock_transport_preserves_actual_bytes_headers_and_rejects_downstream_59
     assert not response_settled('/admin/reset_case', 200, b'{"results":{"mock_email":{"status":599}}}')
 
 
+@pytest.mark.parametrize('target', [
+    '/%70roxy/mock_email/messages',
+    '/proxy//mock_email//messages?case_id=action_041&next=/unrelated',
+    '///%70roxy/mock_email/messages',
+    'http://127.0.0.1:4321//%70roxy//mock_email/messages?case_id=action_041',
+])
+def test_source_equivalent_proxy_targets_reject_nested_timeout(target):
+    from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+    assert not response_settled(target, 200, b'{"status":599,"error":"downstream timeout"}')
+    assert response_settled(target, 200, b'{"status":200,"body":{"text":"business text says599"}}')
+
+
+@pytest.mark.parametrize('target', [
+    '/%61dmin/reset_case', '/%61dmin/destroy_case?case_id=action_041',
+    '/admin//reset_case', '///%61dmin//reset_case',
+    'http://127.0.0.1:4321//%61dmin//reset_case?case_id=action_041',
+    '/admin/reset_case;native_urlparse_parameters',
+])
+def test_source_equivalent_admin_targets_reject_nested_timeout(target):
+    from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+    assert not response_settled(target, 200, b'{"ok":true,"results":{"mock_email":{"status":599}}}')
+
+
+@pytest.mark.parametrize('target', [
+    '/proxy%2fmock_email/messages', '/%61dmin%2freset_case',
+    '/admin/reset%2fcase', '/webhook-sink?next=/%70roxy/mock_email',
+    '/admin/reset_case/extra', '/%2570roxy/mock_email/messages',
+    '//proxy/mock_email/messages',
+])
+def test_nonroutes_keep_official_segment_decoding_order_without_business_text_search(target):
+    from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+    # Official urlparse then split/filter then one unquote per segment:
+    # encoded slashes never become separators, query text never becomes a route,
+    # and //proxy is an authority in URL parsing rather than a path segment.
+    raw = b'{"status":599,"results":{"mock_email":{"status":599}},"text":"timeout"}'
+    assert response_settled(target, 200, raw)
+
+
+def test_route_classification_does_not_rewrite_absolute_or_encoded_transport_target():
+    from flashrsi_pi_owner_mock_barrier_v6 import forward_http
+    calls = []
+    target = 'http://127.0.0.1:4321//%70roxy//mock_email/messages?literal=%2f'
+    class Connection:
+        def __init__(self, *args, **kwargs): pass
+        def putrequest(self, *args, **kwargs): calls.append((args, kwargs))
+        def putheader(self, *args): calls.append(args)
+        def endheaders(self, body): calls.append(body)
+        def getresponse(self): return self
+        status, reason = 200, 'OK'
+        def getheaders(self): return []
+        def read(self, limit): return b'{"status":599}'
+        def close(self): pass
+    forward_http('http://127.0.0.1:5432', 'DELETE', target, [('X-Custom', 'untouched')],
+                 b'{ "unchanged": true }', timeout=5, connection_factory=Connection)
+    assert calls == [(('DELETE', target), {'skip_host': True, 'skip_accept_encoding': True}),
+                     ('X-Custom', 'untouched'), b'{ "unchanged": true }']
+
+
 def admission_fixture(path):
     """Real retained native/metadata shapes, assembled only to exercise admission guards."""
     from flashrsi_pi_owner_profile_v6 import (PROFILE, CONTRACT, digest, byte_hash, save_json, save_bytes,

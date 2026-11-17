@@ -95,3 +95,24 @@ git diff --check -- scripts/flashrsi_pi_owner_profile_v6.py scripts/flashrsi_har
 Retained pre-fix red output: `15 failed, 1 passed, 20 deselected in3.66s` (expected missing guards, FIFO child deadline and accepted corruptions). Final green output: `39 passed in1.47s`, exit0. All five changed/new executable modules compiled exit0 without stdout; tracked diff whitespace check exit0. Logs survive temporary fixture cleanup and are scoped commit evidence.
 
 Remaining limits are unchanged: no actual native multi-owner/summary/tokenizer/source/private evaluator/HTTP threading/namespace runtime path was exercised. Full source-projection reconstruction is **not** independently repeated by `validate_case`: it validates archived hashes/prefix and the pinned trusted-entry assertion; the live entry compares the actual selected runtime's `Session.messages()` projection. This is not a formal or independently reconstructed projection proof. Real per-request mock commit/settlement, namespace teardown, source reset/privacy/export/grade and full128 completion remain gates of the authorized genuine fresh H0 after independent fix review. All three findings are submitted as addressed by implementation/tests, with no deployment claim.
+
+## Review fix round2: P-I1 route-equivalence bypass
+
+Read the completed independent re-review `docs/research/flashrsi_pi_native_continuation_rereview1_20261117.md` before modifying code. P-I2/P-I3 remain closed and were not reworked. The remaining P-I1 finding is accepted: raw `/proxy/` and `/admin/` prefix checks did not match the original gateway's decoded route dispatch and could incorrectly accept a nested599 timeout for an encoded route.
+
+Only `response_settled` in `scripts/flashrsi_pi_owner_mock_barrier_v6.py` changes executable behavior. Classification now uses the exact original order from `MockHandler._dispatch` (`HarnessRisk/services/common/mock_server.py:273`) and `path_parts` (`:43–44`): `urlparse(target).path`, strip outer slashes, split/filter empty segments, then `unquote` each segment once. Proxy routes have at least two parts with first part`proxy`; the two original admin fanout routes are exactly`admin/reset_case` and`admin/destroy_case`. Encoded slash characters inside a segment never become new separators. Absolute-form targets, repeated path slashes, query strings and URL params follow the original parser. No transport argument is normalized or rewritten: original target/method/headers/body still pass unchanged to `forward_http`. There is no recursive business-payload/text search for timeout599.
+
+Added18 pure cases in the existing test file: equivalent encoded proxy/admin routes, repeated slashes, absolute-form/query/URL-param variants, encoded slashes/double encoding/nonroutes, and byte-exact forwarding of an absolute encoded target with unchanged DELETE/custom header/body. No network/socket/native/source/model/API/GPU/Docker or workload operation was performed; tests use only the existing in-memory transport boundary and pure guard fixtures. Existing FIFO/source/reset/host/native guards were rerun as part of the same scoped file, without changing their criteria.
+
+Exact commands from MAIN:
+
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_pi_native_owner_v6.py -k 'source_equivalent or nonroutes or route_classification' > docs/research/flashrsi_pi_native_owner_v6_fix2_red_20261117.log 2>&1
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_pi_native_owner_v6.py > docs/research/flashrsi_pi_native_owner_v6_fix2_green_20261117.log 2>&1
+.venv-rl-pilot/bin/python -m py_compile scripts/flashrsi_pi_owner_mock_barrier_v6.py
+git diff --check -- scripts/flashrsi_pi_owner_mock_barrier_v6.py tests/test_flashrsi_pi_native_owner_v6.py docs/research/flashrsi_pi_native_continuation_implementation_20261117.md
+```
+
+Retained red result: `9 failed, 9 passed, 39 deselected in0.42s`, demonstrating the encoded-route acceptance and overly broad raw-admin classification defects. Final green result: `57 passed in2.12s`, exit0. Changed module compilation and scoped code/test/report whitespace checks exit0. Raw pytest logs retain their original formatting. Review base is`f45384e`; scoped diff command after this fix commit is `git diff f45384e..HEAD -- scripts/flashrsi_pi_owner_mock_barrier_v6.py tests/test_flashrsi_pi_native_owner_v6.py docs/research/flashrsi_pi_native_continuation_implementation_20261117.md`; a copy is retained at `/tmp/flashrsi_pi_native_owner_v6_fix2_f45384e.diff`.
+
+P-I1 is submitted as addressed for independent round2 review, not self-cleared for deployment. All genuine HTTP/native/source/namespace/full128 runtime gates and the documented pinned-entry projection limitation remain unchanged. Active/old files, source/vendor/SDK/Snapshots, queues, historical statuses and metrics are untouched.

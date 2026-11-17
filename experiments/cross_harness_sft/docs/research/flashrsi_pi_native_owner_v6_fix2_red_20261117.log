@@ -1,0 +1,174 @@
+F.FFFF.FF...F.F...                                                       [100%]
+=================================== FAILURES ===================================
+_ test_source_equivalent_proxy_targets_reject_nested_timeout[/%70roxy/mock_email/messages] _
+
+target = '/%70roxy/mock_email/messages'
+
+    @pytest.mark.parametrize('target', [
+        '/%70roxy/mock_email/messages',
+        '/proxy//mock_email//messages?case_id=action_041&next=/unrelated',
+        '///%70roxy/mock_email/messages',
+        'http://127.0.0.1:4321//%70roxy//mock_email/messages?case_id=action_041',
+    ])
+    def test_source_equivalent_proxy_targets_reject_nested_timeout(target):
+        from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+>       assert not response_settled(target, 200, b'{"status":599,"error":"downstream timeout"}')
+E       assert not True
+E        +  where True = <function response_settled at 0x76202ef97b00>('/%70roxy/mock_email/messages', 200, b'{"status":599,"error":"downstream timeout"}')
+
+tests/test_flashrsi_pi_native_owner_v6.py:326: AssertionError
+_ test_source_equivalent_proxy_targets_reject_nested_timeout[///%70roxy/mock_email/messages] _
+
+target = '///%70roxy/mock_email/messages'
+
+    @pytest.mark.parametrize('target', [
+        '/%70roxy/mock_email/messages',
+        '/proxy//mock_email//messages?case_id=action_041&next=/unrelated',
+        '///%70roxy/mock_email/messages',
+        'http://127.0.0.1:4321//%70roxy//mock_email/messages?case_id=action_041',
+    ])
+    def test_source_equivalent_proxy_targets_reject_nested_timeout(target):
+        from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+>       assert not response_settled(target, 200, b'{"status":599,"error":"downstream timeout"}')
+E       assert not True
+E        +  where True = <function response_settled at 0x76202ef97b00>('///%70roxy/mock_email/messages', 200, b'{"status":599,"error":"downstream timeout"}')
+
+tests/test_flashrsi_pi_native_owner_v6.py:326: AssertionError
+_ test_source_equivalent_proxy_targets_reject_nested_timeout[http://127.0.0.1:4321//%70roxy//mock_email/messages?case_id=action_041] _
+
+target = 'http://127.0.0.1:4321//%70roxy//mock_email/messages?case_id=action_041'
+
+    @pytest.mark.parametrize('target', [
+        '/%70roxy/mock_email/messages',
+        '/proxy//mock_email//messages?case_id=action_041&next=/unrelated',
+        '///%70roxy/mock_email/messages',
+        'http://127.0.0.1:4321//%70roxy//mock_email/messages?case_id=action_041',
+    ])
+    def test_source_equivalent_proxy_targets_reject_nested_timeout(target):
+        from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+>       assert not response_settled(target, 200, b'{"status":599,"error":"downstream timeout"}')
+E       assert not True
+E        +  where True = <function response_settled at 0x76202ef97b00>('http://127.0.0.1:4321//%70roxy//mock_email/messages?case_id=action_041', 200, b'{"status":599,"error":"downstream timeout"}')
+
+tests/test_flashrsi_pi_native_owner_v6.py:326: AssertionError
+_ test_source_equivalent_admin_targets_reject_nested_timeout[/%61dmin/reset_case] _
+
+target = '/%61dmin/reset_case'
+
+    @pytest.mark.parametrize('target', [
+        '/%61dmin/reset_case', '/%61dmin/destroy_case?case_id=action_041',
+        '/admin//reset_case', '///%61dmin//reset_case',
+        'http://127.0.0.1:4321//%61dmin//reset_case?case_id=action_041',
+        '/admin/reset_case;native_urlparse_parameters',
+    ])
+    def test_source_equivalent_admin_targets_reject_nested_timeout(target):
+        from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+>       assert not response_settled(target, 200, b'{"ok":true,"results":{"mock_email":{"status":599}}}')
+E       assert not True
+E        +  where True = <function response_settled at 0x76202ef97b00>('/%61dmin/reset_case', 200, b'{"ok":true,"results":{"mock_email":{"status":599}}}')
+
+tests/test_flashrsi_pi_native_owner_v6.py:338: AssertionError
+_ test_source_equivalent_admin_targets_reject_nested_timeout[/%61dmin/destroy_case?case_id=action_041] _
+
+target = '/%61dmin/destroy_case?case_id=action_041'
+
+    @pytest.mark.parametrize('target', [
+        '/%61dmin/reset_case', '/%61dmin/destroy_case?case_id=action_041',
+        '/admin//reset_case', '///%61dmin//reset_case',
+        'http://127.0.0.1:4321//%61dmin//reset_case?case_id=action_041',
+        '/admin/reset_case;native_urlparse_parameters',
+    ])
+    def test_source_equivalent_admin_targets_reject_nested_timeout(target):
+        from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+>       assert not response_settled(target, 200, b'{"ok":true,"results":{"mock_email":{"status":599}}}')
+E       assert not True
+E        +  where True = <function response_settled at 0x76202ef97b00>('/%61dmin/destroy_case?case_id=action_041', 200, b'{"ok":true,"results":{"mock_email":{"status":599}}}')
+
+tests/test_flashrsi_pi_native_owner_v6.py:338: AssertionError
+_ test_source_equivalent_admin_targets_reject_nested_timeout[///%61dmin//reset_case] _
+
+target = '///%61dmin//reset_case'
+
+    @pytest.mark.parametrize('target', [
+        '/%61dmin/reset_case', '/%61dmin/destroy_case?case_id=action_041',
+        '/admin//reset_case', '///%61dmin//reset_case',
+        'http://127.0.0.1:4321//%61dmin//reset_case?case_id=action_041',
+        '/admin/reset_case;native_urlparse_parameters',
+    ])
+    def test_source_equivalent_admin_targets_reject_nested_timeout(target):
+        from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+>       assert not response_settled(target, 200, b'{"ok":true,"results":{"mock_email":{"status":599}}}')
+E       assert not True
+E        +  where True = <function response_settled at 0x76202ef97b00>('///%61dmin//reset_case', 200, b'{"ok":true,"results":{"mock_email":{"status":599}}}')
+
+tests/test_flashrsi_pi_native_owner_v6.py:338: AssertionError
+_ test_source_equivalent_admin_targets_reject_nested_timeout[http://127.0.0.1:4321//%61dmin//reset_case?case_id=action_041] _
+
+target = 'http://127.0.0.1:4321//%61dmin//reset_case?case_id=action_041'
+
+    @pytest.mark.parametrize('target', [
+        '/%61dmin/reset_case', '/%61dmin/destroy_case?case_id=action_041',
+        '/admin//reset_case', '///%61dmin//reset_case',
+        'http://127.0.0.1:4321//%61dmin//reset_case?case_id=action_041',
+        '/admin/reset_case;native_urlparse_parameters',
+    ])
+    def test_source_equivalent_admin_targets_reject_nested_timeout(target):
+        from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+>       assert not response_settled(target, 200, b'{"ok":true,"results":{"mock_email":{"status":599}}}')
+E       assert not True
+E        +  where True = <function response_settled at 0x76202ef97b00>('http://127.0.0.1:4321//%61dmin//reset_case?case_id=action_041', 200, b'{"ok":true,"results":{"mock_email":{"status":599}}}')
+
+tests/test_flashrsi_pi_native_owner_v6.py:338: AssertionError
+_ test_nonroutes_keep_official_segment_decoding_order_without_business_text_search[/admin/reset%2fcase] _
+
+target = '/admin/reset%2fcase'
+
+    @pytest.mark.parametrize('target', [
+        '/proxy%2fmock_email/messages', '/%61dmin%2freset_case',
+        '/admin/reset%2fcase', '/webhook-sink?next=/%70roxy/mock_email',
+        '/admin/reset_case/extra', '/%2570roxy/mock_email/messages',
+        '//proxy/mock_email/messages',
+    ])
+    def test_nonroutes_keep_official_segment_decoding_order_without_business_text_search(target):
+        from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+        # Official urlparse then split/filter then one unquote per segment:
+        # encoded slashes never become separators, query text never becomes a route,
+        # and //proxy is an authority in URL parsing rather than a path segment.
+        raw = b'{"status":599,"results":{"mock_email":{"status":599}},"text":"timeout"}'
+>       assert response_settled(target, 200, raw)
+E       assert False
+E        +  where False = <function response_settled at 0x76202ef97b00>('/admin/reset%2fcase', 200, b'{"status":599,"results":{"mock_email":{"status":599}},"text":"timeout"}')
+
+tests/test_flashrsi_pi_native_owner_v6.py:353: AssertionError
+_ test_nonroutes_keep_official_segment_decoding_order_without_business_text_search[/admin/reset_case/extra] _
+
+target = '/admin/reset_case/extra'
+
+    @pytest.mark.parametrize('target', [
+        '/proxy%2fmock_email/messages', '/%61dmin%2freset_case',
+        '/admin/reset%2fcase', '/webhook-sink?next=/%70roxy/mock_email',
+        '/admin/reset_case/extra', '/%2570roxy/mock_email/messages',
+        '//proxy/mock_email/messages',
+    ])
+    def test_nonroutes_keep_official_segment_decoding_order_without_business_text_search(target):
+        from flashrsi_pi_owner_mock_barrier_v6 import response_settled
+        # Official urlparse then split/filter then one unquote per segment:
+        # encoded slashes never become separators, query text never becomes a route,
+        # and //proxy is an authority in URL parsing rather than a path segment.
+        raw = b'{"status":599,"results":{"mock_email":{"status":599}},"text":"timeout"}'
+>       assert response_settled(target, 200, raw)
+E       assert False
+E        +  where False = <function response_settled at 0x76202ef97b00>('/admin/reset_case/extra', 200, b'{"status":599,"results":{"mock_email":{"status":599}},"text":"timeout"}')
+
+tests/test_flashrsi_pi_native_owner_v6.py:353: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_source_equivalent_proxy_targets_reject_nested_timeout[/%70roxy/mock_email/messages]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_source_equivalent_proxy_targets_reject_nested_timeout[///%70roxy/mock_email/messages]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_source_equivalent_proxy_targets_reject_nested_timeout[http://127.0.0.1:4321//%70roxy//mock_email/messages?case_id=action_041]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_source_equivalent_admin_targets_reject_nested_timeout[/%61dmin/reset_case]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_source_equivalent_admin_targets_reject_nested_timeout[/%61dmin/destroy_case?case_id=action_041]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_source_equivalent_admin_targets_reject_nested_timeout[///%61dmin//reset_case]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_source_equivalent_admin_targets_reject_nested_timeout[http://127.0.0.1:4321//%61dmin//reset_case?case_id=action_041]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_nonroutes_keep_official_segment_decoding_order_without_business_text_search[/admin/reset%2fcase]
+FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_nonroutes_keep_official_segment_decoding_order_without_business_text_search[/admin/reset_case/extra]
+9 failed, 9 passed, 39 deselected in 0.42s
