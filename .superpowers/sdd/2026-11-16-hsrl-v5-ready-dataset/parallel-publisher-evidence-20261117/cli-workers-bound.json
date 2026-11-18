@@ -1,0 +1,30 @@
+{
+  "cwd": "/data/home/liumingxiao/hsrl_v3_worktree_20261116/experiments/cross_harness_sft",
+  "command": [
+    "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python",
+    "-B",
+    "scripts/publish_hsrl_v6_parallel.py",
+    "--candidate",
+    "/nonexistent-publisher-fixture",
+    "--out",
+    "/nonexistent-publisher-fixture-out",
+    "--context-audit",
+    "/nonexistent-context",
+    "--runtime-audit",
+    "/nonexistent-runtime",
+    "--workers",
+    "9"
+  ],
+  "shell_command": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python -B scripts/publish_hsrl_v6_parallel.py --candidate /nonexistent-publisher-fixture --out /nonexistent-publisher-fixture-out --context-audit /nonexistent-context --runtime-audit /nonexistent-runtime --workers 9",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "CUDA_VISIBLE_DEVICES": ""
+  },
+  "exit_code": 2,
+  "stdout": "",
+  "stderr": "usage: publish_hsrl_v6_parallel.py [-h] --candidate CANDIDATE --out OUT\n                                   --context-audit CONTEXT_AUDIT\n                                   --runtime-audit RUNTIME_AUDIT\n                                   [--workers {1,2,3,4,5,6,7,8}]\npublish_hsrl_v6_parallel.py: error: argument --workers: invalid choice: 9 (choose from 1, 2, 3, 4, 5, 6, 7, 8)\n"
+}

@@ -1,0 +1,28 @@
+{
+  "cwd": "/data/home/liumingxiao/hsrl_v3_worktree_20261116/experiments/cross_harness_sft",
+  "command": [
+    "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_hsrl_v6_parallel_publisher.py",
+    "tests/test_hsrl_v5_dataset.py::test_oa18_covers_every_two_factor_pair_and_peer_is_distinct",
+    "tests/test_hsrl_v5_dataset.py::test_sampler_rejects_negative_block_before_accessing_pools",
+    "tests/test_hsrl_v5_dataset.py::test_candidate_verification_view_cannot_enter_training_objectives",
+    "tests/test_hsrl_v5_dataset.py::test_unfinished_admission_cannot_stage_or_publish",
+    "tests/test_hsrl_v5_dataset.py::test_read_only_status_cannot_be_combined_with_mutating_modes",
+    "tests/test_hsrl_v5_dataset.py::test_publication_install_never_replaces_existing_directory"
+  ],
+  "shell_command": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python -m pytest -q tests/test_hsrl_v6_parallel_publisher.py tests/test_hsrl_v5_dataset.py::test_oa18_covers_every_two_factor_pair_and_peer_is_distinct tests/test_hsrl_v5_dataset.py::test_sampler_rejects_negative_block_before_accessing_pools tests/test_hsrl_v5_dataset.py::test_candidate_verification_view_cannot_enter_training_objectives tests/test_hsrl_v5_dataset.py::test_unfinished_admission_cannot_stage_or_publish tests/test_hsrl_v5_dataset.py::test_read_only_status_cannot_be_combined_with_mutating_modes tests/test_hsrl_v5_dataset.py::test_publication_install_never_replaces_existing_directory",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "CUDA_VISIBLE_DEVICES": ""
+  },
+  "exit_code": 0,
+  "stdout": ".........................                                                [100%]\n25 passed in 0.59s\n",
+  "stderr": ""
+}

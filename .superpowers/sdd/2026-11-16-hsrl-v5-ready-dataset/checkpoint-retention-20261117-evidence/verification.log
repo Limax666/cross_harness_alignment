@@ -1,0 +1,7 @@
+........................................................................ [ 32%]
+........................................................................ [ 64%]
+..
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/data/home/liumingxiao/hsrl_v3_worktree_20261116/experiments/cross_harness_sft/scripts/hsrl_v5/io.py:23: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+146 passed in 251.45s (0:04:11)

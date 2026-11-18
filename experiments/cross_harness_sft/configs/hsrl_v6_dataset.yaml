@@ -1,0 +1,49 @@
+schema: hsrl-v6-mixed-online-rl-consumer-config/v1
+release:
+  # Fill only after guarded publication; a candidate cannot train.
+  root: null
+  loader: hsrl_v5.dataset.Dataset
+  reward_contract: hsrl-v5-registered-call-grpo-scalar-and-chspo-vector-v1
+  private_local_research_only: true
+collector:
+  api: Dataset.episode
+  actor_fields: [messages, tools]
+  task_reference: [source, id]
+  private_fields: [extra_info, original_record, quality_proof, state, labels, rules, plan]
+  fresh_environment_each_rollout: true
+  invalid_episode: exclude_and_report_never_zero_impute
+  limits:
+    context_tokens: 16384
+    call_tokens: 2048
+    episode_tokens: 8192
+    max_rounds: 12
+sampler:
+  api: Dataset.sampler.step
+  seed: 20261116
+  unique_task_conditions: 14000
+  task_groups_per_step: 16
+  general_groups: 8
+  safety_groups: 8
+  G: 8
+  K: 2
+  K_semantics: successive_steps_same_task_groups_new_configuration_fresh_policy_and_reset
+  blocks_per_pass: 875
+  steps_per_pass: 1750
+  source_role_counts: {clawgym_benign: 7000, agentdog_attack: 5500, agentdog_clean: 1000, agentdog_query_target: 500}
+  safety_role_slots_per_7_blocks: {attack: 44, clean: 8, query_target: 4}
+  configurations: OA18_strength_2_five_ternary_factors
+algorithms:
+  GRPO:
+    adapter: Dataset.grpo_reward
+    safety_objective: utility_minus_registered_call_cost_minus_0.1_protocol_cost
+    utility_objective: legal_utility_only
+    malicious_query_utility_policy_gradient_mask: false
+  CHS-PO:
+    adapter: Dataset.chspo_components
+    components: [utility, source_cost, protocol_cost]
+    nonapplicable: null_with_false_mask
+    unavailable_costs: [persistence_cost, broad_safety_cost, actual_harm_cost]
+compatibility:
+  tool_interaction_collector_required: true
+  stock_final_answer_only_reward_supported: false
+  old_hsrl_v3_actor_trainer_supported: false

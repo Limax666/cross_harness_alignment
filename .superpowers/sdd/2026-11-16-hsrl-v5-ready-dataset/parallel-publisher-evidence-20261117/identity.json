@@ -1,0 +1,40 @@
+{
+  "mechanism": {
+    "experiments/cross_harness_sft/scripts/publish_hsrl_v6_parallel.py": "5be254fc9252f8c36d2ac6c3d9cab1b05fd45c89a582090a573b334b0d8b8379",
+    "experiments/cross_harness_sft/tests/test_hsrl_v6_parallel_publisher.py": "877f78fff068387d9dab826084a7a4831387747ef4ee5750142b3297a5ebdd00"
+  },
+  "protected_runtime_sha256": {
+    "experiments/cross_harness_sft/scripts/hsrl_v5/__init__.py": "98fd137d8d35107933a2c25ec5de50701d2a35b380e8c6070eb741b603f5992b",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/agentdog_backend.py": "d4ee3ae79060ca1050c9a5bb7454d481e88ac3aa95092741f287b859cffcd752",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/agentdog_groups.py": "95872eff48e0842d3f55b3b238a9e4c0e4e7182f0b59dae76909c7fee4fb7281",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/agentdog_source.py": "db3241ed6d2b20488d94e9661bf18856f02eeb2f578744c915c2dcc01324590b",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/agentdog_worker.py": "68c62c256fa3f2b74b066bea09f1ca19767117c76325578ebfaac02e0483c295",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/claw_backend.py": "7fdede0c626fa9d16bb6568a2b332f211a6f6d79b54646c154b43c67e575ba9b",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/claw_contracts.py": "bffea914bc4085aa8f6969680f7c7bf03feb6663eb79848cd60d9b1e1cf33f19",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/claw_source.py": "4421eddde899f27015755ffd919c8abc27f71bdd3ceca694cfc0f6f7b55e3d58",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/dataset.py": "4ebbdead8d80c71051b7469f1437c3e58180e7c2cd2e74e864d0507c0fddbfe9",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/grader_pool.py": "96a096ebabc1b96aca340e94856833358bc848811d268a820f4684c576ff63b8",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/io.py": "601d90573d768e282f12c412d5d5298b57265bc3dd74ca89c11aadf1cf4302ff",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/isolation.py": "2d9e6f2bc852b1296975033811ce85b56ccecd188471401da72821f87c9139d2",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/quality_agentdog.py": "fdc3c2250d826e83c357e45895c31887d4496bba11c9f2dadcdb79d8c08c7e06",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/quality_claw.py": "1029c0451172209bf6b84c0ec437087c376a6a1cff6f7266803be7443c8de2dd",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/release.py": "85d3345dc4663659516fe7701b7c49c3d8c7df9dae03530e30972e8f0f368f63",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/reward.py": "2934d4787200df9cce9fa08b032293737286794e1834ff218735f7344c15e5dc",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/runtime.py": "9bea102a9f7c93c9a1d66837d4b8a43de644b93fb3d53ad7228495ce303e1b6d",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/sampler.py": "d1406ca65a8ba69d5ab508b39f23be3bf519bf81d6745ab0162a5f5e243c1f2d",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/workspace.py": "e750bfe07e1e7239d39f9cb614c169ef638754687c923cd34cf5c8c7ce1c803e",
+    "experiments/cross_harness_sft/scripts/hsrl_v5/workspace_worker.py": "52f6637ea75c4bc0e3ad2d7cbf440b711890af44512dccd10ad51c436685d67d",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/__init__.py": "33df8853dfe0aa9d76bdb82cd61cd1ef62721de3f8e9af0cbc3c479a34e5fa79",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/audit_backend.py": "94308af2b419e54de81a4819ed8867da76903385d10645a63409d499d3adc8db",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/backends.py": "fa47164f9743792098d975464460fb87c5d328b7605f34229574c4c8c21d457e",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/claw_backend.py": "e11113f1725b973fefaa9a7dbdabac384715cef766c2a2df1aeb41ab84e4b166",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/components.py": "505bf04f0cffdda348bc1c2bfcea2bb1e87818b8eeefe09232772ebc94ec4b80",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/hf_claw.py": "a7cb60c621149c27fd9d5097873dbe2e2ba9bf2122f78ffdb73aadb8a8111a17",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/policy.py": "a73973caf58668ce14f20f3e34d5487a381bbaad3b6529df525acb3bfa913b47",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/pool.py": "c5afcf72754dfdc1ecc6ce53aa9528713575152f216901bb012375328e0d8230",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/runtime.py": "be34034b61df6e5aff35872401786486243227096de66928cda277602b7d4b02",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/safe_backend.py": "047f9f9f804842c2286a2e2cb2e1f940e6e7555e8250e863b8fdbfc4acb22235",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/sandbox.py": "be0404518272e1fea9d7d7b5bb6f4442e4a918c7c25b2bfa56bab54d15c32224",
+    "experiments/cross_harness_sft/scripts/hsrl_v3/skilllife_backend.py": "2e46199c34140e35856a3706ceea435f7f44c535e468aaf32afddba64bbad3ef"
+  }
+}
