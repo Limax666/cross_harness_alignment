@@ -6,11 +6,12 @@
 
 1. [当前实验规格](experiments/cross_harness_sft/docs/harness_scaling_safe_rsi_current_20261118.md)：三阶段、14K/50:50、五维 OA18/K2、奖励、已验收结果和限制。
 2. [新服务器接手步骤](experiments/cross_harness_sft/docs/new_server_handoff_20261118.md)：依赖、数据/模型/检查点迁移、身份门禁与目标 GPU 适配。
-3. [发布时点观察](experiments/cross_harness_sft/reports/hsrl_source_handoff_observation_20261118.json)：源服务器 live 状态，不是可直接恢复的停机备份。
+3. [在线采样故障恢复](experiments/cross_harness_sft/docs/hsrl_online_rollout_recovery_20261118.md)：v10 补采、停机恢复、新机移植与验收。
+4. [早期发布观察](experiments/cross_harness_sft/reports/hsrl_source_handoff_observation_20261118.json)：源服务器 live 状态，不是可直接恢复的停机备份。
 
 ## 当前事实与第一步
 
-源服务器仍在运行 4B R1 GRPO-S；本次 Git 同步不停止它，不在新机重复启动同一个 R1。2026-11-18 12:34 的观察计数为 updates7/effective7、下一步16条joint；最近完整独立小时验收为 update6。这两个口径不可混淆，实时状态只从源服务器实际 journal/进程/current_run 获取。
+源机 4B R1 GRPO-S 于 2026-11-18 16:55 在第 10 步采样时阻塞，已有第 9 步完整 checkpoint。旧 run 第 10 步共尝试 32 条，24 条已提交，7 条成功待导入，1 条被评分器拒绝。20:26 查验时 v10 在等待 GPU1 独占与 32 GiB 可用内存，尚未完成真实续训。启动或迁移前重新查源机 journal、current_run 和续训启动状态，避免双开同一 R1。
 
 用户已于11:39要求删除小时巡检loop。cron已删除、monitor/disabled存在；禁止在任何服务器自动恢复 cron、Codex唤醒、旧FlashRSI维修队列。取消巡检不等于暂停或完成训练。
 
@@ -18,7 +19,7 @@
 
 ## 代码与不可默改的契约
 
-- 当前正式代码入口：`experiments/cross_harness_sft/scripts/train_hsrl_v9.py`。v3/v5/v7/v8和旧SkillLife小池保留历史，不是可互换的启动器。
+- 源机 v10 恢复入口：`experiments/cross_harness_sft/scripts/train_hsrl_v10.py`。v9 是第 9 步 checkpoint 的来源。v10 先对账已关闭的 v9 批次，再延续原策略、AdamW、scheduler、采样 RNG 与累计 1,304 次尝试。
 - 官方 `Qwen/Qwen3.5-4B` revision `851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a`，独立文件authority在 `configs/hsrl_official4b_851bf6e.json`。不要换成旧SFT或merged checkpoint。
 - READY14K＝7K ClawGym-Task＋7K AgentDoG（5500 attack/1000 clean/500 query_target）；manifest SHA `220521662b8c40127929dbe07ad74a631d2d564a700954d1c1382e0615373c99`。完整发布资产不在Git；不能仅下载JSONL冒充READY。
 - 16组×G8＝128真实rollouts/更新；每完整步8通用/8安全；五维S/T/O/C/W各三实现、OA18 strength-2、K2同任务不同配置各用当前策略重采样。不是轮流调用产品CLI训练，也不能把C固定0。
@@ -26,9 +27,15 @@
 - seed267；16K context/2048 call/8192 episode/12 rounds/30 tool steps；8环境、模型batch≤8、padded budget32768；累计最多38400尝试/300更新，失败/隔离不清零。源Bug修复有120次隔离开销，299只是逐更新上界，完整K2终点/对照等预算要单独审计，不得偷偷加预算。
 - 原 source namespace 缺标准异常类导致v8失败；训练必须用 `hsrl_source_repair_v1.adapter.Dataset`。源修复只增加ValueError/TypeError/Exception，原 grader/reward/只读/网络/工具AST门禁保持。旧112 valid未更新＋8 invalid保留隔离，不拼入新128。
 
+## 在线 RL 的单条故障处理
+
+ClawGym 评分器发现参考输入被修改时，应保留该条拒绝和清理证据。v10 将这项明确的拒绝限定在一个采样位置。同一任务、harness 配置和策略版本下，使用全新的隔离环境最多补采两次。复用同组已确认有效的轨迹，每次失败与补采都计入原尝试预算。保持 G8、每步 128 个有效样本、评分规则和隔离门禁。
+
+运行时异常、未知 in-flight、清理无法确认、证据校验不通过和连续触及重试上限需要停止并对账。保留出错前的完整 checkpoint 和未提交证据。禁止把无效样本记零、缩小分组、跳过该任务或只因进程退出就重放预约过的尝试。
+
 ## 新服务器不要误用的本机绑定
 
-v9当前只接受物理GPU1，且绑定原绝对路径、lease、CUDA内核和模型authority。单卡GPU0新机需要新版本化入口/独立cohort，不能把0伪装1、删掉guard、全局替换manifest哈希或编辑冻结源码来假装exact resume。按交接文档复用原采样/优化/持久化主体，独立记录真实GPU UUID/UID/socket/内核与路径，核对adapter/AdamW/scheduler/RNG及已耗预算。跨硬件不声称bitwise重放。
+源机 v9 和 v10 只接受物理 GPU1。v10 的历史对账还绑定原目录、UID、rootless Docker socket、完整 checkpoint 和父 journal。单卡GPU0新机需要新版本化入口/独立cohort，不能把0伪装1、删掉guard、全局替换manifest哈希或编辑冻结源码来假装exact resume。按交接文档复用原采样/优化/持久化主体，独立记录真实GPU UUID/UID/socket/内核与路径，核对adapter/AdamW/scheduler/RNG及已耗预算。跨硬件不声称bitwise重放。
 
 原参考机器上active源码worktree是 `/data/home/liumingxiao/hsrl_v3_worktree_20261116`，运行数据在主项目 `experiments/cross_harness_sft/outputs/rl/`；这些是源机地址，不是让新机照抄的本地PID/目录。source pin、环境快照和第三方补丁均已收入configs/patches。Git不包含venv、权重、私有数据/secret/grader输出、完整run或CUDA二进制。
 

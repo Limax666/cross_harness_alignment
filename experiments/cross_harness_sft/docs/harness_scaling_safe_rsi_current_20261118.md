@@ -38,7 +38,7 @@ CHS-PO、DAPO、Dr.GRPO、多 seed 和 9B 确认仍属于后续对照，不能�
 
 最近完整独立验收的是 update6：128/128 源评分，496 个 adapter 张量变化，loss `-0.0275005330`，preclip norm `19.8418350`，从实际 AdamW moment 重建裁剪后 norm `0.999999903`。update5/6 构成同16任务的完整 K2 对，512 个工具/grader容器独立创建并清理。两个更新各耗时97.35/113.57分钟。
 
-发布时点的状态快照见 [源服务器观察记录](../reports/hsrl_source_handoff_observation_20261118.json)。它记录 live counter，不是停机交接证明；该时点已观察到 update7，而本次交接收录的最近完整小时验收为 update6。当前训练仍在原服务器推进，不能把文档快照当作永远最新的恢复点。
+发布时点的状态快照见 [源服务器观察记录](../reports/hsrl_source_handoff_observation_20261118.json)。它记录 live counter，不是停机交接证明；该时点已观察到 update7，而本次交接收录的最近完整小时验收为 update6。后续 v9 在第 10 步采样时中断，已校验第 9 步 checkpoint。恢复策略和最新验收口径见 [v10 在线采样故障恢复](hsrl_online_rollout_recovery_20261118.md)。
 
 旧 v8 因受限 source namespace 缺 `ValueError/TypeError/Exception` 停止；v9 使用 `hsrl_source_repair_v1.adapter.Dataset`，只补这三种普通异常名，原 grader/奖励/沙箱不改。旧112条 valid 未更新＋8条 invalid/aborted共120次尝试保留隔离；从已接受 update4 的权重/AdamW/scheduler及已对账的最终RNG继续，整步重新采128。原失败组正式8/8评分、9次 get_patient_info 与后续参数更新均已验收。
 
