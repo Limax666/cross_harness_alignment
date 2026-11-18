@@ -1,0 +1,15 @@
+{
+  "reconstructed_from_pinned_upstream_commit": true,
+  "patch_apply_check_and_actual_apply_exit": 0,
+  "exact_file_bytes_match_source": [
+    "harness_adapter/harness_adapter.py",
+    "harness_adapter/openclaw_run_once.mjs",
+    "harness_adapter/scripts/eval_via_llm/llm_judge_multi_harness_batch_aiwave.py",
+    "harness_adapter/scripts/evaluate_run.py",
+    "harness_adapter/scripts/run_case_scripts/run_batch.sh",
+    "harness_adapter/scripts/run_case_scripts/run_case.sh",
+    "harness_adapter/scripts/setup_scripts/setup_agent.sh",
+    "services/common/mock_server.py"
+  ],
+  "no_benchmark_or_model_started": true
+}

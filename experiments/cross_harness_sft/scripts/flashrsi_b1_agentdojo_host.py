@@ -6,6 +6,7 @@ import json
 import os
 import secrets
 import subprocess
+import sys
 import tempfile
 import threading
 import urllib.request
@@ -14,7 +15,7 @@ from pathlib import Path
 from flashrsi_model_relay import create_model_relay
 
 
-ROOT = Path("/openbayes/home/cross_harness_alignment/experiments/cross_harness_sft")
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _upstream(model_token):
@@ -61,7 +62,9 @@ def main():
             "B1_CANONICAL_SNAPSHOT_ID": os.environ["B1_CANONICAL_SNAPSHOT_ID"],
             "B1_SNAPSHOT_JSON": os.environ["B1_SNAPSHOT_JSON"],
             "B1_CASE_OUT": os.environ["B1_CASE_OUT"],
-            "B1_PYTHON": str(ROOT / ".venv-agentdojo/bin/python"),
+            "B1_PYTHON": sys.executable,
+            "FLASHRSI_COMPLETION_BUDGET": os.environ.get("FLASHRSI_COMPLETION_BUDGET", "512"),
+            "FLASHRSI_PATH_PROFILE": os.environ.get("FLASHRSI_PATH_PROFILE", "standard"),
         }
         try:
             result = subprocess.run(
@@ -72,7 +75,7 @@ def main():
                     "-c",
                     'ip link set lo up && exec "$1" "$2"',
                     "rsi",
-                    str(ROOT / ".venv-agentdojo/bin/python"),
+                    sys.executable,
                     str(ROOT / "scripts/flashrsi_b1_agentdojo_supervisor.py"),
                 ],
                 env=env,

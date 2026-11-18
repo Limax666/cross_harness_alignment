@@ -1,5 +1,7 @@
 # 4B Harness Scaling 安全 RSI：本机启动计划
 
+> **2026-11-13 更新：**当前 4B 安全基线主 benchmark 为 HarnessRisk，并已启动 MiniAgent、OpenCode 全量初始评测。具体模型、环境、各 harness × RSI 方法、队列、评分与限制见 [FlashRSI × HarnessRisk 运行方案](flashrsi_4b_harnessrisk_baseline_20261113.md)。本文件下方早期关于 AgentDojo 优先、模型尚未下载、FlashRSI 基线尚未启动的状态为历史记录。当前普通 RSI 基线未统一固定不可编辑安全提示词，不能将下文所述安全约束视为已经实现。
+
 > 状态：准备中。用户已授权共享 GPU 0、2、3；2026-11-11 晚间可用内存约 21 GiB、交换空间已满。官方 4B 权重正在下载，未启动训练。
 
 目标：以官方 `Qwen/Qwen3.5-4B` 后训练模型为起点，先建立 FlashRSI 执行框架下的安全和通用能力基线，再完成可复位环境、真实在线 rollout、FlashRSI 资源演化与模型 RL 衔接以及 CHS-PO 的小规模预检；预检通过再冻结正式实验。不得将既有 2B/9B SFT 模型误作 4B 起点。

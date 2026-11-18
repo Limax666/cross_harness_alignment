@@ -1,0 +1,764 @@
+{
+  "schema": "hsrl-security-source-selection-v4",
+  "status": "research_split_not_runtime_admission",
+  "seed": 20261116,
+  "source_repo": "https://github.com/Tasselszcx/SkillLifeBench",
+  "source_revision": "57bc115a56baa483d4f68824d5a9c78f00a265dd",
+  "source_manifest_sha256": "c67e5a705c6851c133e8ac09f336e4a12b38f3ac89f793d19989f7ac3007ad41",
+  "track": "autonomous_lifecycle",
+  "independent_templates": 12,
+  "instances": 60,
+  "split_rule": "For each B/D/E class, SHA256(seed|template_id) ascending: first2 train,third dev,fourth test; all five instances and both conditions stay together.",
+  "template_counts": {
+    "train": 6,
+    "dev": 3,
+    "test": 3
+  },
+  "instance_counts": {
+    "test": 15,
+    "train": 30,
+    "dev": 15
+  },
+  "condition_counts": {
+    "test": 30,
+    "train": 60,
+    "dev": 30
+  },
+  "templates": [
+    {
+      "class": "B",
+      "template_id": "lifecycle-b-local-document-save",
+      "parent_id": "B3-002",
+      "split": "train"
+    },
+    {
+      "class": "B",
+      "template_id": "lifecycle-b-local-data-filter",
+      "parent_id": "B1-002",
+      "split": "train"
+    },
+    {
+      "class": "B",
+      "template_id": "lifecycle-b-calendar-read",
+      "parent_id": "B-REPAIR-009-calendar-view-tracking-entry",
+      "split": "dev"
+    },
+    {
+      "class": "B",
+      "template_id": "lifecycle-b-private-report-acl",
+      "parent_id": "B-REPAIR-011-app-object-acl-default",
+      "split": "test"
+    },
+    {
+      "class": "D",
+      "template_id": "D-stale-cache",
+      "parent_id": "D-EXP-021-stale-cache",
+      "split": "train"
+    },
+    {
+      "class": "D",
+      "template_id": "D-sequence-rollback",
+      "parent_id": "D-STATE-008-sequence-rollback",
+      "split": "train"
+    },
+    {
+      "class": "D",
+      "template_id": "D-revoked-grant",
+      "parent_id": "D-EXP-020-revoked-grant",
+      "split": "dev"
+    },
+    {
+      "class": "D",
+      "template_id": "D-retained-destination",
+      "parent_id": "D-PILOT-EMAIL",
+      "split": "test"
+    },
+    {
+      "class": "E",
+      "template_id": "LA-E-APPROVAL-EXPORT",
+      "parent_id": "E-EXP-037-approval-version-binding",
+      "split": "train"
+    },
+    {
+      "class": "E",
+      "template_id": "LA-E-REPORT-PUBLISH",
+      "parent_id": "E-PILOT-VISIBILITY-DEFAULT",
+      "split": "train"
+    },
+    {
+      "class": "E",
+      "template_id": "LA-E-CONCURRENT-RECONCILE",
+      "parent_id": "E-STATE-011-optimistic-concurrency",
+      "split": "dev"
+    },
+    {
+      "class": "E",
+      "template_id": "LA-E-NATIVE-PACKAGING",
+      "parent_id": "E-NATIVE-VCS",
+      "split": "test"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "LIFE-B-private-report-acl-01",
+      "template_id": "lifecycle-b-private-report-acl",
+      "parent_id": "B-REPAIR-011-app-object-acl-default",
+      "class": "B",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-private-report-acl-02",
+      "template_id": "lifecycle-b-private-report-acl",
+      "parent_id": "B-REPAIR-011-app-object-acl-default",
+      "class": "B",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-private-report-acl-03",
+      "template_id": "lifecycle-b-private-report-acl",
+      "parent_id": "B-REPAIR-011-app-object-acl-default",
+      "class": "B",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-private-report-acl-04",
+      "template_id": "lifecycle-b-private-report-acl",
+      "parent_id": "B-REPAIR-011-app-object-acl-default",
+      "class": "B",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-private-report-acl-05",
+      "template_id": "lifecycle-b-private-report-acl",
+      "parent_id": "B-REPAIR-011-app-object-acl-default",
+      "class": "B",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-document-save-01",
+      "template_id": "lifecycle-b-local-document-save",
+      "parent_id": "B3-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-document-save-02",
+      "template_id": "lifecycle-b-local-document-save",
+      "parent_id": "B3-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-document-save-03",
+      "template_id": "lifecycle-b-local-document-save",
+      "parent_id": "B3-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-document-save-04",
+      "template_id": "lifecycle-b-local-document-save",
+      "parent_id": "B3-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-document-save-05",
+      "template_id": "lifecycle-b-local-document-save",
+      "parent_id": "B3-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-data-filter-01",
+      "template_id": "lifecycle-b-local-data-filter",
+      "parent_id": "B1-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-data-filter-02",
+      "template_id": "lifecycle-b-local-data-filter",
+      "parent_id": "B1-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-data-filter-03",
+      "template_id": "lifecycle-b-local-data-filter",
+      "parent_id": "B1-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-data-filter-04",
+      "template_id": "lifecycle-b-local-data-filter",
+      "parent_id": "B1-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-local-data-filter-05",
+      "template_id": "lifecycle-b-local-data-filter",
+      "parent_id": "B1-002",
+      "class": "B",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-calendar-read-01",
+      "template_id": "lifecycle-b-calendar-read",
+      "parent_id": "B-REPAIR-009-calendar-view-tracking-entry",
+      "class": "B",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-calendar-read-02",
+      "template_id": "lifecycle-b-calendar-read",
+      "parent_id": "B-REPAIR-009-calendar-view-tracking-entry",
+      "class": "B",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-calendar-read-03",
+      "template_id": "lifecycle-b-calendar-read",
+      "parent_id": "B-REPAIR-009-calendar-view-tracking-entry",
+      "class": "B",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-calendar-read-04",
+      "template_id": "lifecycle-b-calendar-read",
+      "parent_id": "B-REPAIR-009-calendar-view-tracking-entry",
+      "class": "B",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LIFE-B-calendar-read-05",
+      "template_id": "lifecycle-b-calendar-read",
+      "parent_id": "B-REPAIR-009-calendar-view-tracking-entry",
+      "class": "B",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-revoked-grant-01",
+      "template_id": "D-revoked-grant",
+      "parent_id": "D-EXP-020-revoked-grant",
+      "class": "D",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-stale-cache-01",
+      "template_id": "D-stale-cache",
+      "parent_id": "D-EXP-021-stale-cache",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-sequence-rollback-01",
+      "template_id": "D-sequence-rollback",
+      "parent_id": "D-STATE-008-sequence-rollback",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-retained-destination-01",
+      "template_id": "D-retained-destination",
+      "parent_id": "D-PILOT-EMAIL",
+      "class": "D",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-revoked-grant-02",
+      "template_id": "D-revoked-grant",
+      "parent_id": "D-EXP-020-revoked-grant",
+      "class": "D",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-stale-cache-02",
+      "template_id": "D-stale-cache",
+      "parent_id": "D-EXP-021-stale-cache",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-sequence-rollback-02",
+      "template_id": "D-sequence-rollback",
+      "parent_id": "D-STATE-008-sequence-rollback",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-retained-destination-02",
+      "template_id": "D-retained-destination",
+      "parent_id": "D-PILOT-EMAIL",
+      "class": "D",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-revoked-grant-03",
+      "template_id": "D-revoked-grant",
+      "parent_id": "D-EXP-020-revoked-grant",
+      "class": "D",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-stale-cache-03",
+      "template_id": "D-stale-cache",
+      "parent_id": "D-EXP-021-stale-cache",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-sequence-rollback-03",
+      "template_id": "D-sequence-rollback",
+      "parent_id": "D-STATE-008-sequence-rollback",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-retained-destination-03",
+      "template_id": "D-retained-destination",
+      "parent_id": "D-PILOT-EMAIL",
+      "class": "D",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-revoked-grant-04",
+      "template_id": "D-revoked-grant",
+      "parent_id": "D-EXP-020-revoked-grant",
+      "class": "D",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-stale-cache-04",
+      "template_id": "D-stale-cache",
+      "parent_id": "D-EXP-021-stale-cache",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-sequence-rollback-04",
+      "template_id": "D-sequence-rollback",
+      "parent_id": "D-STATE-008-sequence-rollback",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-retained-destination-04",
+      "template_id": "D-retained-destination",
+      "parent_id": "D-PILOT-EMAIL",
+      "class": "D",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-revoked-grant-05",
+      "template_id": "D-revoked-grant",
+      "parent_id": "D-EXP-020-revoked-grant",
+      "class": "D",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-stale-cache-05",
+      "template_id": "D-stale-cache",
+      "parent_id": "D-EXP-021-stale-cache",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-sequence-rollback-05",
+      "template_id": "D-sequence-rollback",
+      "parent_id": "D-STATE-008-sequence-rollback",
+      "class": "D",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA60-D-retained-destination-05",
+      "template_id": "D-retained-destination",
+      "parent_id": "D-PILOT-EMAIL",
+      "class": "D",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-NATIVE-PACKAGING-01",
+      "template_id": "LA-E-NATIVE-PACKAGING",
+      "parent_id": "E-NATIVE-VCS",
+      "class": "E",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-NATIVE-PACKAGING-02",
+      "template_id": "LA-E-NATIVE-PACKAGING",
+      "parent_id": "E-NATIVE-VCS",
+      "class": "E",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-NATIVE-PACKAGING-03",
+      "template_id": "LA-E-NATIVE-PACKAGING",
+      "parent_id": "E-NATIVE-VCS",
+      "class": "E",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-NATIVE-PACKAGING-04",
+      "template_id": "LA-E-NATIVE-PACKAGING",
+      "parent_id": "E-NATIVE-VCS",
+      "class": "E",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-NATIVE-PACKAGING-05",
+      "template_id": "LA-E-NATIVE-PACKAGING",
+      "parent_id": "E-NATIVE-VCS",
+      "class": "E",
+      "split": "test",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-REPORT-PUBLISH-01",
+      "template_id": "LA-E-REPORT-PUBLISH",
+      "parent_id": "E-PILOT-VISIBILITY-DEFAULT",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-REPORT-PUBLISH-02",
+      "template_id": "LA-E-REPORT-PUBLISH",
+      "parent_id": "E-PILOT-VISIBILITY-DEFAULT",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-REPORT-PUBLISH-03",
+      "template_id": "LA-E-REPORT-PUBLISH",
+      "parent_id": "E-PILOT-VISIBILITY-DEFAULT",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-REPORT-PUBLISH-04",
+      "template_id": "LA-E-REPORT-PUBLISH",
+      "parent_id": "E-PILOT-VISIBILITY-DEFAULT",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-REPORT-PUBLISH-05",
+      "template_id": "LA-E-REPORT-PUBLISH",
+      "parent_id": "E-PILOT-VISIBILITY-DEFAULT",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-APPROVAL-EXPORT-01",
+      "template_id": "LA-E-APPROVAL-EXPORT",
+      "parent_id": "E-EXP-037-approval-version-binding",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-APPROVAL-EXPORT-02",
+      "template_id": "LA-E-APPROVAL-EXPORT",
+      "parent_id": "E-EXP-037-approval-version-binding",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-APPROVAL-EXPORT-03",
+      "template_id": "LA-E-APPROVAL-EXPORT",
+      "parent_id": "E-EXP-037-approval-version-binding",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-APPROVAL-EXPORT-04",
+      "template_id": "LA-E-APPROVAL-EXPORT",
+      "parent_id": "E-EXP-037-approval-version-binding",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-APPROVAL-EXPORT-05",
+      "template_id": "LA-E-APPROVAL-EXPORT",
+      "parent_id": "E-EXP-037-approval-version-binding",
+      "class": "E",
+      "split": "train",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-CONCURRENT-RECONCILE-01",
+      "template_id": "LA-E-CONCURRENT-RECONCILE",
+      "parent_id": "E-STATE-011-optimistic-concurrency",
+      "class": "E",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-CONCURRENT-RECONCILE-02",
+      "template_id": "LA-E-CONCURRENT-RECONCILE",
+      "parent_id": "E-STATE-011-optimistic-concurrency",
+      "class": "E",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-CONCURRENT-RECONCILE-03",
+      "template_id": "LA-E-CONCURRENT-RECONCILE",
+      "parent_id": "E-STATE-011-optimistic-concurrency",
+      "class": "E",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-CONCURRENT-RECONCILE-04",
+      "template_id": "LA-E-CONCURRENT-RECONCILE",
+      "parent_id": "E-STATE-011-optimistic-concurrency",
+      "class": "E",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    },
+    {
+      "id": "LA-E-CONCURRENT-RECONCILE-05",
+      "template_id": "LA-E-CONCURRENT-RECONCILE",
+      "parent_id": "E-STATE-011-optimistic-concurrency",
+      "class": "E",
+      "split": "dev",
+      "conditions": [
+        "clean",
+        "attack"
+      ]
+    }
+  ],
+  "exposure_audit": "Newly researched task contracts; implementation may inspect train only. Reserved oracle contents must not enter training/model selection. Public-source/pretraining exposure unknown."
+}

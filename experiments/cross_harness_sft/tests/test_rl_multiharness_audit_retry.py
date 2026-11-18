@@ -60,6 +60,30 @@ def test_whitebox_fixed_budget_never_resamples_audit_abstentions():
     assert len(seen)==1
 
 
+def test_confirmed_backend_deadline_retries_same_cell_with_recorded_count():
+    from rl_generation_deadline import BackendGenerationTimeout
+    accepted = SimpleNamespace(extra_fields={'multiharness_evidence': {'reward': 0.0}})
+    loop, seen = _loop_with_attempts([BackendGenerationTimeout('aborted'), accepted])
+    loop.whitebox = True
+    result = asyncio.run(loop.run({}, cell_id='wb/cell'))
+    assert len(seen) == 2
+    assert result.extra_fields['multiharness_evidence']['generation_timeout_retries'] == 1
+
+
+def test_backend_deadline_retry_is_bounded_and_does_not_hide_other_timeouts():
+    from rl_generation_deadline import BackendGenerationTimeout
+    loop, seen = _loop_with_attempts([BackendGenerationTimeout('aborted')] * 3)
+    loop.whitebox = True
+    with pytest.raises(BackendGenerationTimeout):
+        asyncio.run(loop.run({}, cell_id='wb/cell'))
+    assert len(seen) == 3
+    loop, seen = _loop_with_attempts([TimeoutError('other timeout')])
+    loop.whitebox = True
+    with pytest.raises(TimeoutError, match='other timeout'):
+        asyncio.run(loop.run({}, cell_id='wb/cell'))
+    assert len(seen) == 1
+
+
 def test_verified_official_safe_zero_survives_path_audit_abstention():
     verdict = {
         "reward": 0.0,

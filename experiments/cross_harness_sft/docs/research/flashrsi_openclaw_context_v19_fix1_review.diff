@@ -1,0 +1,272 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_implementation_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_implementation_20261117.md
+index b292366..9b416c7 100644
+--- a/experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_implementation_20261117.md
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_implementation_20261117.md
+@@ -3,10 +3,24 @@
+ Sourceaudit found nativeOpenClaw loop157–174 defaultinputbudget120000 despite actual18764/32768 backend. Correctedcaseenvv3 hadPATH/mime/SQLite/environmentfixes but nomodelcapacitymetadata. Newfuture-onlyprofile openclaw-local32k-metadata/v4 setsconfig.context.max_tokens24576 =32768−2×unchanged4096reply. Nativecontextestimator isapproximate; actualQwentokenfit/compaction/full128NOTproven. OriginalSnapshot/vendorbytes, compactionenabled/threshold/tail/pruning policy, alltools/owners/SQLitehistory, mock/env/PATH/mime, sandbox/readroots/network, maxturn12/timeout360/host2400/requestreply4096 unchanged. Newentry copiesconfigonly, retainsnonsecretmetadata; supervisorrequiresactualreceipt andretainsperowner; hostusesoriginalenvironmentv2withsamecaseenvflag andnewsupervisor. NeedfreshfullH0+6RSI newprofile, old13/128notreclassified.
+ 
+ Newinitialv19 bindsbothCodex/OpenClawcontextcontracts; newfinitequeuev19 composesguardedv18/v17source withonlynewOpenClawhost, initial, contract, launcher/protocol/lock changes. ExistingH0exactidentity, strict128/private/rule/judge, cleanupstickyblock, dependency/sourcefreeze, workerlease/billing/cachedsuccessfulAPIguards preserved. Independentreviewrequiredbeforewaitingqueuev18superseded. ActiveACE/follower/services untouched. Scannerincludesv17/18/19. PiandClaudeimplementationremainsseparateblockedtickets untilnewprofileindependentlyverified.
+ 
+ Puretestactualconfigurationcompatibility: preserveinputdict/llm/maxturn/timeout/compaction enabledFalse/tail; thresholdderivedfromactualwindowwithoutreplyincrease. Guardednewentry/supervisor/host/initial/queue/scannercompile; compiledactualcontrollerexpectedcontractbindsbothnativeprofiles/hosts. No sourceprogram/model/API/GPU/Docker/cron actions. Exactcommand fromexperiment: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:src:vendor/FlashRSI CUDA_VISIBLE_DEVICES='' .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_openclaw_context_v19.py tests/test_flashrsi_codex_context_v18.py tests/test_flashrsi_gpu1_queue_v17.py tests/test_flashrsi_harnessrisk_benchmark_v17.py`. Final:
+ ```
+ .......................                                                  [100%]
+ 23 passed in 0.67s
+ ```
+ REDmissingmodules2failretained. NoactualOpenClawnewprotocolrunorjudgeclaim.
++
++## Independent review fixround1
++
++Accepted newbudget/nativecompactionvsoldfirstwireImportantfinding. Originalv2auditorunchanged; newv4 audits originalrawSQLiteprefix+exactallowners/session/file and authenticatesactualnativecompaction+providerwire. Newentry read-onlyobserver wrapsactual selectedrun.globalcompact, passesexactargs andreturnsoriginalresult, capturesbefore/kwargs/after; restoresoriginalonexit. Hostneverexecutescandidatecode: recomputesonlycode-ownedpinnedpureoriginalcompaction/modules againstrecordedinputs, comparesactualallwiremessages andrawdelta(sequenceconversiondropsonlyoriginalnativefreshappendstop_reason/receiptmetafields, keepingactualreceiptattachments). Actualinputbudgetmustremain<=24576; fullrawhistory retained.
++
++Sourceidentitygateindependentlychecksactualexported compaction.py/models.py/providers.py against3code-ownedpins andentryreceipt. Unknowncompaction/provider-sourcechangesarenotblindlyaccepted; theyremainunsupported/invalidfornewprofile, notscorezero. ThisisexplicitcompatibilitylimitforEvo-Harness/candidatecodeevolution; otherSnapshotresource/loopchangesarepreservedifobservationalAPI/projectioncontractpasses. Disablednativecompactiondoesnotgetenabled; firstwiremuststillmatchoriginalrawhistory. No source/Vendor/Snapshot/nativefunctionbytesmutated. Publicbusinessmessagesonlyinprivateobservations; noadditionaltool/contextcapability.
++
++Meaningfulpureboundary uses actualoriginalnative deterministiccompaction onlonghistory, proveoriginalv2 gate rejects it andnewv4 gateacceptsonlycorrectprojection/wire, rejecttamperedtail/rawprefix. No model/API/tasksourceprogram. Exactsame4-test-filecommand above final:
++
++```
++........................                                                 [100%]
++24 passed in 1.24s
++```
++Actualnative-source compatibility/full128/realtool transitions/judge stillpending.
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_entry_v4.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_entry_v4.py
+index b7610b8..d2b4184 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_entry_v4.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_entry_v4.py
+@@ -1,18 +1,22 @@
+ """Original OpenClaw environment entry, explicit32K-compatible input budget."""
+ from pathlib import Path
+ import sys
+ ROOT = Path(__file__).resolve().parents[1]
+ sys.path[:0] = [str(ROOT / 'scripts'), str(ROOT / 'vendor/FlashRSI')]
+ from flashrsi_harnessrisk_openclaw_context_v4 import CONTEXT, apply_context, replace_once
++from flashrsi_harnessrisk_openclaw_projection_v4 import ProjectionObserver
+ 
+ 
+ def build_source():
+     source = Path(__file__).with_name('flashrsi_harnessrisk_openclaw_environment_entry_v2.py').read_text()
+     source = replace_once(source, "config=request['config'];", "config=apply_context(request['config']);")
++    source = replace_once(source,
++        "  result=await native.run(config,request['question'],task_dir,snapshot,**kwargs)",
++        "  with ProjectionObserver(native) as projection:\n   result=await native.run(config,request['question'],task_dir,snapshot,**kwargs)")
+     return replace_once(source, "'usage':result.get('usage',{}),",
+-                        "'usage':result.get('usage',{}),'runtime_context_metadata':CONTEXT_METADATA,")
++        "'usage':result.get('usage',{}),'runtime_context_metadata':CONTEXT_METADATA,'context_projections':projection.rows,'context_projection_source_sha256':projection.source,")
+ 
+ 
+ if __name__ == '__main__':
+     CONTEXT_METADATA = CONTEXT
+     exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_supervisor_v4.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_supervisor_v4.py
+index cc9551d..d3bd694 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_supervisor_v4.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_supervisor_v4.py
+@@ -1,17 +1,21 @@
+ """Same case environment/session/permissions, record the new input metadata."""
+ from pathlib import Path
+ from flashrsi_harnessrisk_openclaw_context_v4 import CONTEXT, replace_once
+ 
+ 
+ def build_source():
+     source = Path(__file__).with_name('flashrsi_harnessrisk_openclaw_environment_supervisor_v2.py').read_text()
++    source = replace_once(source, 'from flashrsi_harnessrisk_openclaw_session_audit_v2 import read_session, verify_turn',
++        'from flashrsi_harnessrisk_openclaw_session_audit_v4 import read_session, verify_turn')
++    source = replace_once(source, 'proxy.requests[request_start:],result,session_path))',
++                          'proxy.requests[request_start:],result,session_path,Path(exported)))')
+     source = replace_once(source, 'flashrsi_harnessrisk_openclaw_environment_entry_v2.py',
+                           'flashrsi_harnessrisk_openclaw_context_entry_v4.py')
+     source = replace_once(source, "'adapter_protocol':result.get('adapter_protocol')",
+         "'adapter_protocol':result.get('adapter_protocol'),'runtime_context_metadata':result.get('runtime_context_metadata')")
+     source = replace_once(source, 'result=json.loads(child.stdout)',
+         "result=json.loads(child.stdout)\n                    if result.get('runtime_context_metadata') != CONTEXT_METADATA:raise RuntimeError('actual_openclaw_context_receipt_missing')")
+     return source
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_projection_v4.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_projection_v4.py
+new file mode 100644
+index 0000000..c6040fd
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_projection_v4.py
+@@ -0,0 +1,100 @@
++"""Authenticate native deterministic context projection, keeping raw history."""
++import copy
++import hashlib
++import importlib
++import inspect
++from pathlib import Path
++import sys
++import types
++
++PINS = {'compaction.py': '819a3523169615ed737e81dda8ce46c054176403844c510ed5916e0e53cf3285',
++        'models.py': '968dfff62f5c2afa5c8bcb6a2c7d94c94a5c19135a3cda70f976884f88c97a00',
++        'providers.py': '57b8454795a01721c8c0f531c9e641440c90751aa98dd5f17aac5faae54a89e4'}
++
++
++def source_identity(directory):
++    actual = {name: hashlib.sha256((Path(directory) / name).read_bytes()).hexdigest() for name in PINS}
++    if actual != PINS:
++        raise ValueError('unsupported_native_projection_source_changes')
++    return actual
++
++
++def trusted_compact():
++    # Load only code-owned original pure context modules, never candidate code
++    # or task assets on the host. Models contains data/serialization only.
++    root = Path(__file__).resolve().parents[1] / 'vendor/FlashRSI/flashrsi/agents/openclaw/runtime/openclaw_native'
++    source_identity(root)
++    name = '_flashrsi_trusted_openclaw_projection_v4'
++    if name not in sys.modules:
++        package = types.ModuleType(name)
++        package.__path__ = [str(root)]
++        sys.modules[name] = package
++    return importlib.import_module(name + '.compaction').compact
++
++
++class ProjectionObserver:
++    """Observation around the actual selected native function, not a rewrite."""
++    def __init__(self, native):
++        self.globals = native.run.__globals__
++        self.original = self.globals['compact']
++        self.source = source_identity(Path(inspect.getfile(self.original)).parent)
++        self.rows = []
++
++    def compact(self, messages, **kwargs):
++        before = copy.deepcopy(messages)
++        result = self.original(messages, **kwargs)
++        self.rows.append({'input': before, 'arguments': copy.deepcopy(kwargs), 'output': copy.deepcopy(result)})
++        return result
++
++    def __enter__(self):
++        self.globals['compact'] = self.compact
++        return self
++
++    def __exit__(self, *args):
++        self.globals['compact'] = self.original
++
++
++def authenticate_projection(before, after, owners, requests, result, source_root):
++    from flashrsi_harnessrisk_openclaw_session_audit_v2 import _chat_messages
++    source = source_identity(Path(source_root) / 'runtime/openclaw_native')
++    if result.get('context_projection_source_sha256') != source:
++        raise ValueError('native_projection_source_identity_mismatch')
++    rows = result.get('context_projections')
++    if not isinstance(rows, list):
++        raise ValueError('missing_actual_native_projection_receipts')
++    raw_start = before + [{'role': 'user', 'content': owners[-1]}]
++    if not rows:
++        return raw_start  # Disabled native compaction: original exact wire gate.
++    if len(rows) != len(requests):
++        raise ValueError('native_projection_and_wire_count_mismatch')
++    drop_system = lambda values: [x for x in values if x.get('role') != 'system']
++    if drop_system(rows[0]['input']) != raw_start:
++        raise ValueError('native_projection_dropped_or_rewrote_raw_history')
++    remaining = after[len(before) + 1:]
++    consumed, prior = 0, None
++    compact = trusted_compact()
++    for row, request in zip(rows, requests):
++        arguments = row['arguments']
++        if (set(arguments) != {'max_tokens', 'preserve_recent_tokens', 'tail_turns', 'prune'}
++                or type(arguments['max_tokens']) is not int or not 0 < arguments['max_tokens'] <= 24576):
++            raise ValueError('native_projection_budget_or_arguments_mismatch')
++        if prior is not None:
++            delta = row['input'][len(prior):]
++            expected_delta = copy.deepcopy(remaining[consumed:consumed + len(delta)])
++            # Native loop stores extra stop/receipt metadata in SQLite but
++            # appends the new provider envelopes without those two fields.
++            for item in expected_delta:
++                item.pop('stop_reason', None)
++                receipt = item.pop('receipt', None)
++                if isinstance(receipt, dict) and isinstance(receipt.get('attachments'), list):
++                    item['attachments'] = copy.deepcopy(receipt['attachments'])
++            if row['input'][:len(prior)] != prior or delta != expected_delta:
++                raise ValueError('native_projection_history_transition_mismatch')
++            consumed += len(delta)
++        expected = compact(copy.deepcopy(row['input']), **arguments)
++        if row['output'] != expected:
++            raise ValueError('native_projection_differs_from_pinned_compaction')
++        if drop_system(_chat_messages(expected)) != drop_system(request.get('messages', [])):
++            raise ValueError('actual_wire_differs_from_native_projection')
++        prior = expected
++    return rows[0]['output']
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_session_audit_v4.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_session_audit_v4.py
+new file mode 100644
+index 0000000..16d5984
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_session_audit_v4.py
+@@ -0,0 +1,13 @@
++"""Original complete SQLite gates plus authenticated native context projection."""
++from pathlib import Path
++from flashrsi_harnessrisk_openclaw_context_v4 import replace_once
++from flashrsi_harnessrisk_openclaw_projection_v4 import authenticate_projection
++
++source = Path(__file__).with_name('flashrsi_harnessrisk_openclaw_session_audit_v2.py').read_text()
++source = replace_once(source, 'def verify_turn(before, after, owners, requests, result, session_path):',
++    'def verify_turn(before, after, owners, requests, result, session_path, source_root):')
++source = replace_once(source, 'expected = _chat_messages(before + [{"role": "user", "content": owners[-1]}])',
++    'expected = _chat_messages(authenticate_projection(before, after, owners, requests, result, source_root))')
++source = replace_once(source, '"all_prior_native_wire_messages_equal": True,',
++    '"actual_wire_matches_authenticated_native_projection": True, "raw_native_history_preserved": True,')
++exec(compile(source, __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_openclaw_context_v19.py b/experiments/cross_harness_sft/tests/test_flashrsi_openclaw_context_v19.py
+index bad7dd9..36f458d 100644
+--- a/experiments/cross_harness_sft/tests/test_flashrsi_openclaw_context_v19.py
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_openclaw_context_v19.py
+@@ -1,14 +1,15 @@
+ """Metadata and immutable transformation guards; no task/model/API execution."""
+ import copy
+ from pathlib import Path
+ import sys
++import pytest
+ 
+ sys.path[:0] = [str(Path(__file__).resolve().parents[1] / x) for x in ('scripts', 'src', 'vendor/FlashRSI')]
+ 
+ 
+ def test_openclaw_input_budget_preserves_resource_compaction_policy_and_other_limits():
+     from flashrsi_harnessrisk_openclaw_context_v4 import apply_context, CONTEXT
+     original = {'llm': {'model_name': 'qwen35-4b-preflight', 'max_tokens': 4096},
+         'max_turns': 12, 'timeout': 360, 'compaction': {'enabled': False, 'tail_turns': 5},
+         'context': {'max_tokens': 120000, 'other': 'unchanged'}}
+     preserved = copy.deepcopy(original)
+@@ -30,10 +31,43 @@ def test_future_v19_profile_has_actual_host_metadata_and_preserves_codex_repair(
+     for module in (entry, supervisor, host, initial, queue, scanner):
+         compile(module.build_source(), module.__file__, 'exec')
+     namespace = {'__file__': queue.__file__, '__name__': 'pure_controller_check',
+         'CONTEXT_METADATA': queue.CODEX_CONTEXT, 'OPENCLAW_CONTEXT_METADATA': queue.OPENCLAW_CONTEXT}
+     exec(compile(queue.build_source(), queue.__file__, 'exec'), namespace)
+     raw = b'{"model_revision":"source-test","flashrsi_revision":"runtime-test"}'
+     contract = namespace['expected_initial_contract'](raw, 'openclaw')
+     assert contract['host_script'] == 'flashrsi_harnessrisk_host_openclaw_context_v4.py'
+     assert contract['native_context_metadata'] == queue.OPENCLAW_CONTEXT
+     assert namespace['expected_initial_contract'](raw, 'codex')['native_context_metadata'] == queue.CODEX_CONTEXT
++
++
++def test_original_native_compaction_and_wire_are_authenticated_without_losing_sqlite_history(tmp_path):
++    from flashrsi_harnessrisk_openclaw_projection_v4 import trusted_compact, PINS
++    from flashrsi_harnessrisk_openclaw_session_audit_v2 import _chat_messages
++    from flashrsi_harnessrisk_openclaw_session_audit_v4 import verify_turn
++    source_root = Path(__file__).resolve().parents[1] / 'vendor/FlashRSI/flashrsi/agents/openclaw'
++    previous = 'earlier owner ' + 'retained text ' * 12000
++    owners = [previous, 'next original owner']
++    before = [{'role': 'user', 'content': previous}, {'role': 'assistant', 'content': 'previous answer'}]
++    initial = [{'role': 'system', 'content': 'native system'}] + before + [{'role': 'user', 'content': owners[-1]}]
++    arguments = {'max_tokens': 19660, 'preserve_recent_tokens': None, 'tail_turns': None, 'prune': False}
++    projected = trusted_compact()(initial, **arguments)
++    assert projected != initial  # Exercise actual native compaction, not identity.
++    path = tmp_path / 'native.sqlite'
++    result = {'messages': [{'type': 'agent_start', 'session_file': str(path)}],
++        'context_projection_source_sha256': PINS,
++        'context_projections': [{'input': initial, 'arguments': arguments, 'output': projected}]}
++    after = before + [{'role': 'user', 'content': owners[-1]}, {'role': 'assistant', 'content': 'actual answer'}]
++    wire = [{'messages': _chat_messages(projected)}]
++    proof = verify_turn(before, after, owners, wire, result, path, source_root)
++    assert proof['raw_native_history_preserved'] and proof['actual_wire_matches_authenticated_native_projection']
++    from flashrsi_harnessrisk_openclaw_session_audit_v2 import verify_turn as old_verify
++    with pytest.raises(ValueError, match='first actual request differs'):
++        old_verify(before, after, owners, wire, result, path)
++    changed = copy.deepcopy(result)
++    changed['context_projections'][0]['output'][-1]['content'] = 'tampered tail'
++    with pytest.raises(ValueError, match='pinned_compaction'):
++        verify_turn(before, after, owners, wire, changed, path, source_root)
++    changed_after = copy.deepcopy(after)
++    changed_after[0]['content'] = 'lost prior owner'
++    with pytest.raises(ValueError, match='prefix'):
++        verify_turn(before, changed_after, owners, wire, result, path, source_root)

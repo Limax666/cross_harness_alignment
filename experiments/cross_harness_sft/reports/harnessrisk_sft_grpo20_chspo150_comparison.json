@@ -1,0 +1,179 @@
+{
+  "judge_model": "openai/gpt-5.4-nano",
+  "harnesses": {
+    "hermes": {
+      "utility_score": {
+        "counts": {
+          "sft": 4,
+          "grpo20": 20,
+          "chspo150": 51
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 4,
+          "grpo20": 18,
+          "chspo150": 41
+        },
+        "case_denominator": 128
+      },
+      "attack_success_rate": {
+        "counts": {
+          "sft": 6,
+          "grpo20": 13,
+          "chspo150": 6
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 6,
+          "grpo20": 12,
+          "chspo150": 6
+        },
+        "case_denominator": 128
+      },
+      "persistence_score": {
+        "counts": {
+          "sft": 3,
+          "grpo20": 5,
+          "chspo150": 4
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 3,
+          "grpo20": 5,
+          "chspo150": 4
+        },
+        "case_denominator": 128
+      },
+      "detection_score": {
+        "counts": {
+          "sft": 16,
+          "grpo20": 14,
+          "chspo150": 12
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 15,
+          "grpo20": 12,
+          "chspo150": 12
+        },
+        "case_denominator": 128
+      }
+    },
+    "nanobot": {
+      "utility_score": {
+        "counts": {
+          "sft": 30,
+          "grpo20": 79,
+          "chspo150": 71
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 29,
+          "grpo20": 59,
+          "chspo150": 56
+        },
+        "case_denominator": 128
+      },
+      "attack_success_rate": {
+        "counts": {
+          "sft": 12,
+          "grpo20": 35,
+          "chspo150": 24
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 10,
+          "grpo20": 29,
+          "chspo150": 19
+        },
+        "case_denominator": 128
+      },
+      "persistence_score": {
+        "counts": {
+          "sft": 50,
+          "grpo20": 112,
+          "chspo150": 89
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 42,
+          "grpo20": 82,
+          "chspo150": 62
+        },
+        "case_denominator": 128
+      },
+      "detection_score": {
+        "counts": {
+          "sft": 4,
+          "grpo20": 6,
+          "chspo150": 1
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 4,
+          "grpo20": 6,
+          "chspo150": 1
+        },
+        "case_denominator": 128
+      }
+    },
+    "openclaw": {
+      "utility_score": {
+        "counts": {
+          "sft": 0,
+          "grpo20": 44,
+          "chspo150": 89
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 0,
+          "grpo20": 37,
+          "chspo150": 62
+        },
+        "case_denominator": 128
+      },
+      "attack_success_rate": {
+        "counts": {
+          "sft": 0,
+          "grpo20": 16,
+          "chspo150": 6
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 0,
+          "grpo20": 14,
+          "chspo150": 6
+        },
+        "case_denominator": 128
+      },
+      "persistence_score": {
+        "counts": {
+          "sft": 88,
+          "grpo20": 118,
+          "chspo150": 132
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 63,
+          "grpo20": 82,
+          "chspo150": 86
+        },
+        "case_denominator": 128
+      },
+      "detection_score": {
+        "counts": {
+          "sft": 2,
+          "grpo20": 4,
+          "chspo150": 5
+        },
+        "denominator": 384,
+        "any_at_3": {
+          "sft": 2,
+          "grpo20": 3,
+          "chspo150": 4
+        },
+        "case_denominator": 128
+      }
+    }
+  }
+}

@@ -375,6 +375,7 @@ class NativePathRecorder:
         """
         from flashrsi_tool_attestation import (ToolCallGate, GuardedChatProxy, GuardedToolDispatcher,
                                                 attest_tool_calls, attest_tool_observations, _canonical)
+        from flashrsi_final_turn_proxy import FinalTurnChatProxy
 
         unknown = PathAudit(False, False, None, None, None, AUDIT_VERSION)
         self.abstention_reason = None
@@ -386,7 +387,7 @@ class NativePathRecorder:
         family, _, arm = task_id.rpartition(":")
         if family not in self.qualified_families or not (arm == "clean" or arm.startswith("injection_task_")):
             return abstain("unregistered_task_cell")
-        if (type(gate) is not ToolCallGate or type(proxy) is not GuardedChatProxy or
+        if (type(gate) is not ToolCallGate or type(proxy) not in (GuardedChatProxy, FinalTurnChatProxy) or
                 type(dispatcher) is not GuardedToolDispatcher or proxy._gate is not gate or
                 dispatcher._gate is not gate or dispatcher._recorder is not self or not gate.finished):
             return abstain("untrusted_or_unfinished_structured_evidence")

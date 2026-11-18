@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-18T12:46:23.595323+08:00",
+  "frozen_source_files_same_bytes": 46,
+  "packaged_regressions_passed": 14,
+  "python_AST_files": 662,
+  "missing_local_imports": 0,
+  "real_READY_records_loaded_from_publication": 14000,
+  "public_API_and_G8_K2_50x50_verified": true,
+  "vendor_patch_reconstructed_files": 8,
+  "independent_review_important_or_critical": 0,
+  "code_and_docs_whitespace_exit": 0,
+  "patch_context_marker_whitespace_retained": true,
+  "new_server_CUDA_or_GPU0_migration_verified": false,
+  "model_or_source_episode_started_for_publication": false,
+  "training_source_untouched": true
+}

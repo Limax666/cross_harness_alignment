@@ -1,0 +1,120 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_report_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_report_20261117.md
+new file mode 100644
+index 0000000..cd1442a
+--- /dev/null
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_report_20261117.md
+@@ -0,0 +1,5 @@
++# Finite ACE judge follow-up
++
++Real active OpenCode ACE launcher ends after model stage; it does not start judge. New standalone scripts/flashrsi_ace_judge_followup_v17.py fills that gap after exact PID/starttick predecessors exit, without touching active code. It authenticates full128 manifest, waits, calls original strict inspect_run, refuses incomplete/invalid source stage, retains source result/manifest/selected hashes, blocks on timeout/cleanup uncertainty, and uses existing queue.schedule_judge sharedlease/cached-success/billinggate with no overwrite. Only finite judge worker, no model/service/cron. Actual live/API path not yet launched.
++
++Pure read-only retained-data test: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:src:vendor/FlashRSI CUDA_VISIBLE_DEVICES='' .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_ace_judge_followup_v17.py. Result1passed0.14s; real fullOPROaccepted, wrong127identitysetrejected, real incompleteACErejectedwhile noresult. REDimport failure retained. No sourceexecution/API/model/GPU. Cleanup/billing/lease behavior inherited queue guards already covered19tests. Independent reviewer needed before finite production waiter launch.
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_ace_judge_followup_v17.py b/experiments/cross_harness_sft/scripts/flashrsi_ace_judge_followup_v17.py
+new file mode 100644
+index 0000000..f21c5b0
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_ace_judge_followup_v17.py
+@@ -0,0 +1,78 @@
++"""Finite cached judge follow-up for the existing real OpenCode ACE stage.
++
++No model stage/service/cron is created. Exact predecessor identities are waited
++out; actual strict final128 acceptance is required before any judge dispatch.
++"""
++import argparse
++import hashlib
++import os
++from pathlib import Path
++import time
++
++from flashrsi_matrix_gpu1_queue_v17 import Queue, process_identity, read, save, sha
++from flashrsi_matrix_repair_loop import inspect_run
++
++
++def eligible(run, expected):
++    return len(expected) == 128 and inspect_run(Path(run), expected, None)['status'] in ('complete', 'needs_judge')
++
++
++def run_followup(run, out, predecessors):
++    run, out = Path(run).resolve(), Path(out).absolute()
++    if out.exists():
++        raise ValueError('followup_output_exists_preserved')
++    manifest = run.parent / 'case_manifest.json'
++    raw = manifest.read_bytes()
++    expected = {r['case_id'] for r in read(manifest)['cases']}
++    if len(expected) != 128:
++        raise ValueError('exact_128_case_manifest_required')
++    out.mkdir(mode=0o700)
++    (out / 'case_manifest.json').write_bytes(raw)
++    save(out / 'protocol.json', {'kind': 'one_finite_ace_cached_judge_followup/v17',
++        'run': str(run), 'case_manifest_sha256': hashlib.sha256(raw).hexdigest(),
++        'predecessors': predecessors, 'judge_overwrite': False, 'model_dispatch': False})
++    queue = Queue(out)
++    key = 'opencode/ace'
++    queue.tasks = {key: {'status': 'waiting_actual_final128', 'path': str(run)}}
++    queue.expected = expected
++    queue.predecessor_scopes = [run]
++    while any(process_identity(p['pid']) == p for p in predecessors):
++        queue.event(key, 'waiting_actual_stage_exit')
++        time.sleep(15)
++    queue.check_cleanup()
++    if sha(manifest) != hashlib.sha256(raw).hexdigest():
++        raise ValueError('case_manifest_drift')
++    if not eligible(run, expected):
++        queue.tasks[key].update(status='requires_repair', acceptance=inspect_run(run, expected, None))
++        queue.event(key, 'source_stage_invalid_no_judge_called')
++        return 1
++    binding = {str(path.relative_to(run)): sha(path) for path in
++               (run / 'result.json', run / 'run_manifest.json', run / 'snapshots/selected.json')}
++    save(out / 'accepted_source_binding.json', binding)
++    queue.judges = [(key, run / 'selected_cases')]
++    while queue.judges or queue.judge is not None:
++        if any(sha(run / name) != value for name, value in binding.items()):
++            raise ValueError('accepted_source_binding_changed')
++        queue.check_cleanup()
++        before = len(queue.judges)
++        queue.schedule_judge()
++        if queue.judge is not None:
++            time.sleep(5)
++        elif len(queue.judges) == before:
++            queue.tasks[key]['judge_status'] = 'needs_judge_lease_or_billing'
++            queue.event(key, 'cached_judge_deferred')
++            return 1
++    accepted = inspect_run(run, expected, None)
++    queue.tasks[key].update(status=accepted['status'], acceptance=accepted)
++    queue.event(key, accepted['status'])
++    return 0 if accepted['status'] == 'complete' else 1
++
++
++if __name__ == '__main__':
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--run', type=Path, required=True)
++    parser.add_argument('--out', type=Path, required=True)
++    parser.add_argument('--predecessor-pid', type=int, action='append', default=[])
++    args = parser.parse_args()
++    predecessors = [identity for pid in args.predecessor_pid if (identity := process_identity(pid)) is not None]
++    raise SystemExit(run_followup(args.run, args.out, predecessors))
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_ace_judge_followup_v17.py b/experiments/cross_harness_sft/tests/test_flashrsi_ace_judge_followup_v17.py
+new file mode 100644
+index 0000000..53e3478
+--- /dev/null
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_ace_judge_followup_v17.py
+@@ -0,0 +1,19 @@
++"""Read-only actual retained-run admission checks; never call a judge/model."""
++from pathlib import Path
++import sys
++
++sys.path[:0] = [str(Path(__file__).resolve().parents[1] / x) for x in ('scripts', 'src', 'vendor/FlashRSI')]
++
++
++def test_actual_full_opro_is_eligible_but_incomplete_ace_and_wrong_case_set_are_not():
++    from flashrsi_ace_judge_followup_v17 import eligible
++    from flashrsi_matrix_gpu1_queue_v17 import REFERENCE, read
++    expected = {r['case_id'] for r in read(REFERENCE.parent / 'case_manifest.json')['cases']}
++    full = REFERENCE.parent / 'opencode_opro_full'
++    assert eligible(full, expected)
++    incomplete = full.parents[1] / 'flashrsi_harnessrisk_4b_private_opencode_v17_gpu1_20261117/opencode_ace_full'
++    # No assertion about this actively running job: readiness must agree with
++    # genuine final128 acceptance rather than its process or attempts count.
++    if not (incomplete / 'result.json').exists():
++        assert not eligible(incomplete, expected)
++    assert not eligible(full, expected - {'action_041'})

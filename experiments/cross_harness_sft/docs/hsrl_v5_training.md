@@ -1,3 +1,5 @@
+> **2026-11-18执行覆盖：** 当前14K READY/50:50与真实v9参数RL已运行；旧GPU、小池及未启动描述是历史。请先读[当前执行规格](harness_scaling_safe_rsi_current_20261118.md)与[跨服务器交接](new_server_handoff_20261118.md)，不要照旧命令直接启动。
+
 # Genuine v5 single-GPU online GRPO
 
 `scripts/train_hsrl_v5.py` consumes only `hsrl_v5.dataset.Dataset` READY releases. It trains the official Qwen3.5-4B `851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a` with language-only rank16/alpha32 LoRA on physical GPU0. GPU1 remains a fixed-weight baseline lane; GPU2/3 are forbidden. No fallback dataset, source simulator, model API, native product harness or CHS-PO implementation is used.

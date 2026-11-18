@@ -52,6 +52,21 @@ def create_gateway(proxy, dispatcher, gate, token):
                 if not isinstance(data, dict):
                     raise ValueError("request must be an object")
                 if self.path == "/v1/chat/completions":
+                    if data.get("stream") is True:
+                        forwarded=dict(data);forwarded["stream"]=False;forwarded.pop("stream_options",None)
+                        result=proxy.forward(forwarded)
+                        choices=result.get("choices",[])
+                        if len(choices)!=1:raise ValueError("stream conversion requires one choice")
+                        choice=choices[0];message=choice.get("message",{})
+                        delta={"role":"assistant"}
+                        if message.get("content") is not None:delta["content"]=message["content"]
+                        if message.get("tool_calls"):
+                            delta["tool_calls"]=[{"index":i,**call} for i,call in enumerate(message["tool_calls"])]
+                        chunk={"id":result.get("id","stream"),"object":"chat.completion.chunk","created":result.get("created",0),
+                               "model":result.get("model",data.get("model")),"choices":[{"index":0,"delta":delta,"finish_reason":choice.get("finish_reason")}],
+                               "usage":result.get("usage")}
+                        payload=("data: "+json.dumps(chunk,ensure_ascii=True)+"\n\ndata: [DONE]\n\n").encode()
+                        self.send_response(200);self.send_header("Content-Type","text/event-stream");self.send_header("Content-Length",str(len(payload)));self.end_headers();self.wfile.write(payload);return
                     result = proxy.forward(data)
                 elif self.path == "/tool":
                     if set(data) != {"name", "arguments"} or not isinstance(data["name"], str) or not isinstance(data["arguments"], dict):

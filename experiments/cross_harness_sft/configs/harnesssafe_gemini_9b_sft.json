@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "name": "gemini-qwen35-9b-sft-step291",
+  "harness": "gemini",
+  "model": "qwen35-9b-sft-hsb",
+  "executable": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.tools/harnesssafe-gemini-051/node_modules/.bin/gemini",
+  "expected_version": "0.51.0",
+  "permission_profile": "adapter_default",
+  "timeout_seconds": 600,
+  "selection": {"smoke": false},
+  "arms": ["attack"],
+  "repeats": 3,
+  "provider": {"api_base_url": "http://127.0.0.1:9130/v1", "api_key_env": "HARNESSSAFE_LOCAL_API_KEY", "provider_kind": "openai-compatible", "project": "harnesssafe", "location": "global"},
+  "runtime": {"conformance": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/vendor/harnesssafe/tests/cross_harness/gemini/fixtures/gemini_cli_0_51_0_capability_conformance.json"}
+}

@@ -1,0 +1,91 @@
+{
+  "record_type": "read_only_research_inventory_not_training_admission",
+  "collected_at_utc": "2026-11-16T06:17:11.623414+00:00",
+  "experiment_launched": false,
+  "selected_first_round_training_sources": [
+    "HarnessSafe local case package",
+    "HarnessAudit local single_agent controls",
+    "ClawGym-Task official RL selected 2000"
+  ],
+  "default_sample_weights": {
+    "ClawGym-Task": 0.75,
+    "HarnessSafe": 0.125,
+    "HarnessAudit-single_agent": 0.125
+  },
+  "local_sources": {
+    "HarnessSafe": {
+      "path": "experiments/cross_harness_sft/vendor/harnesssafe/runs/active",
+      "commit": "d6aaae97f36f226c5ea715fb76380cdd9d7bf185",
+      "metadata_file_count": 328,
+      "unique_case_ids": 328,
+      "metadata_tree_sha256": "cb42d6df82b2bcb8ee5fed4010a2fe6539f552e0ba49963faa8d9ba2a91ccaea",
+      "canonical_suite_counts": {
+        "memory_runtime": 72,
+        "skill_runtime": 84,
+        "tool_mcp_poisoning": 70,
+        "memory_to_skill": 36,
+        "compaction_resume_poisoning": 30,
+        "shared_artifact_supply_chain": 6,
+        "subagent_poisoning": 30
+      },
+      "native_status_fields": {
+        "active": 244,
+        "None": 84
+      },
+      "note": "Missing status field does not by itself imply inactive or training eligibility."
+    },
+    "HarnessAudit_single_agent": {
+      "path": "HarnessAudit/single_agent/tasks",
+      "commit": "6317162590aeeb1c8dde32b880ac199933343e4a",
+      "yaml_file_count": 34,
+      "yaml_tree_sha256": "23f721faaec4f2c55d107d39876a5313daec5bcd6edd93ae7f2158bd82509905",
+      "domain_counts": {
+        "daily_life": 4,
+        "ecommerce": 5,
+        "finance": 6,
+        "healthcare": 6,
+        "legal_compliance": 4,
+        "office": 5,
+        "social_interaction": 4
+      }
+    }
+  },
+  "remote_sources": {
+    "ClawGym_RL": {
+      "repo": "https://github.com/ClawGym/ClawGym-Agents",
+      "revision": "0e8526d8f5e0999896c74cee4d6b998fb8a0429e",
+      "train_path": "RL/data/clawgym_train",
+      "official_documented_training_tasks": 2000,
+      "test_path": "RL/data/clawgym_eval",
+      "official_documented_test_tasks": 200,
+      "checked_files": [
+        "RL/data/DATASET_README.md",
+        "RL/README.md",
+        "RL/data/clawgym_train/task_0000/data_entry.json",
+        "RL/data/clawgym_train/task_0000/reward/reward.sh"
+      ],
+      "entire_corpus_downloaded_or_admitted": false
+    },
+    "ClawGym_HF_full": {
+      "repo": "RUC-AIBOX/ClawGym-Task",
+      "sha": "bd9043cff88b913922a165d9c022a4796aee3f3a",
+      "use_first_round": false,
+      "reason": "First round uses official selected RL 2000, not full 13.5K or trajectory SFT corpus."
+    },
+    "HarnessAudit_HF": {
+      "accessible_repo": "LCZZZZ/HarnessAudit",
+      "sha": "753706812572bb161ddb0f9e5799c6d7606c9264",
+      "base_task_yaml_count": 210,
+      "tool_catalog_yaml_count": 8,
+      "use_first_round": false,
+      "reason": "Do not conflate full multi-agent release with local 34 single-agent controls."
+    }
+  },
+  "acceptance_pending": [
+    "case-level license and provenance audit",
+    "cross-source family/near-duplicate split",
+    "canonical task and tool adaptation",
+    "private grader isolation",
+    "real reset and all-five-component online updates"
+  ]
+}

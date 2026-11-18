@@ -1,0 +1,8 @@
+{
+  "staged_files": 352,
+  "frozen_git_blob_bytes_verified": 46,
+  "forbidden_runtime_asset_paths": [],
+  "strong_secret_findings": [],
+  "over_100MiB_files": [],
+  "source_and_docs_whitespace_check": "passed when excluding literal .patch/.diff payloads; full check reports context-marker trailing whitespace which is retained to keep patches applicable"
+}

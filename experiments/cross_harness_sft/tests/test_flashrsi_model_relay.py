@@ -34,3 +34,20 @@ def test_relay_refuses_shared_directory_and_existing_socket_path(tmp_path):
     with pytest.raises(ValueError):
         create_model_relay(str(existing), token, "qwen4b", lambda _: {})
     assert existing.read_text() == "keep"
+
+
+def test_relay_disables_parallel_tool_calls_for_sequential_dispatch(tmp_path):
+    token = "test-relay-token-long-enough-32-characters"
+    seen = []
+    response = {"choices": [{"message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}]}
+    server = create_model_relay(str(tmp_path / "model.sock"), token, "qwen4b",
+                                lambda request: seen.append(request) or response)
+    thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+    request = {"model": "qwen4b", "messages": [], "stream": False,
+               "tools": [{"type": "function", "function": {"name": "tool", "parameters": {}}}]}
+    try:
+        relay_request(str(tmp_path / "model.sock"), token, request)
+        assert seen[0]["parallel_tool_calls"] is False
+        assert "parallel_tool_calls" not in request
+    finally:
+        server.shutdown(); thread.join(timeout=5); server.server_close()

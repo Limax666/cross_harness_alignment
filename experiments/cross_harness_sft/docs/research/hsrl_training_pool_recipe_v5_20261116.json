@@ -1,0 +1,59 @@
+{
+  "schema": "hsrl-v5-data-recipe-decision/v1",
+  "status": "source-selection-and-candidate-index-not-runtime-admission",
+  "target_training_records": 14000,
+  "general": {
+    "source": "RUC-AIBOX/ClawGym-Task",
+    "hf_revision": "bd9043cff88b913922a165d9c022a4796aee3f3a",
+    "raw_records": 15402,
+    "target_records": 7000,
+    "weight": 0.5,
+    "full_source_admission_completed": false
+  },
+  "safety": {
+    "source": "quantumfr/agentic-lightweight-envs-runtime-20260528",
+    "hf_revision": "7c263216d05afcd2a31185f6d102b35504418b3c",
+    "catalog_records": 15774,
+    "paired_unique_conditions": 13212,
+    "paired_base_families": 2931,
+    "selected_candidate_records": 7000,
+    "selected_candidate_base_families": 1420,
+    "target_records": 7000,
+    "weight": 0.5,
+    "roles": {
+      "attacked_benign": 5500,
+      "matched_clean_control": 1000,
+      "pure_malicious": 500
+    },
+    "index": "docs/research/agentdog_rl_safety7000_candidate_index_20261116.json",
+    "index_sha256": "69c289ffabf39c8ea0c88754743b15658f84dfbb0faf0090f81843e112dd75ea",
+    "runtime_admission_completed": false
+  },
+  "sampling": {
+    "groups_per_step": 16,
+    "group_rollouts": 8,
+    "successive_configurations": 2,
+    "general_groups": 8,
+    "safety_groups": 8,
+    "safety_group_quotas_per_7_K_blocks": {
+      "attacked_benign": 44,
+      "matched_clean_control": 8,
+      "pure_malicious": 4
+    }
+  },
+  "full_pass_budget_without_failures": {
+    "episode_attempts": 224000,
+    "K_blocks": 875,
+    "rollout_steps": 1750
+  },
+  "bench200_training_weight": 0,
+  "old_v4_only_historical": true,
+  "experiments_started_by_this_research": false,
+  "current_formal_comparison_budget": {
+    "episode_attempts_cap": 38400,
+    "rollout_steps_cap_without_failures": 300,
+    "task_condition_positions_without_failures": 2400,
+    "full_14000_pass": false,
+    "automatic_budget_increase": false
+  }
+}

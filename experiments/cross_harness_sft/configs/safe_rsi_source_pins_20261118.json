@@ -1,0 +1,36 @@
+{
+  "schema": "safe-rsi-third-party-source-pins/v1",
+  "dependencies": [
+    {
+      "name": "FlashRSI",
+      "repository": "https://github.com/RUC-NLPIR/FlashRSI.git",
+      "revision": "778e2d01a995491fe63db210dcf46db1723a4430",
+      "destination": "experiments/cross_harness_sft/vendor/FlashRSI",
+      "patch": null
+    },
+    {
+      "name": "ClawGym-Agents",
+      "repository": "https://github.com/ClawGym/ClawGym-Agents.git",
+      "revision": "0e8526d8f5e0999896c74cee4d6b998fb8a0429e",
+      "destination": "experiments/cross_harness_sft/vendor/clawgym_agents_hsrl_v3_0e8526d",
+      "patch": null
+    },
+    {
+      "name": "HarnessRisk",
+      "repository": "https://github.com/Baiyajing/HarnessRisk.git",
+      "revision": "07671f25b515fb936e0312dfdd3ca60b4bdf2f92",
+      "destination": "HarnessRisk",
+      "patch": "experiments/cross_harness_sft/patches/harnessrisk_current_runtime_20261118.patch"
+    },
+    {
+      "name": "AgentDoG private source-rule evaluator",
+      "repository": "https://github.com/AI45Lab/AgentDoG",
+      "revision": "c8d803f267a43ec0e103a651265f50f1ff4456d5",
+      "path": "Agentic Safety Training/Agentic RL/env_server/tasksvc/runtime/runtime_evaluators.py",
+      "sha256": "0f08a890ab7aaadc88f526ab997fd438c07c6dc10c5e30f4b73c8549af1f56e2",
+      "destination": "external READY release vendor/agentdog/runtime_evaluators.py",
+      "redistributed_in_git": false
+    }
+  ],
+  "docker_image": "sha256:a5babb29ecb8d6cc68066e19adfae7ac5569a44162e0e97162edd90f46bf676c"
+}

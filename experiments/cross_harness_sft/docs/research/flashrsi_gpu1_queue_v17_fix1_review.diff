@@ -1,0 +1,754 @@
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v18.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v18.py
+index c2283bc..4037232 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v18.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v18.py
+@@ -1,16 +1,16 @@
+ """v17 observations composed with the existing OpenCode GEPA v6 Worker."""
+ from pathlib import Path
+ 
+ 
+ def build_source():
+     source = Path(__file__).with_name('flashrsi_harnessrisk_algorithm_opencode_gepa_v6.py').read_text()
+     old = "source = Path(__file__).with_name('flashrsi_harnessrisk_algorithm.py').read_text()"
+     original = 'from flashrsi_harnessrisk_benchmark import HarnessRiskBenchmark,ROOT'
+     if source.count(old) != 1:
+         raise RuntimeError('v18_algorithm_source_transform_not_exact')
+-    inject = old + '\nbenchmark_import = ' + repr(original) + "\nif source.count(benchmark_import) != 1:\n    raise RuntimeError('v18_benchmark_import_transform_not_exact')\nsource = source.replace(benchmark_import, 'from flashrsi_harnessrisk_benchmark_v17 import HarnessRiskBenchmark,ROOT')"
++    inject = old + '\nbenchmark_import = ' + repr(original) + "\nif source.count(benchmark_import) != 1:\n    raise RuntimeError('v18_benchmark_import_transform_not_exact')\nsource = source.replace(benchmark_import, 'from flashrsi_harnessrisk_benchmark_v18 import HarnessRiskBenchmark,ROOT')"
+     return source.replace(old, inject)
+ 
+ 
+ if __name__ == '__main__':
+     exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v19.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v19.py
+new file mode 100644
+index 0000000..e49d0f6
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v19.py
+@@ -0,0 +1,14 @@
++"""v17 real-reference semantics with immediate uncertain-cleanup rollout stop."""
++from pathlib import Path
++
++
++def build_source():
++    source = Path(__file__).with_name('flashrsi_harnessrisk_algorithm_reference_v17.py').read_text()
++    old = 'from flashrsi_harnessrisk_benchmark_v17 import HarnessRiskBenchmark,ROOT'
++    if source.count(old) != 1:
++        raise RuntimeError('v19_cleanup_guard_import_transform_not_exact')
++    return source.replace(old, 'from flashrsi_harnessrisk_benchmark_v18 import HarnessRiskBenchmark,ROOT')
++
++
++if __name__ == '__main__':
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_benchmark_v18.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_benchmark_v18.py
+new file mode 100644
+index 0000000..b1a8e8f
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_benchmark_v18.py
+@@ -0,0 +1,17 @@
++"""Abort future rollout after v17 records uncertain host cleanup."""
++import json
++from flashrsi_harnessrisk_benchmark_v17 import HarnessRiskBenchmark as ObservedBenchmark, ROOT
++
++
++class HostCleanupUncertain(RuntimeError):
++    pass
++
++
++class HarnessRiskBenchmark(ObservedBenchmark):
++    async def _run_once(self, target, task):
++        trajectory = await super()._run_once(target, task)
++        path = self.run_dir / 'evidence' / f'{self._sequence:08d}' / 'host_execution.json'
++        receipt = json.loads(path.read_text())
++        if receipt.get('timed_out') is True or receipt.get('cleanup_confirmed') is False:
++            raise HostCleanupUncertain('host_descendant_cleanup_requires_identity_reconciliation:' + str(path))
++        return trajectory
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v17.py b/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v17.py
+index 4745f9a..c7d5f91 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v17.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v17.py
+@@ -24,20 +24,24 @@ LANE_LOCK = OUTPUTS / '.opencode_gpu1_deferred_repair.lock'
+ ALGORITHMS = ('opro', 'gepa', 'evoprompt', 'ace', 'skillopt', 'evo_harness')
+ HOSTS = {
+     'opencode': 'flashrsi_harnessrisk_host_opencode_session_v11.py',
+     'openclaw': 'flashrsi_harnessrisk_host_openclaw_caseenv_v3.py',
+     'codex': 'flashrsi_harnessrisk_host_native_v3.py',
+     'claude_code': 'flashrsi_harnessrisk_host_native_v8.py',
+     'pi': 'flashrsi_harnessrisk_host_pi_interpreter_v4.py',
+ }
+ 
+ 
++class QueueCleanupUncertain(RuntimeError):
++    """No further dispatch before external exact descendant reconciliation."""
++
++
+ def read(path, default=None):
+     try:
+         return json.loads(Path(path).read_text())
+     except (OSError, ValueError):
+         return default
+ 
+ 
+ def save(path, data):
+     path = Path(path)
+     path.parent.mkdir(parents=True, exist_ok=True)
+@@ -54,21 +58,28 @@ def pin_path(name):
+     return ROOT.parents[1] / 'HarnessRisk' / name[len('@harnessrisk/'):] if name.startswith('@harnessrisk/') else ROOT / name
+ 
+ 
+ def process_identity(pid):
+     path = Path('/proc') / str(pid)
+     try:
+         if path.stat().st_uid != os.getuid():
+             return None
+         command = (path / 'cmdline').read_bytes().split(b'\0')
+         raw = (path / 'stat').read_text().rsplit(')', 1)[1].split()
+-        return {'pid': pid, 'start_ticks': raw[19], 'command': [v.decode(errors='replace') for v in command if v]}
++        identity = {'pid': pid, 'start_ticks': raw[19], 'command': [v.decode(errors='replace') for v in command if v]}
++        if '--algorithm' in identity['command']:
++            env = dict(v.split(b'=', 1) for v in (path / 'environ').read_bytes().split(b'\0') if b'=' in v)
++            harness = env.get(b'HR_HARNESS', b'').decode()
++            algorithm = identity['command'][identity['command'].index('--algorithm') + 1]
++            if harness in HOSTS and algorithm in ALGORITHMS and env.get(b'HARNESSRISK_MODEL_PORT') == b'18764' and env.get(b'HR_OUTPUT_ROOT'):
++                identity['run_scope'] = str((Path(env[b'HR_OUTPUT_ROOT'].decode()) / f'{harness}_{algorithm}_full').resolve())
++        return identity
+     except (OSError, IndexError):
+         return None
+ 
+ 
+ def lane_clients(exclude=()):
+     result = []
+     for path in Path('/proc').glob('[0-9]*'):
+         pid = int(path.name)
+         if pid in exclude:
+             continue
+@@ -79,32 +90,64 @@ def lane_clients(exclude=()):
+             continue
+         try:
+             env = dict(v.split(b'=', 1) for v in (path / 'environ').read_bytes().split(b'\0') if b'=' in v)
+             if env.get(b'HARNESSRISK_MODEL_PORT') == b'18764':
+                 result.append(identity)
+         except OSError:
+             continue
+     return result
+ 
+ 
+-def initial_acceptance(run, expected, host):
++def expected_initial_contract(manifest_bytes, harness):
++    manifest = json.loads(manifest_bytes)
++    if not all(isinstance(manifest.get(key), str) and manifest[key]
++               for key in ('model_revision', 'flashrsi_revision')):
++        raise ValueError('trusted_manifest_model_runtime_revisions_missing')
++    contract = {'case_manifest_sha256': hashlib.sha256(manifest_bytes).hexdigest(),
++        'model_revision': manifest['model_revision'], 'flashrsi_revision': manifest['flashrsi_revision'],
++        'harness': harness, 'host_script': HOSTS[harness], 'model_port': 18764,
++        'privacy_protocol': 'harnessrisk-private-case-v1', 'temperature': 0,
++        'max_tokens_per_turn': 4096, 'case_count': 128,
++        'max_turns_per_owner_turn': None if harness == 'codex' else 16 if harness == 'claude_code' else 12,
++        'owner_turn_protocol': 'sequential native SQLite session; environment state preserved' if harness == 'openclaw'
++            else 'sequential, previous owner/assistant text replay; environment state preserved'}
++    # The retained v11 manifest predates these explicit native/sandbox fields;
++    # its declared12-turn4096-token contract and exact host remain mandatory.
++    if harness != 'opencode':
++        contract.update(native_timeout_seconds_per_owner_turn=600 if harness == 'claude_code' else 360,
++                        sandbox_wall_seconds_per_owner_turn=900 if harness == 'claude_code' else 360)
++    return contract
++
++
++def initial_binding(run):
++    run = Path(run)
++    paths = {'snapshot_sha256': run / 'initial_snapshot.json', 'run_manifest_sha256': run / 'run_manifest.json',
++             'case_manifest_sha256': run.parent / 'case_manifest.json'}
++    return {key: sha(path) if path.is_file() else None for key, path in paths.items()}
++
++
++def initial_acceptance(run, expected, contract):
+     """A file or attempted case is never sufficient for strict H0 acceptance."""
+     try:
+         run = Path(run)
+         manifest = read(run / 'run_manifest.json', {})
++        retained_manifest = run.parent / 'case_manifest.json'
++        if (not retained_manifest.is_file() or sha(retained_manifest) != contract['case_manifest_sha256']
++                or any(key not in manifest or manifest[key] != value for key, value in contract.items())):
++            return False
+         snapshot = read(run / 'initial_snapshot.json', {})
+         sid = snapshot['id']
+         completed = read(run / 'completed.json', {})
+         attempts = [json.loads(line) for line in (run / 'attempts.jsonl').read_text().splitlines() if line]
+         if (snapshot.get('agent_type') != manifest.get('harness')
+                 or manifest.get('snapshot_id') != sid
+-                or manifest.get('host_script') != host or manifest.get('privacy_protocol') != 'harnessrisk-private-case-v1'
++                or manifest.get('privacy_protocol') != 'harnessrisk-private-case-v1'
+                 or completed.get('snapshot_id') != sid or completed.get('completed_scored') != 128
+                 or completed.get('attempts') != 128 or {r['case_id'] for r in attempts} != expected or len(attempts) != 128
+                 or any(r.get('exit_code') != 0 or r.get('rule_evaluation_present') is not True for r in attempts)):
+             return False
+         actual = {path.name for path in (run / 'cases').iterdir() if path.is_dir() and (path / 'harness_result.json').is_file()}
+         if actual != expected:
+             return False
+         for cid in expected:
+             case = run / 'cases' / cid
+             result, audit = read(case / 'harness_result.json', {}), read(case / 'privacy_audit.json', {})
+@@ -178,20 +221,57 @@ def verify_frozen(hashes):
+     drift = [name for name, expected in hashes.items() if not pin_path(name).is_file() or sha(pin_path(name)) != expected]
+     if drift:
+         raise RuntimeError('source_hash_drift_requires_new_protocol:' + ','.join(drift[:5]))
+ 
+ 
+ class Queue:
+     def __init__(self, out):
+         self.out, self.tasks, self.judges, self.judge = Path(out), {}, [], None
+         self.model_pid = None
+ 
++    def check_cleanup(self):
++        # These receipts survive their host/stage subprocess. Descendants may
++        # no longer match the lane scanner after that direct process exits.
++        block_path = self.out / 'queue_cleanup_block.json'
++        block = read(block_path)
++        if block is None and block_path.exists():
++            block = {'type': 'QueueCleanupUncertain', 'error': 'unreadable_existing_sticky_cleanup_block'}
++        uncertain = []
++        receipt_paths = []
++        for pattern in ('*/*/host_observability/*/host_execution.json',
++                        '*/*/evidence/*/host_execution.json', 'stage_receipts/*.json'):
++            receipt_paths.extend(self.out.glob(pattern))
++        for run in getattr(self, 'predecessor_scopes', []):
++            receipt_paths.extend(run.glob('evidence/*/host_execution.json'))
++        for path in receipt_paths:
++            receipt = read(path)
++            if (not isinstance(receipt, dict) or receipt.get('timed_out') is True
++                    or receipt.get('cleanup_confirmed') is False
++                    or receipt.get('owned_child_still_running') is True):
++                uncertain.append({'path': str(path), 'sha256': sha(path)})
++        if block is None and not uncertain:
++            return
++        if block is None:
++            block = {'type': 'QueueCleanupUncertain', 'receipts': uncertain,
++                     'identity_based_descendant_reconciliation_required': True,
++                     'automatic_unblock_or_retry': False}
++            save(block_path, block)
++        for task in self.tasks.values():
++            task['dispatch_blocked_by_cleanup'] = str(block_path)
++            if task.get('status') in ('queued', 'running'):
++                task['status'] = 'blocked_cleanup_uncertain'
++        ready = read(self.out / 'ready.json', {})
++        ready.update(ready_for_authorized_finite_queue=False, dispatch_blocked_cleanup=str(block_path))
++        save(self.out / 'ready.json', ready)
++        self.event('queue', 'blocked_cleanup_uncertain', blocker=str(block_path))
++        raise QueueCleanupUncertain('queue_wide_descendant_cleanup_unconfirmed:' + str(block_path))
++
+     def board(self):
+         save(self.out / 'pidboard.json', {'launcher': process_identity(os.getpid()), 'model_pid': self.model_pid,
+              'judge_pid': self.judge[0].pid if self.judge is not None else None, 'port': 18764})
+ 
+     def event(self, stage, status, **data):
+         row = {'at': datetime.datetime.now().astimezone().isoformat(), 'launcher_pid': os.getpid(),
+                'stage': stage, 'status': status, **data}
+         with (self.out / 'queue_events.jsonl').open('a') as stream:
+             stream.write(json.dumps(row) + '\n')
+         save(self.out / 'launch_state.json', row)
+@@ -212,20 +292,21 @@ class Queue:
+         if code == 0 and valid:
+             self.tasks[key]['status'] = 'complete'
+         self.tasks[key]['judge_returncode'] = code
+         self.judge = None
+         self.event(key, self.tasks[key]['judge_status'])
+ 
+     def schedule_judge(self):
+         self.poll_judge()
+         if self.judge is not None or not self.judges:
+             return
++        self.check_cleanup()
+         verify_frozen(getattr(self, 'hashes', {}))
+         guard = read(Path.home() / '.cache/harnessrisk-judge/billing-blocked.json', {})
+         if guard.get('retry_after', 0) > time.time():
+             return
+         lock = WORKER_LOCK.open('a')
+         try:
+             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+         except BlockingIOError:
+             lock.close(); return
+         key, batch = self.judges.pop(0)
+@@ -238,117 +319,137 @@ class Queue:
+         command = [sys.executable, 'scripts/judge_harnessrisk_shengsuanyun.py', str(batch), '--deployment', 'openai/gpt-5.4-nano']
+         try:
+             child = subprocess.Popen(command, cwd=ROOT, stdout=log, stderr=log, pass_fds=(lock.fileno(),))
+         except BaseException:
+             lock.close(); log.close(); raise
+         self.judge = child, lock, log, key, batch
+         self.tasks[key]['judge_status'] = 'running'
+         self.event(key, 'judge_running', pid=child.pid, successful_existing_not_overwritten=True)
+ 
+     def execute(self, key, command, env, hashes, case_hash):
++        self.check_cleanup()
+         verify_frozen(hashes)
++        contract = self.contracts[env['HR_HARNESS']]
++        if '--algorithm' in command and not initial_acceptance(Path(env['HR_INITIAL_REFERENCE']), self.expected, contract):
++            raise RuntimeError('initial_reference_contract_drift_before_dispatch')
+         for row in self.manifest['cases']:
+             if sha(DATA / (row['case_id'] + '.json')) != row['sha256']:
+                 raise RuntimeError('source_case_hash_drift:' + row['case_id'])
+         if sha(Path(env['HR_OUTPUT_ROOT']) / 'case_manifest.json') != case_hash:
+             raise RuntimeError('case_manifest_drift')
+         clients = lane_clients(exclude=(os.getpid(),))
+         while clients:
+             self.event(key, 'waiting_endpoint_capacity', clients=clients)
+             self.schedule_judge(); time.sleep(15)
+             clients = lane_clients(exclude=(os.getpid(),))
+         log = (self.out / (key.replace('/', '_') + '.log')).open('xb')
+         receipt = {'command': [sys.executable, '-u', *command], 'port': 18764,
+                    'host': env['HR_HOST_SCRIPT'], 'case_manifest_sha256': case_hash,
+                    'frozen_protocol_sha256': sha(self.out / 'repair_protocol.json'),
+-                   'initial_reference': env['HR_INITIAL_REFERENCE'], 'started_time_ns': time.time_ns()}
++                   'initial_reference': env['HR_INITIAL_REFERENCE'], 'started_time_ns': time.time_ns(),
++                   'expected_initial_contract': contract,
++                   'initial_binding_before': initial_binding(env['HR_INITIAL_REFERENCE'])}
+         initial = Path(env['HR_INITIAL_REFERENCE']) / 'initial_snapshot.json'
+         receipt['initial_snapshot_sha256_before'] = sha(initial) if initial.exists() else None
+         receipt_path = self.out / 'stage_receipts' / (key.replace('/', '_') + '.json')
+         save(receipt_path, receipt)
+         child = None
+         try:
+             child = subprocess.Popen([sys.executable, '-u', *command], cwd=ROOT, env=env, stdout=log, stderr=log)
+             self.model_pid = child.pid
+             receipt['pid'] = child.pid
+             self.tasks[key] = {'status': 'running', 'pid': child.pid, 'command': command}
+             self.event(key, 'running', pid=child.pid)
+             while child.poll() is None:
+                 self.schedule_judge(); time.sleep(5)
+             verify_frozen(hashes)
++            if '--algorithm' in command and initial_binding(env['HR_INITIAL_REFERENCE']) != receipt['initial_binding_before']:
++                raise RuntimeError('initial_reference_contract_drift_during_stage')
+             if receipt['initial_snapshot_sha256_before'] is not None and sha(initial) != receipt['initial_snapshot_sha256_before']:
+                 raise RuntimeError('initial_snapshot_drift_during_stage')
+             receipt['returncode'] = child.returncode
+             return child.returncode
+         finally:
+             log.close()
+             receipt['finished_time_ns'] = time.time_ns()
+             receipt['initial_snapshot_sha256_after'] = sha(initial) if initial.exists() else None
++            receipt['initial_binding_after'] = initial_binding(env['HR_INITIAL_REFERENCE'])
+             save(receipt_path, receipt)
+             still_running = child is not None and child.poll() is None
+             receipt['owned_child_still_running'] = still_running
+             save(receipt_path, receipt)
+             if not still_running:
+                 self.model_pid = None
+             self.board()
+ 
+-    def run(self, manifest, predecessors):
++    def run(self, manifest, predecessors, *, manifest_bytes=None):
+         self.out.mkdir(mode=0o700, exist_ok=False)
+         self.manifest = manifest
++        self.predecessor_scopes = [Path(row['run_scope']) for row in predecessors if row.get('run_scope')]
++        if manifest_bytes is None:
++            manifest_bytes = (json.dumps(manifest, ensure_ascii=False, indent=2) + '\n').encode()
++        if json.loads(manifest_bytes) != manifest:
++            raise ValueError('trusted_manifest_bytes_object_mismatch')
++        self.contracts = {harness: expected_initial_contract(manifest_bytes, harness)
++                          for harness in ('opencode', 'openclaw', 'codex')}
++        (self.out / 'case_manifest.json').write_bytes(manifest_bytes)
+         self.tasks = {'opencode/' + a: {'status': 'queued'} for a in ('evoprompt', 'gepa')}
+         self.tasks.update({h + '/' + a: {'status': 'queued'} for h in ('openclaw', 'codex', 'claude_code', 'pi') for a in ('initial', *ALGORITHMS)})
+         for harness, samples in {'claude_code': ['action_041', 'action_042'], 'pi': ['action_041', 'action_043']}.items():
+             for algorithm in ('initial', *ALGORITHMS):
+                 self.tasks[harness + '/' + algorithm] = {'status': 'blocked_protocol_repair',
+                     'reason': 'native_partial_history_and_settled_calls_not_yet_preserved_for_bounded_owner_protocol',
+                     'failed_sample_cases': samples, 'unchanged_retry_allowed': False,
+                     'review': 'docs/research/flashrsi_bounded_owner_profile_review_20261117.md'}
+         coverage = {'model_harnesses_this_queue': ['opencode', 'openclaw', 'codex'],
+                     'deferred_harnesses': ['claude_code', 'pi'], 'full_five_harness_objective_complete': False,
+                     'external_predecessor_outcome_not_counted_here': True}
+         protocol = {'protocol': 'gpu1-finite-strict-matrix/v17', 'port': 18764,
+             'queue_launcher': 'scripts/flashrsi_matrix_gpu1_queue_v17.py', 'job_ids': list(self.tasks),
+             'predecessors': predecessors, 'coverage': coverage,
++            'trusted_case_manifest_sha256': hashlib.sha256(manifest_bytes).hexdigest(),
++            'initial_contracts': self.contracts, 'opencode_reference_binding': initial_binding(REFERENCE),
+             'backend_contract': {'context_window_tokens': 32768, 'max_reply_tokens': 4096,
+                                  'existing_service_only': True, 'service_or_token_budget_changed': False}}
+         save(self.out / 'repair_protocol.json', {**protocol, 'sources_frozen': False})
+         save(self.out / 'ready.json', {'ready_for_authorized_finite_queue': True, 'coverage': coverage,
+                                      'full_objective_complete': False})
+         save(self.out / 'predecessors.json', predecessors)
+         # No source snapshot churn while the existing real predecessor is active.
+         while any(process_identity(p['pid']) == p for p in predecessors) or lane_clients(exclude=(os.getpid(),)):
+             self.event('queue', 'waiting_endpoint_capacity', clients=lane_clients(exclude=(os.getpid(),)))
+             time.sleep(15)
+         self.lane_lock = LANE_LOCK.open('a')
+         while True:
+             try:
+                 fcntl.flock(self.lane_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                 break
+             except BlockingIOError:
+                 self.event('queue', 'waiting_endpoint_capacity', reason='existing_gpu1_lane_lease')
+                 time.sleep(15)
++        self.check_cleanup()
+         hashes = freeze_sources(self.out / 'source_snapshot')
+         self.hashes = hashes
+         expected = {row['case_id'] for row in manifest['cases']}
+         self.expected = expected
+         if len(expected) != 128 or len(manifest['cases']) != 128:
+             raise RuntimeError('full_manifest_must_have_128_unique_cases')
+         for row in manifest['cases']:
+             if sha(DATA / (row['case_id'] + '.json')) != row['sha256']:
+                 raise RuntimeError('source_case_hash_changed')
+         save(self.out / 'repair_protocol.json', {**protocol, 'sources_frozen': True, 'sources_sha256': hashes,
+             'no_new_model_service': True, 'invalid_or_budget_error_never_zero': True,
+             'declared_codex_parser_dependencies': {'tree-sitter': '0.25.2', 'tree-sitter-bash': '0.25.1'}})
+         for harness in ('opencode', 'openclaw', 'codex'):
+             base = self.out / harness
+             base.mkdir()
+-            save(base / 'case_manifest.json', manifest)
++            (base / 'case_manifest.json').write_bytes(manifest_bytes)
+             case_hash = sha(base / 'case_manifest.json')
+             env = {**os.environ, 'PYTHONPATH': 'scripts:src:vendor/FlashRSI', 'HR_HARNESS': harness,
+                 'CUDA_VISIBLE_DEVICES': '',
+                 'HARNESSRISK_MODEL_PORT': '18764', 'HR_OUTPUT_ROOT': str(base), 'HR_HOST_SCRIPT': HOSTS[harness],
+                 'HR_TARGET_PROTOCOL': HOSTS[harness], 'HR_RUN_NAME': harness + '_initial_full',
+                 'HR_STRICT_EVOLUTION': '1', 'HR_EVOLUTION_CASE_ATTEMPTS': '1', 'HR_WORKER_MAX_TOKENS': '1024'}
+             env.pop('HR_RESUME', None)
+             reference = REFERENCE if harness == 'opencode' else base / (harness + '_initial_full')
+             env['HR_INITIAL_REFERENCE'] = str(reference)
+             if harness != 'opencode':
+@@ -358,43 +459,45 @@ class Queue:
+                         versions = {name: importlib.metadata.version(name) for name in ('tree-sitter', 'tree-sitter-bash')}
+                     except importlib.metadata.PackageNotFoundError:
+                         versions = {}
+                     if versions != {'tree-sitter': '0.25.2', 'tree-sitter-bash': '0.25.1'}:
+                         self.tasks[key] = {'status': 'blocked_declared_dependency_drift', 'observed': versions}
+                         for algorithm in ALGORITHMS:
+                             self.tasks[harness + '/' + algorithm] = {'status': 'blocked_same_protocol_initial', 'initial': str(reference)}
+                         self.event(key, 'blocked_declared_dependency_drift')
+                         continue
+                 code = self.execute(key, ['scripts/flashrsi_harnessrisk_initial_v17.py'], env, hashes, case_hash)
+-                good = code == 0 and initial_acceptance(reference, expected, HOSTS[harness])
++                self.check_cleanup()
++                good = code == 0 and initial_acceptance(reference, expected, self.contracts[harness])
+                 self.tasks[key] = {'status': 'source_valid_needs_judge' if good else 'blocked_initial_requires_repair',
+                                    'returncode': code, 'path': str(reference)}
+                 if good:
+                     self.judges.append((key, reference / 'cases'))
+                 else:
+                     self.tasks[key]['feedback'] = failure_feedback(reference)
+                     for algorithm in ALGORITHMS:
+                         self.tasks[harness + '/' + algorithm] = {'status': 'blocked_same_protocol_initial', 'initial': str(reference)}
+                     self.event(key, 'blocked_initial_requires_repair')
+                     continue
+-            elif not (initial_acceptance(reference, expected, HOSTS[harness])
++            elif not (initial_acceptance(reference, expected, self.contracts[harness])
+                       and judge_acceptance(reference / 'cases', expected)):
+                 raise RuntimeError('opencode_v11_reference_not_strictly_valid')
+             reference_hash = sha(reference / 'initial_snapshot.json')
+             algorithms = ('evoprompt', 'gepa') if harness == 'opencode' else ALGORITHMS
+             for algorithm in algorithms:
+                 key = harness + '/' + algorithm
+                 if sha(reference / 'initial_snapshot.json') != reference_hash:
+                     raise RuntimeError('initial_snapshot_drift')
+-                entry = 'flashrsi_harnessrisk_algorithm_reference_v18.py' if harness == 'opencode' and algorithm == 'gepa' else 'flashrsi_harnessrisk_algorithm_reference_v17.py'
++                entry = 'flashrsi_harnessrisk_algorithm_reference_v18.py' if harness == 'opencode' and algorithm == 'gepa' else 'flashrsi_harnessrisk_algorithm_reference_v19.py'
+                 env['HR_GEPA_REFLECTION_PROTOCOL'] = 'opencode-v6-contextfit' if harness == 'opencode' else ''
+                 code = self.execute(key, ['scripts/' + entry, '--algorithm', algorithm], env, hashes, case_hash)
++                self.check_cleanup()
+                 run = base / (harness + '_' + algorithm + '_full')
+                 accepted = inspect_run(run, expected, None)
+                 good = code == 0 and accepted['status'] in ('needs_judge', 'complete')
+                 self.tasks[key] = {'status': 'source_valid_needs_judge' if good else 'requires_repair', 'returncode': code,
+                                    'path': str(run), 'acceptance': accepted}
+                 if good:
+                     self.judges.append((key, run / 'selected_cases'))
+                 else:
+                     self.tasks[key]['feedback'] = failure_feedback(run)
+                 self.event(key, self.tasks[key]['status'])
+@@ -417,22 +520,24 @@ def main():
+     parser.add_argument('--case-manifest', type=Path, default=REFERENCE.parent / 'case_manifest.json')
+     parser.add_argument('--predecessor-pid', type=int, action='append', default=[])
+     args = parser.parse_args()
+     if args.out.exists():
+         raise RuntimeError('queue_output_exists_preserved_requires_explicit_recovery:' + str(args.out))
+     lock = (OUTPUTS / '.flashrsi_gpu1_finite_queue_v17.lock').open('a')
+     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+     predecessors = [p for pid in args.predecessor_pid if (p := process_identity(pid)) is not None]
+     queue = Queue(args.out)
+     try:
+-        queue.run(read(args.case_manifest), predecessors)
++        manifest_bytes = args.case_manifest.read_bytes()
++        queue.run(json.loads(manifest_bytes), predecessors, manifest_bytes=manifest_bytes)
+     except BaseException as exc:
+         for task in queue.tasks.values():
+             if task.get('status') in ('running', 'queued'):
+                 task.update(status='blocked_queue_exception', error_type=type(exc).__name__, error=str(exc))
+-        queue.event('queue', 'blocked_requires_repair', error_type=type(exc).__name__, error=str(exc))
++        queue.event('queue', 'blocked_cleanup_uncertain' if isinstance(exc, QueueCleanupUncertain) else 'blocked_requires_repair',
++                    error_type=type(exc).__name__, error=str(exc))
+         raise
+     return 0 if all(task.get('status') == 'complete' for task in queue.tasks.values()) else 1
+ 
+ 
+ if __name__ == '__main__':
+     raise SystemExit(main())
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v17.py b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v17.py
+index 3b7b439..920e96f 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v17.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v17.py
+@@ -10,21 +10,21 @@ from flashrsi_matrix_gpu1_queue_v17 import read, process_identity
+ 
+ def active_runs():
+     runs = prior_active_runs()
+     for path in Path('/proc').glob('[0-9]*'):
+         try:
+             identity = process_identity(int(path.name))
+             if not identity:
+                 continue
+             args = identity['command']
+             names = {Path(arg).name for arg in args}
+-            if not names.intersection({'flashrsi_harnessrisk_algorithm_reference_v17.py', 'flashrsi_harnessrisk_algorithm_reference_v18.py'}):
++            if not names.intersection({'flashrsi_harnessrisk_algorithm_reference_v17.py', 'flashrsi_harnessrisk_algorithm_reference_v18.py', 'flashrsi_harnessrisk_algorithm_reference_v19.py'}):
+                 continue
+             env = dict(v.split(b'=', 1) for v in (path / 'environ').read_bytes().split(b'\0') if b'=' in v)
+             harness = env[b'HR_HARNESS'].decode()
+             algorithm = args[args.index('--algorithm') + 1]
+             runs[str((Path(env[b'HR_OUTPUT_ROOT'].decode()) / f'{harness}_{algorithm}_full').resolve())] = int(path.name)
+         except (OSError, KeyError, IndexError, ValueError):
+             continue
+     return runs
+ 
+ 
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v17.py b/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v17.py
+index a0c443f..ad50f71 100644
+--- a/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v17.py
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v17.py
+@@ -12,24 +12,28 @@ def test_initial_transforms_keep_full_inventory_and_actual_budgets():
+     source = initial.build_source()
+     assert "len(cases)!=128" in source and "proc=run_host(" in source
+     assert "16 if harness=='claude_code' else 12" in source
+     assert 'snapshot.id' in source and 'case hash changed' in source and 'resume conditions changed' in source
+     assert 'subprocess.run(' not in source
+     compile(source, '<initial-v17-shape-check>', 'exec')
+ 
+ 
+ def test_gepa_entry_composes_contextfit_and_observability():
+     source = gepa.build_source()
+-    assert 'flashrsi_harnessrisk_benchmark_v17' in source
++    assert 'flashrsi_harnessrisk_benchmark_v18' in source
+     assert 'OpenCodeContextfitGEPA' in source
+     assert "Path(os.environ['HR_INITIAL_REFERENCE']).resolve()" in source
+     compile(source, '<gepa-v18-shape-check>', 'exec')
++    from flashrsi_harnessrisk_algorithm_reference_v19 import build_source
++    ordinary=build_source()
++    assert 'from flashrsi_harnessrisk_benchmark_v18 import HarnessRiskBenchmark,ROOT' in ordinary
++    compile(ordinary,'<ordinary-v19-shape-check>','exec')
+ 
+ 
+ def test_initial_failed_host_retains_bytes_and_status(tmp_path, monkeypatch):
+     run = tmp_path / 'initial';(run / 'cases').mkdir(parents=True)
+     def boundary(command, **options):
+         options['stderr'].write(b'concrete dependency failure')
+         options['stdout'].write(b'partial real-shaped stdout')
+         return SimpleNamespace(returncode=2)
+     monkeypatch.setattr(initial.subprocess, 'run', boundary)
+     result = initial.run_host(['python', 'host.py', 'case', 'snapshot', 'sid', str(run / 'cases')], cwd=tmp_path)
+@@ -46,84 +50,125 @@ def test_initial_timeout_blocks_replacement_and_preserves_evidence(tmp_path, mon
+         options['stderr'].write(b'blocked startup')
+         raise subprocess.TimeoutExpired(command, 2460)
+     monkeypatch.setattr(initial.subprocess, 'run', boundary)
+     with pytest.raises(RuntimeError, match='cleanup_uncertain'):
+         initial.run_host(['python', 'host.py', 'case', 'snapshot', 'sid', str(run / 'cases')], cwd=tmp_path)
+     proof = json.loads((run / 'host_observability/case/host_execution.json').read_text())
+     assert proof['cleanup_confirmed'] is False and proof['timed_out'] is True
+ 
+ 
+ def fixture_control(tmp_path):
+-    expected = {f'case{i}' for i in range(128)}
+-    queue.save(tmp_path / 'initial_snapshot.json', {'id': 'sid', 'agent_type': 'openclaw'})
+-    queue.save(tmp_path / 'run_manifest.json', {'snapshot_id': 'sid', 'harness': 'openclaw', 'host_script': 'corrected.py', 'privacy_protocol': 'harnessrisk-private-case-v1'})
+-    queue.save(tmp_path / 'completed.json', {'snapshot_id': 'sid', 'completed_scored': 128, 'attempts': 128})
++    run=tmp_path/'control';run.mkdir()
++    manifest={'benchmark':'HarnessRisk','full_evaluation_count':128,
++              'model_revision':'851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
++              'flashrsi_revision':'778e2d01a995491fe63db210dcf46db1723a4430',
++              'cases':[{'case_id':f'case{i}','phase':'fixture','sha256':'0'*64,'owner_turns':3} for i in range(128)]}
++    queue.save(tmp_path/'case_manifest.json',manifest)
++    contract=queue.expected_initial_contract((tmp_path/'case_manifest.json').read_bytes(),'openclaw')
++    expected={row['case_id'] for row in manifest['cases']}
++    queue.save(run/'initial_snapshot.json',{'id':'sid','agent_type':'openclaw'})
++    queue.save(run/'run_manifest.json',{'snapshot_id':'sid',**contract})
++    queue.save(run/'completed.json',{'snapshot_id':'sid','completed_scored':128,'attempts':128})
+     rows=[]
+     for cid in expected:
+         rows.append({'case_id':cid,'exit_code':0,'rule_evaluation_present':True})
+-        case=tmp_path/'cases'/cid
++        case=run/'cases'/cid
+         queue.save(case/'harness_result.json',{'snapshot_id':'sid','status':'completed','process_exit_code':0})
+         queue.save(case/'privacy_audit.json',{'protocol':'harnessrisk-private-case-v1'})
+         queue.save(case/'official_rule_evaluation.json',{'runs':[{'case_id':cid,'status':'completed'}]})
+         queue.save(case/'adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':cid,'ok':True}}}})
+-    (tmp_path/'attempts.jsonl').write_text(''.join(json.dumps(row)+'\n' for row in rows))
+-    return expected
++    (run/'attempts.jsonl').write_text(''.join(json.dumps(row)+'\n' for row in rows))
++    return run,expected,contract
+ 
+ 
+ def test_full_initial_gate_checks_identity_not_only_128_files(tmp_path):
+-    expected=fixture_control(tmp_path)
+-    assert queue.initial_acceptance(tmp_path,expected,'corrected.py')
+-    assert not queue.initial_acceptance(tmp_path,expected,'old.py')
+-    queue.save(tmp_path/'cases/case0/harness_result.json',{'snapshot_id':'sid','status':'error','process_exit_code':1})
+-    assert not queue.initial_acceptance(tmp_path,expected,'corrected.py')
++    run,expected,contract=fixture_control(tmp_path)
++    assert queue.initial_acceptance(run,expected,contract)
++    assert not queue.initial_acceptance(run,expected,{**contract,'host_script':'old.py'})
++    queue.save(run/'cases/case0/harness_result.json',{'snapshot_id':'sid','status':'error','process_exit_code':1})
++    assert not queue.initial_acceptance(run,expected,contract)
++
++
++def test_initial_contract_rejects_same_ids_wrong_bytes_revision_port_and_budget(tmp_path):
++    run,expected,contract=fixture_control(tmp_path)
++    original=queue.read(run/'run_manifest.json')
++    for field,value in [('model_revision','wrong-model'),('flashrsi_revision','wrong-runtime'),
++                        ('model_port',18761),('temperature',1),('max_tokens_per_turn',8192),
++                        ('max_turns_per_owner_turn',24),('harness','pi')]:
++        queue.save(run/'run_manifest.json',{**original,field:value})
++        assert not queue.initial_acceptance(run,expected,contract),field
++    queue.save(run/'run_manifest.json',original)
++    retained=queue.read(tmp_path/'case_manifest.json')
++    retained['cases'][0]['sha256']='f'*64
++    queue.save(tmp_path/'case_manifest.json',retained)
++    # Updating the H0's self-declared hash must not override the trusted queue hash.
++    queue.save(run/'run_manifest.json',{**original,'case_manifest_sha256':queue.sha(tmp_path/'case_manifest.json')})
++    assert not queue.initial_acceptance(run,expected,contract)
+ 
+ 
+ def test_judge_gate_requires_all_exact_accepted_case_ids(tmp_path):
+     expected={f'case{i}' for i in range(128)}
+     queue.save(tmp_path/'llm_judge_multi_harness/manifest.json',[{'case_id':cid,'status':'existing'} for cid in expected])
+     assert queue.judge_acceptance(tmp_path,expected)
+     queue.save(tmp_path/'llm_judge_multi_harness/manifest.json',[{'case_id':'same','status':'judged'}]*128)
+     assert not queue.judge_acceptance(tmp_path,expected)
+ 
+ 
+ def test_source_drift_is_typed_and_never_retried(tmp_path,monkeypatch):
+     monkeypatch.setattr(queue,'ROOT',tmp_path)
+     (tmp_path/'owned.py').write_text('original')
+     pins={'owned.py':queue.sha(tmp_path/'owned.py')}
+     queue.verify_frozen(pins)
+     (tmp_path/'owned.py').write_text('changed')
+     with pytest.raises(RuntimeError,match='source_hash_drift_requires_new_protocol'):
+         queue.verify_frozen(pins)
+ 
+ 
+-def test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0(tmp_path,monkeypatch):
++@pytest.mark.parametrize('uncertain_stage',[None,'opencode/evoprompt','openclaw/initial'])
++def test_finite_plan_skips_unrepaired_profiles_and_blocks_rsi_after_failed_h0(tmp_path,monkeypatch,uncertain_stage):
+     source=tmp_path/'source';source.mkdir()
+-    manifest={'cases':[]}
++    manifest={'cases':[],'model_revision':'851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a','flashrsi_revision':'778e2d01a995491fe63db210dcf46db1723a4430'}
+     for index in range(128):
+         cid=f'case{index}';path=source/(cid+'.json');path.write_text('{}')
+         manifest['cases'].append({'case_id':cid,'sha256':queue.sha(path)})
+     reference=tmp_path/'reference';reference.mkdir();(reference/'initial_snapshot.json').write_text('{}')
+     monkeypatch.setattr(queue,'DATA',source)
+     monkeypatch.setattr(queue,'LANE_LOCK',tmp_path/'lane.lock')
+     monkeypatch.setattr(queue,'REFERENCE',reference)
+     monkeypatch.setattr(queue,'lane_clients',lambda **kwargs:[])
+     monkeypatch.setattr(queue,'freeze_sources',lambda destination:{})
+     monkeypatch.setattr(queue,'initial_acceptance',lambda path,expected,host:Path(path)==reference)
+     monkeypatch.setattr(queue,'judge_acceptance',lambda *args:True)
+     monkeypatch.setattr(queue,'inspect_run',lambda *args:{'status':'needs_repair'})
+     monkeypatch.setattr(queue.importlib.metadata,'version',lambda name:{'tree-sitter':'0.25.2','tree-sitter-bash':'0.25.1'}[name])
+     calls=[]
+     controller=queue.Queue(tmp_path/'queue')
+     def execute(key,command,env,*args):
+         calls.append((key,command,env))
++        if key==uncertain_stage:
++            harness,stage=key.split('/')
++            run=Path(env['HR_OUTPUT_ROOT'])/(harness+'_'+('initial_full' if stage=='initial' else stage+'_full'))
++            receipt=run/('host_observability/case/host_execution.json' if stage=='initial' else 'evidence/00000001/host_execution.json')
++            queue.save(receipt,{'timed_out':True,**({'cleanup_confirmed':False} if stage=='initial' else {})})
+         return 2
+     monkeypatch.setattr(controller,'execute',execute)
++    if uncertain_stage:
++        with pytest.raises(queue.QueueCleanupUncertain):
++            controller.run(manifest,[])
++        assert calls[-1][0]==uncertain_stage
++        assert controller.tasks['codex/initial']['status']=='blocked_cleanup_uncertain'
++        assert (controller.out/'queue_cleanup_block.json').exists()
++        assert queue.read(controller.out/'ready.json')['ready_for_authorized_finite_queue'] is False
++        # An empty name scan is not descendant reconciliation or an unblock.
++        with pytest.raises(queue.QueueCleanupUncertain):
++            controller.check_cleanup()
++        return
+     controller.run(manifest,[])
+     assert [key for key,_,_ in calls]==['opencode/evoprompt','opencode/gepa','openclaw/initial','codex/initial']
+     assert calls[1][1][0].endswith('reference_v18.py')
+     assert all(env['HARNESSRISK_MODEL_PORT']=='18764' and env['CUDA_VISIBLE_DEVICES']=='' for _,_,env in calls)
+     assert all(controller.tasks['openclaw/'+a]['status']=='blocked_same_protocol_initial' for a in queue.ALGORITHMS)
+     assert controller.tasks['claude_code/initial']['status']=='blocked_protocol_repair'
+     assert controller.tasks['pi/initial']['status']=='blocked_protocol_repair'
+     assert queue.read(tmp_path/'queue/ready.json')['full_objective_complete'] is False
+ 
+ 
+@@ -132,25 +177,58 @@ def test_billing_guard_does_not_call_api_or_block_model_queue(tmp_path,monkeypat
+     monkeypatch.setattr(Path,'home',classmethod(lambda cls:tmp_path))
+     queue.save(tmp_path/'.cache/harnessrisk-judge/billing-blocked.json',{'retry_after':time.time()+3600})
+     controller=queue.Queue(tmp_path/'out');controller.out.mkdir()
+     controller.judges=[('own/initial',tmp_path/'own_cases')]
+     monkeypatch.setattr(queue.subprocess,'Popen',lambda *args,**kwargs:pytest.fail('API subprocess must not launch'))
+     controller.schedule_judge()
+     assert controller.judge is None and len(controller.judges)==1
+ 
+ 
+ def test_initial_gate_rejects_wrong_mock_reset_and_unexpected_extra_case(tmp_path):
+-    expected=fixture_control(tmp_path)
+-    queue.save(tmp_path/'cases/case0/adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':'other','ok':True}}}})
+-    assert not queue.initial_acceptance(tmp_path,expected,'corrected.py')
+-    queue.save(tmp_path/'cases/case0/adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':'case0','ok':True}}}})
+-    queue.save(tmp_path/'cases/extra/harness_result.json',{'status':'completed'})
+-    assert not queue.initial_acceptance(tmp_path,expected,'corrected.py')
++    run,expected,contract=fixture_control(tmp_path)
++    queue.save(run/'cases/case0/adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':'other','ok':True}}}})
++    assert not queue.initial_acceptance(run,expected,contract)
++    queue.save(run/'cases/case0/adapter_metadata.json',{'mock_start':{'reset':{'body':{'case_id':'case0','ok':True}}}})
++    queue.save(run/'cases/extra/harness_result.json',{'status':'completed'})
++    assert not queue.initial_acceptance(run,expected,contract)
+ 
+ 
+ def test_existing_queue_directory_is_never_overwritten_on_relaunch(tmp_path,monkeypatch):
+     import sys
+     out=tmp_path/'existing';out.mkdir();state=out/'remaining_tasks.json';state.write_text('{"retain":"evidence"}')
+     monkeypatch.setattr(sys,'argv',['queue','--out',str(out)])
+     with pytest.raises(RuntimeError,match='output_exists_preserved'):
+         queue.main()
+     assert state.read_text()=='{"retain":"evidence"}'
++
++
++def test_algorithm_timeout_aborts_rollout_before_next_case(tmp_path,monkeypatch):
++    import asyncio
++    from flashrsi.core import Task,Trajectory
++    import flashrsi_harnessrisk_benchmark_v18 as guarded
++    calls=[]
++    async def boundary(controller,target,task):
++        calls.append(task.task_id);controller._sequence+=1
++        queue.save(tmp_path/'evidence'/f'{controller._sequence:08d}'/'host_execution.json',{'timed_out':True})
++        return Trajectory(status='error',error_message='HarnessRisk host timeout')
++    monkeypatch.setattr(guarded.ObservedBenchmark,'_run_once',boundary)
++    controller=guarded.HarnessRiskBenchmark(tmp_path)
++    target=SimpleNamespace(snapshot=SimpleNamespace(id='fixture'))
++    tasks=[Task(task_id='first',question='owner',env='harnessrisk'),Task(task_id='must-not-start',question='owner',env='harnessrisk')]
++    async def rollout():
++        for task in tasks:
++            await controller.env_runner(target,task)
++    with pytest.raises(guarded.HostCleanupUncertain,match='identity_reconciliation'):
++        asyncio.run(rollout())
++    assert calls==['first']
++
++
++def test_exact_predecessor_timeout_scope_blocks_even_with_no_lane_clients(tmp_path):
++    old=tmp_path/'owned-predecessor';out=tmp_path/'new-queue';out.mkdir()
++    queue.save(old/'evidence/00000001/host_execution.json',{'timed_out':True,'pid':123})
++    controller=queue.Queue(out);controller.predecessor_scopes=[old]
++    controller.tasks={'codex/initial':{'status':'queued'}}
++    with pytest.raises(queue.QueueCleanupUncertain):
++        controller.check_cleanup()
++    block=queue.read(out/'queue_cleanup_block.json')
++    assert block['receipts'][0]['path'].startswith(str(old))
++    assert controller.tasks['codex/initial']['status']=='blocked_cleanup_uncertain'

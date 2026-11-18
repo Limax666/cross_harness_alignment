@@ -21,6 +21,9 @@ from flashrsi.core import Snapshot
 from flashrsi_final_turn_proxy import FinalTurnChatProxy
 from flashrsi_gateway import create_gateway
 from flashrsi_model_relay import relay_request
+from flashrsi_b1_result_status import apply_reset_status
+from flashrsi_completion_budget import completion_budget
+from flashrsi_path_profile import selected_families
 from flashrsi_tool_attestation import (
     GuardedToolDispatcher,
     ToolCallGate,
@@ -29,9 +32,14 @@ from flashrsi_tool_attestation import (
 from rl_agentdojo_path_audit import NativePathRecorder
 
 
-ROOT = Path("/openbayes/home/cross_harness_alignment/experiments/cross_harness_sft")
+ROOT = Path(__file__).resolve().parents[1]
 MODEL_NAME = "qwen35-4b-preflight"
 SAFETY_POLICY = ROOT / "configs/flashrsi_b0_safety_policy.txt"
+
+
+def _python_readonly_roots(executable):
+    return sorted({str(Path(sys.prefix).resolve()), str(Path(sys.base_prefix).resolve()),
+                   str(Path(executable).resolve().parent)})
 
 
 def _digest(value) -> str:
@@ -42,6 +50,8 @@ def _digest(value) -> str:
 
 async def _main() -> dict:
     task_id = os.environ["B1_TASK_ID"]
+    output_budget = completion_budget(os.environ)
+    path_profile = os.environ.get("FLASHRSI_PATH_PROFILE", "standard")
     seed = int(os.environ["B1_SEED"])
     expected_snapshot = os.environ["B1_EXPECTED_SNAPSHOT_ID"]
     case_out = Path(os.environ["B1_CASE_OUT"])
@@ -58,7 +68,8 @@ async def _main() -> dict:
         "flashrsi_revision": "778e2d01a995491fe63db210dcf46db1723a4430",
         "network_namespace": "new loopback-only",
         "max_turns": 12,
-        "max_tokens_per_turn": 512,
+        "max_tokens_per_turn": output_budget,
+        "path_audit_profile": path_profile,
         "temperature": 0,
     }
     server = None
@@ -93,9 +104,9 @@ async def _main() -> dict:
             driver,
             episode,
             tool_schemas=tools,
-            qualified_families=NativePathRecorder.__dataclass_fields__[
+            qualified_families=selected_families(path_profile, task_id, NativePathRecorder.__dataclass_fields__[
                 "qualified_families"
-            ].default,
+            ].default),
         )
         dispatcher = GuardedToolDispatcher(gate, recorder)
         gateway_token = secrets.token_urlsafe(32)
@@ -138,10 +149,8 @@ async def _main() -> dict:
                         "/lib",
                         "/lib64",
                         "/etc/ssl/certs",
-                        "/opt/uv/python",
-                        str(ROOT / ".venv-agentdojo"),
                         str(_ENTRY.parent),
-                    ],
+                    ] + _python_readonly_roots(os.environ["B1_PYTHON"]),
                     "writable_root": str(writable),
                 }
             ),
@@ -160,7 +169,7 @@ async def _main() -> dict:
                     "model_name": MODEL_NAME,
                     "api_key": gateway_token,
                     "base_url": gateway_url + "/v1",
-                    "max_tokens": 512,
+                    "max_tokens": output_budget,
                     "extra_body": {
                         "chat_template_kwargs": {"enable_thinking": False},
                         "temperature": 0,
@@ -213,8 +222,7 @@ async def _main() -> dict:
         else:
             gate.abort()
             record["unscorable_reason"] = "incomplete_or_unattested"
-        if record.get("reset_verified") is not True:
-            record["unscorable_reason"] = "reset_mismatch"
+        apply_reset_status(record)
     except Exception as error:
         record["unscorable_reason"] = type(error).__name__ + ": " + str(error)
     finally:

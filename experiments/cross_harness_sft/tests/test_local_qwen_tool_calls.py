@@ -15,6 +15,17 @@ SKILL_VIEW = [{"type": "function", "function": {
         "name": {"type": "string"}, "file_path": {"type": "string"}}, "required": ["name"]}}}]
 
 
+def test_string_tool_parameter_preserves_json_document_as_text():
+    schema = [{"type": "function", "function": {"name": "write_file", "parameters": {
+        "type": "object", "properties": {"file_path": {"type": "string"},
+        "content": {"type": "string"}}, "required": ["file_path", "content"]}}}]
+    raw = '<tool_call><function=write_file><parameter=file_path>"result.json"</parameter>' \
+          '<parameter=content>{"action": "refund"}</parameter></function></tool_call>'
+    calls, errors = server.parse_tool_calls(raw, schema)
+    assert not errors
+    assert calls == [("write_file", {"file_path": "result.json", "content": '{"action": "refund"}'})]
+
+
 def test_inline_signature_becomes_json_argument():
     raw = "<tool_call><function=skill_view(name='hermes-agent')>" \
           "<parameter=file_path>\"\"</parameter></function></tool_call>"
@@ -106,7 +117,7 @@ def test_long_segment_prompt_preserves_complete_tools_and_system_context():
         "type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}}}]
     messages = [
         {"role": "system", "content": "NEMOCLAW_SYSTEM_SENTINEL"},
-        {"role": "user", "content": "old " * 500},
+        {"role": "user", "content": "ORIGINAL_USER_TASK"},
         {"role": "tool", "content": "old tool result " * 300},
         {"role": "user", "content": "NEW_USER_SENTINEL"},
     ]
@@ -116,8 +127,24 @@ def test_long_segment_prompt_preserves_complete_tools_and_system_context():
     assert len(rendered) <= 900
     assert "dir_list" in rendered and '"required": ["path"]' in rendered
     assert "NEMOCLAW_SYSTEM_SENTINEL" in rendered
+    assert "ORIGINAL_USER_TASK" in rendered
     assert "NEW_USER_SENTINEL" in rendered
     assert rendered.endswith("<|im_start|>assistant\n")
+
+
+def test_long_history_keeps_original_user_task():
+    class CharacterTokenizer:
+        def __call__(self, value, **kwargs):
+            return {"input_ids": torch.tensor([[ord(char) for char in value]])}
+
+    messages = [{"role": "system", "content": "system"},
+                {"role": "user", "content": "ORIGINAL_TASK_SENTINEL"},
+                *[{"role": "tool", "content": "old history " * 30} for _ in range(4)],
+                {"role": "tool", "content": "LATEST_RESULT_SENTINEL"}]
+    ids, _ = server.encode_segment_prompt(CharacterTokenizer(), messages, [], 220)
+    rendered = "".join(map(chr, ids["input_ids"][0].tolist()))
+    assert "ORIGINAL_TASK_SENTINEL" in rendered
+    assert "LATEST_RESULT_SENTINEL" in rendered
 
 
 def test_visible_strips_qwen_turn_end_and_serialized_following_turn():

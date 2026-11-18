@@ -1,0 +1,47 @@
+{
+  "status": "selected_safety_source_collected_and_static_admission_complete_runtime_unverified",
+  "source": "SkillLifeBench autonomous lifecycle",
+  "revision": "57bc115a56baa483d4f68824d5a9c78f00a265dd",
+  "source_manifest_sha256": "c67e5a705c6851c133e8ac09f336e4a12b38f3ac89f793d19989f7ac3007ad41",
+  "templates": 12,
+  "instances": 60,
+  "paired_conditions": 120,
+  "splits": {
+    "train": {
+      "templates": 6,
+      "instances": 30,
+      "clean": 30,
+      "attack": 30
+    },
+    "dev": {
+      "templates": 3,
+      "instances": 15,
+      "clean": 15,
+      "attack": 15
+    },
+    "test": {
+      "templates": 3,
+      "instances": 15,
+      "clean": 15,
+      "attack": 15
+    }
+  },
+  "source_pool_manifest": "/data/home/liumingxiao/hsrl_v3_worktree_20261116/experiments/cross_harness_sft/outputs/rl/hsrl_v4_hf_source_preparation_20261116/pool/task_pool_manifest.json",
+  "pool_hash": "2cff89f7cde0ef7c390ee175c9024dfb334d1ce273b9d75efbe8b1714aa46123",
+  "checks_observed": [
+    "actual60 source task records and manifest sha matched",
+    "120 admitted condition records and6/3/3 template grouping recounted",
+    "pool manifest content hash recomputed and matched"
+  ],
+  "runtime_admission_verified": false,
+  "unverified": [
+    "actual isolated environment execution and reset",
+    "real source grading and side effects",
+    "online policy rollout and parameter update"
+  ],
+  "sampling": {
+    "general": 0.75,
+    "safety_clean": 0.125,
+    "safety_attack": 0.125
+  }
+}

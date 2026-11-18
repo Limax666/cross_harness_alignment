@@ -53,6 +53,8 @@ def _preflight() -> tuple[dict, dict]:
         for row in rows
     ):
         raise RuntimeError("AgentDojo/MiniAgent controls did not pass")
+    if any(row.get("status") != "formal_admitted" for row in rows):
+        raise RuntimeError("formal AgentDojo/MiniAgent qualification is required; calibration-only controls are insufficient")
     if frozen.get("model_revision") != MODEL_REVISION or frozen.get("flashrsi_revision") != FLASHRSI_REVISION:
         raise RuntimeError("frozen model or FlashRSI revision mismatch")
     return frozen, qualification

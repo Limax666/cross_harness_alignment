@@ -1,0 +1,44 @@
+# Claude native owner v9 independent review, 2026-11-17
+
+**Disposition: changes required before genuine full128 dispatch.** Reviewed commit `7d384ac`, its scoped diff and implementation report, all ten new runtime/controller modules and their tests, against the binding brief/preflight and single-GPU completion plan. Four Important findings below are implementation defects, independent of the explicitly unsupported native forms. No Critical false-scoring defect was established.
+
+This was a static review: source, retained historical artifacts and bounded installed-CLI byte reads only. No tests, native CLI, source program, model/API/network request, GPU, Docker, process inspection/action or queue launch was performed. The author's 145-pass result is reported evidence, not independently rerun evidence. Only this review document was written.
+
+## Important findings
+
+### I1 — Required CLI start identity is read from a path the entry cannot access
+
+`scripts/flashrsi_claude_owner_transport_v9.py:47–50` reads `/proc/<CLI pid>/stat` inside the sandboxed entry and converts any `OSError` into `start=None`. The actual supervisor's complete readonly roots at `scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py:129–132` exclude `/proc`; its only writable roots are work and scratch (`:135`). The launcher installs Landlock before executing the entry (`scripts/flashrsi_harnessrisk_sandbox.py:16–18`), and the filesystem implementation handles file reads and permits only the supplied roots/devices (`scripts/flashrsi_landlock.py:21–22,86–108`). Reading that procfs file is therefore denied. `close_receipt()` nevertheless requires an integer `start` (`scripts/flashrsi_claude_owner_profile_v9.py:65–70`).
+
+Consequently, even an otherwise supported owner with actual Stop, idle, complete JSONL and clean EOF is rejected. This is a deterministic conflict between observation placement and the unchanged confinement policy, not an unproved native capability. Obtain the CLI identity through a narrowly scoped trusted-supervisor observation path and bind it to the actual transport PID/lifetime; do not grant the target general `/proc` access or remove the identity requirement. Existing close tests inject `start=123` and do not exercise this boundary.
+
+### I2 — The raw-to-SDK result comparison rejects the SDK's documented `modelUsage` alias
+
+`scripts/flashrsi_claude_owner_profile_v9.py:320–325` compares every native result key, except `type`, directly against the parsed result dictionary. The actual pinned parser maps raw `modelUsage` to the dataclass field `model_usage` (`.venv-rl-pilot/lib/python3.11/site-packages/claude_agent_sdk/_internal/message_parser.py:310–337`, specifically `:323`). `plain(result)` preserves dataclass field names (`scripts/flashrsi_claude_owner_adapter_v9.py:17–23,152`). Thus any non-null actual `modelUsage` produces `parsed.get('modelUsage') == None` and raises `parsed_result_differs_from_actual_raw_native_result`, even though the SDK correctly parsed it.
+
+The retained action042 artifact contains a populated `model_usage` mapping (`outputs/flashrsi_harnessrisk_4b_private_claude_cli_projection_v8_gpu1_20261115/claude_code_initial_full/cases/action_042/harness_result.json:1686`). The retained-cap test reconstructs its supposed raw frame from that **already parsed** ResultMessage (`tests/test_flashrsi_claude_native_owner_v9.py:205–217`), so it preserves snake_case and masks the defect. Canonicalize exactly the source-pinned parser aliases while retaining all raw keys and rejecting unexplained fields. Add a pure end-to-end admission fixture whose raw result has `modelUsage` and whose parsed result comes through the actual parser; do not merely omit the field from comparison.
+
+### I3 — Host death is not bound to death of its unshare launcher and namespace
+
+`scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py:93–95` starts `unshare` in a new session. `--kill-child=SIGKILL` ties the namespace child to the **unshare process**, but the new code does not tie unshare's lifetime to its Python host. The host writes `namespace_parent_death_signal='SIGKILL'` (`:89–90`) without implementing that missing link. Its `finally` cleanup (`:102–107`) cannot execute when the host is killed.
+
+This is reachable through the new wrappers themselves: the benchmark's outer timeout calls `process.kill()` only on the host (`scripts/flashrsi_harnessrisk_claude_native_owner_benchmark_v9.py:43–48`); initial's `subprocess.run(..., timeout=2460)` likewise kills its direct host child on timeout (`scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py:102–103,118–120`). The detached unshare/namespace may survive and continue native/mock/model activity. Async cancellation is another uncovered path: benchmark `finally` saves a receipt but does not terminate its live host (`:78–80`). Marking cleanup uncertain prevents scoring but does not clean up the owned workload.
+
+Bind host death to the exact owned launcher and namespace, handling the parent-death setup race; make cancellation and outer timeout await verified owned cleanup and retain failure evidence. A new scoped lifetime guard can be checked with ordinary owned sleeper/FD fixtures, without launching native/model/source experiments. Do not claim `--kill-child` alone provides the host-to-launcher link.
+
+### I4 — Candidate settings can change the supposedly frozen compaction/retry policy
+
+`scripts/flashrsi_claude_owner_adapter_v9.py:42–49` checks only `CLAUDE_CODE_MAX_CONTEXT_TOKENS` in candidate settings. The original `_settings()` intentionally passes other settings through (`vendor/FlashRSI/flashrsi/agents/claude_code/__init__.py:258–295`); its reserved-field rules do not reject `DISABLE_AUTO_COMPACT`, `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`, `CLAUDE_CODE_AUTO_COMPACT_WINDOW`, or `CLAUDE_CODE_MAX_RETRIES`. The actual installed CLI contains the `DISABLE_AUTO_COMPACT` and `CLAUDE_CODE_MAX_RETRIES` interfaces (bounded byte reads of the pinned binary; identifiers at offsets 282082012 and 282105496). The disable flag is `DISABLE_AUTO_COMPACT`, not `CLAUDE_CODE_DISABLE_AUTO_COMPACT`.
+
+Admission then accepts `isAutoCompactEnabled=False`: `context_receipt()` checks only that this field is a Boolean (`scripts/flashrsi_claude_owner_profile_v9.py:55–60`). The runtime settings check validates the explicit environment's context/output strings but does not enforce the effective frozen compaction or retry policy (`:308–317`). Thus a candidate disabling auto-compaction can pass the profile's context gate; a retry override is also not rejected before native calls occur. Retaining settings bytes and a shared contract label does not make those settings equivalent to H0.
+
+Reject protected settings/env overrides before launch rather than rewriting the candidate. Freeze all effective budget/retry/compaction controls required by this profile, compare the actual native enabled state and applicable policy evidence against that contract, and keep unsupported or mismatched observations invalid. Preserve the intended 32768 metadata correction and the original enabled native policy.
+
+## Structural limits and scope
+
+- Missing actual Stop at max-turn, unproved compiled counter reset, unknown compaction/projection/branch history, and an unproved clean EOF remain legitimate invalid outcomes. They are not additional implementation findings merely because a genuine run has not yet exercised them. The counter implementation keeps native turns and scheduled/auxiliary API calls distinct and uses the stated decrease-or-sixteen-reconciled-pairs ruling.
+- Admission recomputes private owner/session/provider/source receipts, preserves raw native errors and nullable answers, and blocks invalid trajectories from numeric ranking. The new reference transformation keeps the original six algorithm classes/configuration; the separate queue integration review remains responsible for queue/lane admission.
+- The observed transport-close copy and its AST comparison, explicit UUID resume, shared work/mock/state, namespace census, source pins, failed-tree archival and host/provider bindings are substantive safeguards. The four defects above prevent treating those safeguards as sufficient for dispatch yet.
+- Existing Pi helper correctness was not reopened. Finding I3 concerns the new Claude host and wrappers; any equivalent old host requires a separately scoped future-version repair, not an edit to active or historical code.
+
+Verification outcome: four statically demonstrated defects; no runtime acceptance claimed. After repair, exercise proportionate pure parser/policy/observation/lifetime regressions and obtain independent rereview. Genuine native behavior must still be measured only in the authorized full128 H0 path, followed by the matched six RSI algorithms; no diagnostic/smoke run or gate relaxation is recommended.

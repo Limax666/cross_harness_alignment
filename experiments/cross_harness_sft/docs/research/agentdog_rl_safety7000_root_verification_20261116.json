@@ -1,0 +1,33 @@
+{
+  "scope": "independent root metadata/index audit, no source execution",
+  "index_sha256": "69c289ffabf39c8ea0c88754743b15658f84dfbb0faf0090f81843e112dd75ea",
+  "conditions": 7000,
+  "unique_task_ids": 7000,
+  "unique_base_families": 1420,
+  "all_train": true,
+  "source_family_split_recomputed": true,
+  "matched_clean_families_subset": true,
+  "roles": {
+    "attacked_benign": 5500,
+    "matched_clean_control": 1000,
+    "pure_malicious": 500
+  },
+  "runtime_admission_verified": false,
+  "source_membership_check": {
+    "source_pairing_rows": 9715,
+    "source_unique_condition_ids": 13212,
+    "source_categories": {
+      "clean": 2931,
+      "attack": 8398,
+      "query_target": 1883
+    },
+    "source_id_family_conflicts": 0,
+    "all_7000_candidate_id_family_and_type_match_pinned_source": true,
+    "scope": "metadata only; runtime unverified"
+  },
+  "preserved_initial_read_failure": {
+    "error": "TypeError: unexpected pairing id shape",
+    "cause": "root auxiliary membership reader initially assumed string IDs; actual source uses task_id objects",
+    "recovery": "read actual source schema and rerun full membership checks; no source bytes or candidate IDs changed"
+  }
+}

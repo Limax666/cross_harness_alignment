@@ -139,6 +139,7 @@ def test_real_miniagent_subprocess_uses_guarded_real_agentdojo_tool(monkeypatch)
 
 def test_miniagent_subprocess_runs_with_experimental_child_restrictions(monkeypatch, tmp_path):
     from pathlib import Path
+    from flashrsi_b1_agentdojo_supervisor import _python_readonly_roots
     from cross_harness_sft.backends.agentdojo import AgentDojoDriver
     from rl_agentdojo_path_audit import NativePathRecorder
     from flashrsi_tool_attestation import attest_tool_calls
@@ -177,8 +178,8 @@ def test_miniagent_subprocess_runs_with_experimental_child_restrictions(monkeypa
         python = sys.executable
         config.write_text(json.dumps({"entry": str(miniagent._ENTRY), "python": python,
                                       "gateway_port": server.server_port,
-                                      "readonly_roots": ["/usr", "/lib", "/lib64", "/etc/ssl/certs", "/opt/uv/python",
-                                                         str(root / ".venv-agentdojo"), str(miniagent._ENTRY.parent)],
+                                      "readonly_roots": ["/usr", "/lib", "/lib64", "/etc/ssl/certs",
+                                                         str(miniagent._ENTRY.parent)] + _python_readonly_roots(python),
                                       "writable_root": str(writable)}))
         monkeypatch.setenv("FLASHRSI_SANDBOX_CONFIG", str(config))
         monkeypatch.setenv("FLASHRSI_GATEWAY_URL", base)

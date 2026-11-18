@@ -83,7 +83,12 @@ def create_model_relay(path, token, model, upstream):
 def relay_request(path, token, request):
     if not _token_ok(token) or not isinstance(request, dict):
         raise ValueError("invalid relay request")
-    raw = json.dumps({"token": token, "request": request}, ensure_ascii=True, allow_nan=False).encode("utf-8") + b"\n"
+    forwarded = dict(request)
+    if isinstance(forwarded.get("tools"), list) and forwarded["tools"]:
+        # The trusted dispatcher pairs one API call with one tool dispatch at a
+        # time. Do not let the model return parallel calls that race that gate.
+        forwarded["parallel_tool_calls"] = False
+    raw = json.dumps({"token": token, "request": forwarded}, ensure_ascii=True, allow_nan=False).encode("utf-8") + b"\n"
     if len(raw) > _MAX_MESSAGE:
         raise ValueError("request too large")
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as conn:

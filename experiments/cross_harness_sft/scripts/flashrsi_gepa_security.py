@@ -8,6 +8,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import threading
 from collections.abc import Iterable, Mapping
 from pathlib import Path
@@ -18,7 +19,7 @@ from flashrsi.agents.miniagent import MiniAgent
 from flashrsi.core import Snapshot, Task, Trajectory
 
 
-ROOT = Path("/openbayes/home/cross_harness_alignment/experiments/cross_harness_sft")
+ROOT = Path(__file__).resolve().parents[1]
 BENCHMARK_SOURCE_REVISION = "agentdojo/0.1.35 benchmark/v1.2.2"
 MODEL_REVISION = "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
 FLASHRSI_REVISION = "778e2d01a995491fe63db210dcf46db1723a4430"
@@ -289,7 +290,7 @@ class AgentDojoSecurityBenchmark:
             "B1_SNAPSHOT_JSON": str(snapshot_path),
             "B1_CASE_OUT": str(case_path),
         }
-        command = [str(ROOT / ".venv-agentdojo/bin/python"), str(ROOT / "scripts/flashrsi_b1_agentdojo_host.py")]
+        command = [sys.executable, str(ROOT / "scripts/flashrsi_b1_agentdojo_host.py")]
         completed = await asyncio.create_subprocess_exec(
             *command,
             cwd=ROOT,

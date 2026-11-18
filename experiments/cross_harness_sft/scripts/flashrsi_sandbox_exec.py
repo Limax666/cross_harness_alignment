@@ -46,6 +46,22 @@ def _limit_resources():
         resource.setrlimit(kind, (limit, limit))
 
 
+def _child_environment(url, token, writable):
+    budget = os.environ.get("FLASHRSI_COMPLETION_BUDGET", "512")
+    if budget not in {"512", "1024", "2048", "4096"}:
+        raise ValueError("invalid completion budget")
+    return {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C.UTF-8",
+        "HOME": writable,
+        "TMPDIR": writable,
+        "FLASHRSI_GATEWAY_URL": url,
+        "FLASHRSI_GATEWAY_TOKEN": token,
+        # This is the only additional parent variable admitted to the sandbox.
+        "FLASHRSI_COMPLETION_BUDGET": budget,
+    }
+
+
 def main():
     config_path = os.environ.get("FLASHRSI_SANDBOX_CONFIG", "")
     if not os.path.isabs(config_path):
@@ -67,8 +83,7 @@ def main():
         raise ValueError("invalid gateway URL")
     if not isinstance(token, str) or len(token) < 32 or not token.isascii() or any(c.isspace() for c in token):
         raise ValueError("invalid gateway token")
-    child_env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "HOME": writable, "TMPDIR": writable,
-                 "FLASHRSI_GATEWAY_URL": url, "FLASHRSI_GATEWAY_TOKEN": token}
+    child_env = _child_environment(url, token, writable)
     _limit_resources()
     _drop_capabilities()
     restrict_syscalls()

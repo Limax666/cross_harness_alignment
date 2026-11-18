@@ -1,0 +1,30 @@
+{
+  "at": "2026-11-18T12:44:05.311401+08:00",
+  "real_READY_records": 14000,
+  "groups": {
+    "clawgym": 8,
+    "agentdog": 8
+  },
+  "G": 8,
+  "K": 2,
+  "same_tasks_different_K2_configuration_verified": true,
+  "published_public_interface_verified": true,
+  "packaged_module_origin_verified": {
+    "hsrl_source_repair_v1": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_source_repair_v1/__init__.py",
+    "hsrl_v5": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/__init__.py",
+    "hsrl_v5.io": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/io.py",
+    "hsrl_v5.isolation": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/isolation.py",
+    "hsrl_v5.agentdog_source": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/agentdog_source.py",
+    "hsrl_v5.agentdog_worker": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/agentdog_worker.py",
+    "hsrl_v5.agentdog_backend": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/agentdog_backend.py",
+    "hsrl_v5.reward": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/reward.py",
+    "hsrl_v5.sampler": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/sampler.py",
+    "hsrl_v5.dataset": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/dataset.py",
+    "hsrl_source_repair_v1.adapter": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_source_repair_v1/adapter.py",
+    "hsrl_v5.release": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/release.py",
+    "hsrl_v5.workspace_worker": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/workspace_worker.py",
+    "hsrl_v5.workspace": "/data/home/liumingxiao/hsrl_publish_20261118/experiments/cross_harness_sft/scripts/hsrl_v5/workspace.py"
+  },
+  "model_or_source_episode_started": false,
+  "new_server_hardware_not_tested": true
+}

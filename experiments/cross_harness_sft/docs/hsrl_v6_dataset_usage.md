@@ -1,3 +1,5 @@
+> **2026-11-18执行覆盖：** 当前14K READY/50:50与真实v9参数RL已运行；旧GPU、小池及未启动描述是历史。请先读[当前执行规格](harness_scaling_safe_rsi_current_20261118.md)与[跨服务器交接](new_server_handoff_20261118.md)，不要照旧命令直接启动。
+
 # Private mixed online RL release
 
 The release is **not ready** until both new source admission runs finish, 14,000 real train conditions meet their role quotas, and the selected exported runtime and context audits pass. A running job, a health endpoint, or a successful subset cannot authorize publication. The CLI reads CPU proof files; it does not call models, source tools, graders, Docker or external services.

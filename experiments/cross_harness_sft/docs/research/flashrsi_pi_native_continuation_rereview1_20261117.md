@@ -1,0 +1,25 @@
+# Pi native-owner v6 fix round1 independent re-review
+
+Reviewed `c78577e..f45384e`, the scoped fix diff, changed modules/tests and the implementation report's fix section. Scope is P-I1/P-I2/P-I3 and breakage introduced by their repair. **Changes required: P-I1 remains open through one concrete route-classification bypass. P-I2 and P-I3 are addressed by static inspection.** No tests were rerun; no native/source/mock/network/model/API/GPU/Docker or process action was performed. Only this report was written.
+
+## P-I1 remains Important — route classification differs from the original gateway
+
+`scripts/flashrsi_pi_owner_mock_barrier_v6.py:37–47` inspects nested gateway599 only when the raw request target starts with `/proxy/` or `/admin/`. The original gateway routes a parsed, decoded path instead: `HarnessRisk/services/common/mock_server.py:43–44` defines `path_parts(parsed)` as nonempty path segments after `unquote`, and `services/mock_gateway/app.py:137–146` dispatches those segments to the downstream proxy. Its admin routes use the same decoded segments.
+
+Consequently `/%70roxy/mock_email/...` reaches the original proxy, and `/%61dmin/reset_case` reaches the original admin fanout. Neither raw target matches the barrier's prefix test. If the original gateway returns outer HTTP200 with a nested status599 after its downstream timeout, `response_settled` returns true for these targets. `Handler.forward` then records `upstream_complete=True` (barrier lines166–171), and the owner barrier can approve continuation despite exactly the unknown downstream work this fix is intended to block. Repeated leading slashes and absolute-form request targets also require classification according to the original parser rather than the raw prefix. This conclusion follows from the code; no request was executed.
+
+Required narrow repair: classify the request using the original gateway's URL parsing, segment filtering and decoding semantics, while forwarding the original target/method/headers/body unchanged. Reject nested599 for every equivalent proxy/admin route. Add pure regression variants for encoded proxy/admin segments and other source-equivalent request targets; verify that raw transport arguments remain unchanged. The existing tests cover only literal `/proxy/` and `/admin/` targets (`tests/test_flashrsi_pi_native_owner_v6.py:313–315`). Do not clear P-I1 or dispatch Pi until this is repaired and reviewed.
+
+The rest of the P-I1 repair is materially stronger: accepted/unparsed connections enter the ledger before handler dispatch; source work completion and client delivery are separate; sealed acceptance/backlog and outstanding requests are checked before the next owner; uncertain owners return before source export. A client disconnect after proven upstream completion remains a real recorded outcome, as required. The endpoint substitution changes generated public locations without rewriting request payloads, and service/template/helper bytes are now pinned. These observations do not override the bypass above or establish live HTTP/thread settlement.
+
+## P-I2 addressed
+
+`scripts/flashrsi_pi_owner_profile_v6.py:95–133` now opens the final descriptor with `O_NONBLOCK|O_NOFOLLOW`, checks regular-file type before reading, enforces the64MiB limit and rejects inconsistent size/mtime/ctime/length. Descriptor-relative parent traversal remains protected. The retained test exercises the actual helper in an isolated child with a parent deadline; this review inspected that test and the retained reported outcome without rerunning it. The original FIFO-before-type-check defect is closed by the code change.
+
+## P-I3 addressed
+
+`scripts/flashrsi_pi_owner_profile_v6.py:389–426` now requires completed official status, successful process-backend gateway reset with matching case and all expected service results, matching exported case/run/status/result/mock metadata, and matching host case/Snapshot identity. The export's known pending measurement flag is handled explicitly while actual native outcomes/text remain identical. The independently archived mock receipt is checked against the embedded receipt at lines379–383. The added complete, real-shaped admission fixture and individual corruptions cover the previously absent checks. This closes the specific admission gaps reported in round0; it does not claim independent reconstruction of the archived native projection.
+
+## Evidence and unverified gates
+
+The implementation report retains `39 passed in1.47s` and five-module compilation as author verification evidence; neither was rerun here. Genuine native multi-owner continuation, actual summary/compaction/provider behavior, backend context fit, HTTP forwarding/settlement, Linux namespace cleanup, private reset/privacy/source export/evaluation/fallback and full128 completion within unchanged budgets remain unexecuted runtime gates. After P-I1's remaining bypass is fixed and reviewed, those gates belong to the authorized genuine new full128 H0 and matched six RSI runs, with existing judge requirements. No historical outcome, active queue or workload was changed by this review.

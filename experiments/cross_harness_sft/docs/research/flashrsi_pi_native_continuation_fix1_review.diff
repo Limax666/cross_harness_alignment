@@ -1,0 +1,1411 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_implementation_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_implementation_20261117.md
+index 8abf6ea..910a800 100644
+--- a/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_implementation_20261117.md
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_implementation_20261117.md
+@@ -57,10 +57,41 @@ HR_HARNESS=pi HARNESSRISK_MODEL_PORT=18764 HR_STRICT_EVOLUTION=1 \
+  HR_EVOLUTION_CASE_ATTEMPTS=1 HR_WORKER_MAX_TOKENS=1024 \
+  HR_HOST_SCRIPT=flashrsi_harnessrisk_host_pi_native_owner_v6.py \
+  HR_OUTPUT_ROOT="$PI_NEW_BASE" HR_INITIAL_REFERENCE="$PI_NEW_BASE/pi_initial_full" \
+  PYTHONPATH=src:scripts:vendor/FlashRSI .venv-rl-pilot/bin/python \
+  scripts/flashrsi_harnessrisk_pi_native_owner_reference_v6.py --algorithm gepa
+ ```
+ 
+ The same reference hook supports each of the other five unchanged algorithm names. A fresh all128 valid H0 and identical profile/source/code bindings are required first; H0 code drift, a changed initial Snapshot, mismatched manifests or failed private evidence block evolution. The reference hook never imports old scores or changes the source reward. Root must handle endpoint capacity/queue registration; the active queue and successor were untouched.
+ 
+ Remaining gates: independent review; genuine full128 H0 native/session/provider/process/source evidence; actual summary normalization/counters under the selected runtime; Qwen/backend context fit rather than estimator assumptions; full owner completion within unchanged case envelope; real private grader/privacy/reset identity and Linux cleanup; then matching six RSI results and existing judge requirements. Any failure remains raw and invalid, with no metric imputation or fabricated answer. Claude is still separately blocked and is not repaired by this Pi task.
++
++## Review fix round1: P-I1 / P-I2 / P-I3
++
++Reviewed the complete independent report `docs/research/flashrsi_pi_native_continuation_review_20261117.md` against checkpoint `c78577e`, read the fix-loop/review/verification skills, and accepted all three Important findings. This is one scoped fix wave for independent re-review, not runtime clearance. No active/old/vendor/SDK/Snapshot files, queues or historical outcomes were edited. No source program, native agent/tool, real HTTP/socket service, model/API/GPU/Docker/engine/workload operation or subagent was run. The FIFO regression alone starts an isolated Python child running only this pure reader and enforces a2s parent deadline.
++
++**P-I1 — trusted mock work barrier.** New `scripts/flashrsi_pi_owner_mock_barrier_v6.py` replaces only the allowed target mock endpoint with a trusted case-local raw HTTP pass-through. The upstream remains the original process-backend gateway; its port and all direct service ports remain outside target Landlock permissions. Allowed target ports remain exactly one model port and one mock port. New `scripts/flashrsi_pi_owner_mock_manager_v6.py` calls the original source adapter unchanged, wrapping only `initialize_workspace`/`initialize_state` public-location arguments and the gateway process's `MOCK_GATEWAY_PUBLIC_URL`. Thus original adapter templates/before-snapshot/state initialization generate the substituted location directly; source files/case content, auth, request methods/targets/custom headers and request/response bodies are not rewritten. Original gateway `/catalog` advertises the substituted public location. `mock_transport_mapping.json` records both locations/backend and the transport-only compatibility change. This same frozen profile is required for fresh H0 and six RSI.
++
++The ledger counts each accepted connection before parsing or spawning its handler, preserves method/path and payload/header hashes, and separates actual complete upstream response from delivery to the actor. The original method/headers/body bytes go to the original gateway; original response status/headers/body bytes return unchanged. An early client disconnect is retained as `response_delivered=False` and can remain eligible when upstream completion is proven, preserving already committed harm. Missing/partial/unparsed requests, forwarding failures and nested gateway599 are uncertain and invalidate the case. Unknown source work is never cleared by the allowed service process tree.
++
++After actual target child exit and PID-namespace census, the controller seals the owner, stops the acceptance loop, accounts/rejects queued unparsed listen-backlog connections, waits on actual outstanding-request completion notifications inside the remaining original360s owner envelope, then closes the listener. The next owner reopens the same public location only after successful settlement. No fixed sleep is a settlement proof; deadline expiry is failure. Per-owner private `.mock.json` and the embedded receipt must match and are independently revalidated by admission. Uncertain/failed owners retain failure/session/request evidence and return invalid **before source export/evaluation**, so no exporter races unknown mutations.
++
++Static source basis, bound by the expanded source manifest: `HarnessRisk/services/common/mock_server.py:88–93,123–127` atomically replace state before returning; `_dispatch:272–291` calls the actual handler before sending its response. `services/mock_gateway/app.py:136–149,199–225` synchronously waits for downstream service responses, but returns wrapper status599 for uncertainty; that path is explicitly rejected. The inspected service modules contain no asynchronous/background task dispatch beyond the HTTP server's request threads. No response alone can certify an unpinned evolved service implementation. `source_pins()` now includes both helper modules (names match the existing `*pi*owner*v6.py` glob), all original service Python files and all original adapter template files, in addition to the original profile/source identities.
++
++**P-I2 — bounded nonblocking native archive.** The final descriptor now uses `O_RDONLY|O_NOFOLLOW|O_NONBLOCK`, then verifies a regular file before reading. Parent directories retain descriptor-relative `O_DIRECTORY|O_NOFOLLOW`. Reads enforce a64MiB maximum using initial size plus a bounded running byte count, and reject size/mtime/ctime changes or inconsistent length during archival. This covers normal, failure and final archives through the same helper; no FIFO open blocks before type rejection. Symlink checks remain in force. Oversize/unstable archives fail closed rather than truncating history.
++
++**P-I3 — independent source/mock/host identity closure.** Admission now requires the single official run to have the requested case and actual status`completed`, in addition to finite original metrics. It requires original process-backend startup, actual successful gateway reset200/ok, matching reset case ID, all eight actual service reset results with200/ok and matching case/service identities (filesystem's published reset body legitimately omits its service name). It checks the exported trajectory case/run/status, exact exported pending-stage result including Snapshot/owners/native outcomes/text, and exact source mock startup/gateway metadata. Only the export's known pending measurement flag differs from the final admitted wrapper; raw native errors/empty output and source scores remain unchanged. Host proof now additionally binds requested case ID and Snapshot ID. A separately archived mock receipt must match the trusted supervisor receipt.
++
++Verification used the existing task workflow; no new verification skill was needed. Added actual retained Pi041 native/metadata shapes assembled solely as a pure admission fixture, individual official/reset/service/export/host corruption checks, pending mock work despite an otherwise permitted service tree, exact raw transport forwarding, nested599 rejection, actual handler client-disconnect behavior, queued unparsed connection rejection and endpoint-only original-manager wrappers. The controller/handler tests use in-memory transport/server stand-ins and never open sockets or execute source services. The FIFO check exercises the real final-open/read guard with a bounded parent deadline. Existing symlink/provider/native/source guard tests remain intact.
++
++Exact commands from MAIN:
++
++```bash
++PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_pi_native_owner_v6.py -k 'fifo or archive_size or mock_barrier or mock_transport or complete_admission' > docs/research/flashrsi_pi_native_owner_v6_fix1_red_20261117.log 2>&1
++PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_pi_native_owner_v6.py > docs/research/flashrsi_pi_native_owner_v6_fix1_green_20261117.log 2>&1
++.venv-rl-pilot/bin/python -m py_compile scripts/flashrsi_pi_owner_profile_v6.py scripts/flashrsi_pi_owner_mock_barrier_v6.py scripts/flashrsi_pi_owner_mock_manager_v6.py scripts/flashrsi_harnessrisk_pi_native_owner_supervisor_v6.py scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py
++git diff --check -- scripts/flashrsi_pi_owner_profile_v6.py scripts/flashrsi_harnessrisk_pi_native_owner_supervisor_v6.py scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py tests/test_flashrsi_pi_native_owner_v6.py
++```
++
++Retained pre-fix red output: `15 failed, 1 passed, 20 deselected in3.66s` (expected missing guards, FIFO child deadline and accepted corruptions). Final green output: `39 passed in1.47s`, exit0. All five changed/new executable modules compiled exit0 without stdout; tracked diff whitespace check exit0. Logs survive temporary fixture cleanup and are scoped commit evidence.
++
++Remaining limits are unchanged: no actual native multi-owner/summary/tokenizer/source/private evaluator/HTTP threading/namespace runtime path was exercised. Full source-projection reconstruction is **not** independently repeated by `validate_case`: it validates archived hashes/prefix and the pinned trusted-entry assertion; the live entry compares the actual selected runtime's `Session.messages()` projection. This is not a formal or independently reconstructed projection proof. Real per-request mock commit/settlement, namespace teardown, source reset/privacy/export/grade and full128 completion remain gates of the authorized genuine fresh H0 after independent fix review. All three findings are submitted as addressed by implementation/tests, with no deployment claim.
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_owner_v6_fix1_green_20261117.log b/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_owner_v6_fix1_green_20261117.log
+new file mode 100644
+index 0000000..d9a4c03
+--- /dev/null
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_owner_v6_fix1_green_20261117.log
+@@ -0,0 +1,2 @@
++.......................................                                  [100%]
++39 passed in 1.47s
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_owner_v6_fix1_red_20261117.log b/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_owner_v6_fix1_red_20261117.log
+new file mode 100644
+index 0000000..4bced33
+--- /dev/null
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_pi_native_owner_v6_fix1_red_20261117.log
+@@ -0,0 +1,442 @@
++FFFF.FFFFFFFFFFF                                                         [100%]
++=================================== FAILURES ===================================
++___________ test_fifo_archive_rejected_with_bounded_parent_deadline ____________
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_fifo_archive_rejected_wit0')
++
++    def test_fifo_archive_rejected_with_bounded_parent_deadline(tmp_path):
++        import os
++        import subprocess
++        fifo = tmp_path / 'session.jsonl'
++        os.mkfifo(fifo)
++        code = ('from flashrsi_pi_owner_profile_v6 import read_native_session, ProfileError\n'
++                'import sys\ntry: read_native_session(sys.argv[1], sys.argv[2])\n'
++                'except ProfileError as e: print(e); raise SystemExit(0)\nraise SystemExit(2)')
++>       result = subprocess.run([sys.executable, '-c', code, str(fifo), str(tmp_path)],
++                                capture_output=True, text=True, timeout=2)
++
++tests/test_flashrsi_pi_native_owner_v6.py:252: 
++_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
++../../../miniforge3/envs/cross-harness-sft/lib/python3.11/subprocess.py:550: in run
++    stdout, stderr = process.communicate(input, timeout=timeout)
++                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++../../../miniforge3/envs/cross-harness-sft/lib/python3.11/subprocess.py:1209: in communicate
++    stdout, stderr = self._communicate(input, endtime, timeout)
++                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++../../../miniforge3/envs/cross-harness-sft/lib/python3.11/subprocess.py:2116: in _communicate
++    self._check_timeout(endtime, orig_timeout, stdout, stderr)
++_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
++
++self = <Popen: returncode: -9 args: ['/data/home/liumingxiao/cross_harness_alignmen...>
++endtime = 16409550.978686232, orig_timeout = 2, stdout_seq = [], stderr_seq = []
++skip_check_and_raise = False
++
++    def _check_timeout(self, endtime, orig_timeout, stdout_seq, stderr_seq,
++                       skip_check_and_raise=False):
++        """Convenience for checking if a timeout has expired."""
++        if endtime is None:
++            return
++        if skip_check_and_raise or _time() > endtime:
++>           raise TimeoutExpired(
++                    self.args, orig_timeout,
++                    output=b''.join(stdout_seq) if stdout_seq else None,
++                    stderr=b''.join(stderr_seq) if stderr_seq else None)
++E           subprocess.TimeoutExpired: Command '['/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python', '-c', 'from flashrsi_pi_owner_profile_v6 import read_native_session, ProfileError\nimport sys\ntry: read_native_session(sys.argv[1], sys.argv[2])\nexcept ProfileError as e: print(e); raise SystemExit(0)\nraise SystemExit(2)', '/tmp/pytest-of-liumingxiao/pytest-305/test_fifo_archive_rejected_wit0/session.jsonl', '/tmp/pytest-of-liumingxiao/pytest-305/test_fifo_archive_rejected_wit0']' timed out after 2 seconds
++
++../../../miniforge3/envs/cross-harness-sft/lib/python3.11/subprocess.py:1253: TimeoutExpired
++_____________ test_archive_size_and_concurrent_growth_are_bounded ______________
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_archive_size_and_concurre0')
++
++    def test_archive_size_and_concurrent_growth_are_bounded(tmp_path):
++        from flashrsi_pi_owner_profile_v6 import read_native_session, ProfileError
++        path = tmp_path / 'session.jsonl'
++        path.write_bytes(b'x' * 17)
++        with pytest.raises(ProfileError, match='size'):
++>           read_native_session(path, tmp_path, max_bytes=16)
++E           TypeError: read_native_session() got an unexpected keyword argument 'max_bytes'
++
++tests/test_flashrsi_pi_native_owner_v6.py:262: TypeError
++_ test_mock_barrier_requires_real_completed_requests_not_permitted_process_tree _
++
++    def test_mock_barrier_requires_real_completed_requests_not_permitted_process_tree():
++>       from flashrsi_pi_owner_mock_barrier_v6 import RequestLedger
++E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_mock_barrier_v6'
++
++tests/test_flashrsi_pi_native_owner_v6.py:267: ModuleNotFoundError
++_ test_mock_transport_preserves_actual_bytes_headers_and_rejects_downstream_599 _
++
++    def test_mock_transport_preserves_actual_bytes_headers_and_rejects_downstream_599():
++>       from flashrsi_pi_owner_mock_barrier_v6 import forward_http, response_settled
++E       ModuleNotFoundError: No module named 'flashrsi_pi_owner_mock_barrier_v6'
++
++tests/test_flashrsi_pi_native_owner_v6.py:290: ModuleNotFoundError
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[official_status] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe1')
++corruption = 'official_status'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[reset_ok] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe2')
++corruption = 'reset_ok'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[reset_case] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe3')
++corruption = 'reset_case'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[service_reset] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe4')
++corruption = 'service_reset'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[export_case] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe5')
++corruption = 'export_case'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[export_status] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe6')
++corruption = 'export_status'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[export_result] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe7')
++corruption = 'export_result'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[export_mock] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe8')
++corruption = 'export_mock'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[host_case] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe9')
++corruption = 'host_case'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[host_snapshot] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe10')
++corruption = 'host_snapshot'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++_ test_complete_admission_independently_binds_actual_metadata_and_official_status[mock_pending] _
++
++tmp_path = PosixPath('/tmp/pytest-of-liumingxiao/pytest-305/test_complete_admission_indepe11')
++corruption = 'mock_pending'
++
++    @pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++        'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++    def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++        from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++        owner, source = admission_fixture(tmp_path)
++        mutations = {
++            'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++            'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++            'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++            'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++            'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++            'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++            'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++            'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++            'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++            'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++            'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++        }
++        if corruption:
++            name, mutate = mutations[corruption]
++            value = json.loads((tmp_path / name).read_text())
++            mutate(value)
++            save_json(tmp_path / name, value)
++>           with pytest.raises(ProfileError):
++E           Failed: DID NOT RAISE ProfileError
++
++tests/test_flashrsi_pi_native_owner_v6.py:391: Failed
++=========================== short test summary info ============================
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_fifo_archive_rejected_with_bounded_parent_deadline
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_archive_size_and_concurrent_growth_are_bounded
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_mock_barrier_requires_real_completed_requests_not_permitted_process_tree
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_mock_transport_preserves_actual_bytes_headers_and_rejects_downstream_599
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[official_status]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[reset_ok]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[reset_case]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[service_reset]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[export_case]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[export_status]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[export_result]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[export_mock]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[host_case]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[host_snapshot]
++FAILED tests/test_flashrsi_pi_native_owner_v6.py::test_complete_admission_independently_binds_actual_metadata_and_official_status[mock_pending]
++15 failed, 1 passed, 20 deselected in 3.66s
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py
+index 12a2a54..2e088f9 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py
+@@ -19,20 +19,24 @@ HOST = 'flashrsi_harnessrisk_host_pi_native_owner_v6.py'
+ 
+ def source_pins():
+     paths = list((ROOT / 'scripts').glob('flashrsi*pi*owner*v6.py'))
+     paths += [ROOT / 'scripts' / name for name in (
+         'flashrsi_harnessrisk_sandbox.py', 'flashrsi_harnessrisk_privacy.py', 'flashrsi_gateway.py',
+         'flashrsi_model_relay.py', 'flashrsi_landlock.py', 'flashrsi_native_seccomp.py',
+         'flashrsi_native_sandbox_exec.py', 'flashrsi_harnessrisk_benchmark.py', 'flashrsi_harnessrisk_algorithm.py')]
+     paths += [ROOT / 'vendor/FlashRSI/flashrsi' / name for name in (
+         'agents/pi_agent/__init__.py', 'core/agent.py', 'core/snapshot.py', 'core/trajectory.py')]
+     paths += [PROJECT / 'HarnessRisk/harness_adapter' / name for name in ('harness_adapter.py', 'scripts/evaluate_run.py')]
++    # The barrier relies on synchronous dispatch/save-before-response and the
++    # original manager's endpoint generation. Bind every service/template byte.
++    paths += list((PROJECT / 'HarnessRisk/services').rglob('*.py'))
++    paths += [p for p in (PROJECT / 'HarnessRisk/harness_adapter/templates').rglob('*') if p.is_file()]
+     return {str(p.relative_to(PROJECT)): byte_hash(p.read_bytes()) for p in sorted(set(paths))}
+ 
+ 
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--base', type=Path, required=True)
+     parser.add_argument('--snapshot', type=Path, required=True)
+     args = parser.parse_args()
+     if os.environ.get('HR_HARNESS') != 'pi' or os.environ.get('HARNESSRISK_MODEL_PORT') != '18764':
+         raise ProfileError('explicit_Pi_GPU1_endpoint_required')
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_supervisor_v6.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_supervisor_v6.py
+index a17b481..8a0be47 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_supervisor_v6.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_supervisor_v6.py
+@@ -9,20 +9,21 @@ import secrets
+ import subprocess
+ import sys
+ import tempfile
+ import threading
+ import time
+ import urllib.parse
+ 
+ from flashrsi_pi_owner_profile_v6 import (CONTRACT, PROFILE, ProfileError, byte_hash, digest,
+     save_json, save_bytes, session_receipt, terminal_receipt, provider_receipt, process_receipt, read_native_session,
+     target_config, snapshot_source_map)
++from flashrsi_pi_owner_mock_barrier_v6 import MockBarrier
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+ BENCH = ROOT.parents[1] / 'HarnessRisk'
+ ADAPTER, DATA = BENCH / 'harness_adapter/harness_adapter.py', BENCH / 'data/HarnessRisk'
+ MODEL = 'qwen35-4b-preflight'
+ 
+ 
+ def census():
+     result = {}
+     for path in Path('/proc').glob('[0-9]*/stat'):
+@@ -70,36 +71,39 @@ def main():
+         def abort(self): gate_errors.append('gateway_request_invalid')
+     class Dispatcher:
+         def dispatch(self, *_args): raise ProfileError('unexpected_extra_tool_gateway')
+     token = secrets.token_urlsafe(32)
+     server = create_gateway(Proxy(), Dispatcher(), Gate(), token)
+     thread = threading.Thread(target=server.serve_forever, daemon=True)
+     thread.start()
+     with tempfile.TemporaryDirectory(prefix='hr-supervisor-') as temporary:
+         tmp = Path(temporary)
+         manager, session_file = None, None
++        mock_barrier = MockBarrier(case, snapshot.id)
+         try:
+             with (tmp / 'manager.out').open('w') as out, (tmp / 'manager.err').open('w') as err:
+-                manager = subprocess.Popen([sys.executable, str(ADAPTER), 'serve-mocks', '--mock-backend', 'process',
++                manager = subprocess.Popen([sys.executable, str(ROOT / 'scripts/flashrsi_pi_owner_mock_manager_v6.py'),
++                    mock_barrier.url, 'serve-mocks', '--mock-backend', 'process',
+                     '--run-root', str(root), '--run-id', case, '--data-dir', str(DATA), '--case-id', case,
+                     '--harness', 'pi'], stdout=out, stderr=err, start_new_session=True,
+                     env={**os.environ, 'HARNESSRISK_PRIVATE_CASE': '1'})
+             deadline, info = time.monotonic() + 90, None
+             while time.monotonic() < deadline:
+                 if manager.poll() is not None:
+                     raise ProfileError('mock_manager_exited:' + (tmp / 'manager.err').read_text()[-1000:])
+                 try:
+                     info = json.loads((tmp / 'manager.out').read_text())
+                     break
+                 except (json.JSONDecodeError, FileNotFoundError): time.sleep(.25)
+             if info is None:
+                 raise ProfileError('mock_manager_startup_timeout')
++            mock_barrier.upstream = info['gateway']
+             work = Path(info['workspace']).resolve()
+             if work != (path / 'workspace').resolve():
+                 raise ProfileError('mock_workspace_identity_changed')
+             save_json(path / 'privacy_audit.json', audit_case_inputs(path))
+             scratch = tmp / 'scratch'
+             scratch.mkdir()
+             (scratch / 'native-case').mkdir()
+             session_file = scratch / 'native-case/pi-session.jsonl'
+             private = path / 'native_session'
+             private.mkdir(mode=0o700)
+@@ -114,27 +118,34 @@ def main():
+             manager_start = census()[manager.pid]['start']
+             result['mock_manager_identity'] = {'pid': manager.pid, 'start': manager_start}
+             before, session_id = b'', None
+             failure = None
+             with snapshot._export(full=True) as exported:
+                 entry = str(ROOT / 'scripts/flashrsi_harnessrisk_pi_native_owner_entry_v6.py')
+                 ro = sorted(set(['/usr', '/lib', '/lib64', '/etc/ssl/certs', str(Path(sys.prefix).resolve()),
+                     str(Path(sys.base_prefix).resolve()), str(Path(exported).resolve()), str(ROOT / 'scripts'),
+                     str(ROOT / 'vendor/FlashRSI')]))
+                 env = {'PATH': str(work / 'bin') + ':' + str(Path(sys.executable).parent) + ':/usr/bin:/bin',
+-                    'LANG': 'C.UTF-8', 'HOME': str(scratch), 'TMPDIR': str(scratch), 'MOCK_GATEWAY_BASE_URL': info['gateway']}
++                    'LANG': 'C.UTF-8', 'HOME': str(scratch), 'TMPDIR': str(scratch), 'MOCK_GATEWAY_BASE_URL': mock_barrier.url}
+                 sandbox = {'python': sys.executable, 'entry': entry, 'readonly': ro, 'writable': [str(work), str(scratch)],
+-                    'ports': [server.server_port, urllib.parse.urlsplit(info['gateway']).port], 'environment': env}
++                    'ports': [server.server_port, mock_barrier.server.server_port], 'environment': env}
+                 save_json(path / 'runtime_environment_evidence.json', {'profile': PROFILE,
+                     'sandbox_policy_unchanged': True, 'sandbox': {k: v for k, v in sandbox.items() if k != 'environment'},
+                     'python_bin_on_path': str(Path(sys.executable).parent), 'contract': CONTRACT})
++                save_json(path / 'mock_transport_mapping.json', {'case_id': case, 'snapshot_id': snapshot.id,
++                    'public_gateway': mock_barrier.url, 'original_gateway': info['gateway'],
++                    'original_backend': info['backend'], 'allowed_target_mock_ports': [mock_barrier.server.server_port],
++                    'mapping': 'transport endpoint only; original adapter generated URLs; original methods/headers/body/response bytes',
++                    'settlement': 'accepted/unparsed/listen backlog accounted; full upstream response; gateway599 invalid'})
+                 for index, owner in enumerate(owners, 1):
++                    owner_deadline = time.monotonic() + 360
++                    mock_barrier.open_owner(index, owner_deadline)
+                     offset = len(records)
+                     request = {'profile': PROFILE, 'harness': 'pi', 'question': owner, 'owner_index': index,
+                         'workspace_dir': str(exported), 'working_dir': str(work), 'session_file': str(session_file),
+                         'expected_session_sha256': byte_hash(before),
+                         'config': target_config(token, f'http://127.0.0.1:{server.server_port}/v1')}
+                     prefix = f'owner_{index:03d}'
+                     try:
+                         # Anonymous input keeps the ephemeral gateway capability
+                         # out of persistent experiment configuration/evidence.
+                         with tempfile.TemporaryFile(mode='w+', dir=scratch) as input_stream, \
+@@ -149,20 +160,22 @@ def main():
+                             except subprocess.TimeoutExpired:
+                                 child.kill()
+                                 child.wait(timeout=5)
+                                 raise ProfileError('native_sandbox_wall_timeout_requires_case_namespace_exit')
+                         if child.returncode:
+                             raise ProfileError('native_sandbox_failed:' + str(child.returncode))
+                         processes = census()
+                         if manager.poll() is not None or processes.get(manager.pid, {}).get('start') != manager_start:
+                             raise ProfileError('original_mock_manager_identity_or_liveness_lost')
+                         settlement = process_receipt(processes, manager.pid, namespace_pid=os.getpid())
++                        mock_settlement = mock_barrier.freeze()
++                        save_json(private / (prefix + '.mock.json'), mock_settlement)
+                         output = json.loads((private / (prefix + '.stdout.log')).read_text())
+                         native, boundaries = output['native'], output['boundaries']
+                         archive = read_native_session(session_file, scratch)
+                         save_bytes(private / (prefix + '.jsonl'), archive)
+                         save_json(private / (prefix + '.native.json'), native)
+                         save_json(private / (prefix + '.boundaries.json'), boundaries)
+                         save_json(private / (prefix + '.provider.json'), records[offset:])
+                         result['turns'].append({'owner_turn': index, 'prompt': owner, 'response_text': native['output'],
+                             'messages': native['events'], 'usage': native['usage'],
+                             'stop_reason': native['stop_reason'], 'native_status': native['status'],
+@@ -171,38 +184,47 @@ def main():
+                                 or output.get('owner_sha256') != digest(owner)
+                                 or output.get('session_before_sha256') != byte_hash(before)
+                                 or output.get('session_after_sha256') != byte_hash(archive)
+                                 or output.get('native_model_limits') != {'context_window': 32768, 'model_max_tokens': 4096}
+                                 or not isinstance(output.get('native_compaction_settings'), dict) or gate_errors):
+                             raise ProfileError('native_entry_boundary_identity_or_gateway_failure')
+                         session = session_receipt(before, archive, owner, str(work), session_id)
+                         terminal = terminal_receipt(native, owner)
+                         provider = provider_receipt(boundaries, records[offset:], native['usage'], owner)
+                         result['owner_receipts'].append({'owner_index': index, 'session': session, 'terminal': terminal,
+-                            'provider': provider, 'process_settlement': settlement,
++                            'provider': provider, 'process_settlement': settlement, 'mock_settlement': mock_settlement,
+                             'runtime_settings': {'native_model_limits': output['native_model_limits'],
+                                                  'native_compaction_settings': output['native_compaction_settings']},
+                             'session_archive': f'native_session/{prefix}.jsonl',
+                             'native_archive': f'native_session/{prefix}.native.json',
+                             'boundary_archive': f'native_session/{prefix}.boundaries.json',
++                            'mock_archive': f'native_session/{prefix}.mock.json',
+                             'provider_archive': f'native_session/{prefix}.provider.json'})
+                         before, session_id = archive, session['session_id']
+                         save_json(path / 'native_owner_progress.json', {'profile': PROFILE,
+                             'actual_owner_receipts': result['owner_receipts'], 'original_owner_hashes': result['original_owner_hashes']})
+                     except Exception as exc:
+                         failure = {'owner_index': index, 'type': type(exc).__name__, 'detail': str(exc)}
++                        save_json(path / 'mock_request_failure.json', {'failure': failure,
++                            'requests': mock_barrier.ledger.requests, 'failures': mock_barrier.ledger.failures})
+                         try:
+                             raw = read_native_session(session_file, scratch, missing_ok=True)
+                             if raw: save_bytes(private / (prefix + '.failed.jsonl'), raw)
+                         except ProfileError as archive_error:
+                             failure['archive_error'] = str(archive_error)
+                         break
++            # Invalid/uncertain work must never race the source exporter. A
++            # failed owner retains evidence and exits its owned case namespace.
++            if failure is not None:
++                result['failure'] = failure
++                save_json(path / 'harness_result.json', result)
++                return 2
+             complete = len(result['owner_receipts']) == len(owners) and failure is None
+             if complete:
+                 result.update(status='completed', driver_status='owner_schedule_completed')
+             result['failure'] = failure
+             save_json(path / 'harness_result.json', result)
+             (path / 'trajectory/hermes_turns.jsonl').write_text(''.join(json.dumps(t, ensure_ascii=False) + '\n' for t in result['turns']))
+             save_json(path / 'model_request_evidence.json', {'requests': [r['request'] for r in records],
+                 'responses': [r.get('response') for r in records], 'profile': PROFILE})
+             try:
+                 export = subprocess.run([sys.executable, str(ADAPTER), 'export', str(path), '--case-id', case, '--harness', 'pi'],
+@@ -230,20 +252,21 @@ def main():
+                               'measurement_valid': complete, 'native_outcomes': [r['terminal'] for r in result['owner_receipts']]}))
+             return 0 if complete else 2
+         finally:
+             try:
+                 if path.is_dir() and session_file is not None and session_file.exists():
+                     try:
+                         save_bytes(path / 'native_session/final_session.jsonl', read_native_session(session_file, scratch))
+                     except ProfileError as exc:
+                         save_json(path / 'native_session/final_archive_failure.json', {'error': str(exc)})
+             finally:
++                mock_barrier.close()
+                 if manager is not None:
+                     manager.terminate()
+                     try: manager.wait(timeout=30)
+                     except subprocess.TimeoutExpired: manager.kill(); manager.wait()
+                 server.shutdown()
+                 thread.join(timeout=5)
+                 server.server_close()
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_barrier_v6.py b/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_barrier_v6.py
+new file mode 100644
+index 0000000..8411fdf
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_barrier_v6.py
+@@ -0,0 +1,241 @@
++"""Trusted transport-only mock gate; no candidate/service code is executed here."""
++from __future__ import annotations
++
++import http.client
++from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
++import json
++import socket
++import threading
++import time
++from urllib.parse import urlsplit
++
++from flashrsi_pi_owner_profile_v6 import ProfileError, byte_hash, digest
++
++MAX_HTTP_BYTES = 64 * 1024 * 1024
++
++
++def forward_http(upstream, method, path, headers, body, *, timeout, connection_factory=http.client.HTTPConnection):
++    """Forward the original method, target, headers and payload without JSON rewriting."""
++    address = urlsplit(upstream)
++    if address.scheme != 'http' or address.hostname != '127.0.0.1' or not address.port:
++        raise ProfileError('mock_upstream_must_be_original_case_loopback')
++    connection = connection_factory(address.hostname, address.port, timeout=timeout)
++    try:
++        connection.putrequest(method, path, skip_host=True, skip_accept_encoding=True)
++        for name, value in headers:
++            connection.putheader(name, value)
++        connection.endheaders(body)
++        response = connection.getresponse()
++        raw = response.read(MAX_HTTP_BYTES + 1)
++        if len(raw) > MAX_HTTP_BYTES:
++            raise ProfileError('mock_response_archive_size_exceeded')
++        return response.status, response.reason, response.getheaders(), raw
++    finally:
++        connection.close()
++
++
++def response_settled(path, status, raw):
++    """A gateway599 can hide a still-running downstream service after its5s timeout."""
++    if status == 599:
++        return False
++    if path.split('?', 1)[0].startswith(('/proxy/', '/admin/')):
++        try: value = json.loads(raw)
++        except (ValueError, UnicodeError): return False
++        if isinstance(value, dict) and (value.get('status') == 599 or
++                any(isinstance(v, dict) and v.get('status') == 599 for v in value.get('results', {}).values())):
++            return False
++    return True
++
++
++class RequestLedger:
++    """A connection is pending from accept until full upstream response or failure."""
++    def __init__(self, case_id, snapshot_id):
++        self.case_id, self.snapshot_id = case_id, snapshot_id
++        self.condition = threading.Condition()
++        self.owner = 0
++        self.sealed = True
++        self.active, self.requests, self.failures = set(), [], []
++
++    def open_owner(self, index):
++        with self.condition:
++            if self.active or self.failures or not self.sealed or index != self.owner + 1:
++                raise ProfileError('mock_owner_boundary_not_settled')
++            self.owner, self.sealed, self.requests = index, False, []
++
++    def accept(self):
++        with self.condition:
++            identity = len(self.requests)
++            self.requests.append({'connection': identity + 1, 'owner_index': self.owner})
++            self.active.add(identity)
++            if self.sealed:
++                self.failures.append('connection_accepted_after_owner_seal')
++            return identity
++
++    def request(self, identity, method, path, headers, body):
++        with self.condition:
++            self.requests[identity].update(method=method, path=path, headers_sha256=digest(headers),
++                                           body_sha256=byte_hash(body))
++
++    def finish(self, identity, outcome):
++        with self.condition:
++            self.requests[identity].update(outcome)
++            if outcome.get('failure') or outcome.get('upstream_complete') is not True:
++                self.failures.append(outcome.get('failure', 'upstream_completion_unknown'))
++            self.active.discard(identity)
++            self.condition.notify_all()
++
++    def seal(self):
++        with self.condition:
++            self.sealed = True
++
++    def receipt(self):
++        with self.condition:
++            if not self.sealed or self.active:
++                raise ProfileError('mock_requests_pending')
++            if self.failures:
++                raise ProfileError('mock_requests_uncertain:' + ','.join(self.failures))
++            return {'case_id': self.case_id, 'snapshot_id': self.snapshot_id, 'owner_index': self.owner,
++                    'sealed': True, 'pending_connections': 0, 'settled': True,
++                    'request_count': len(self.requests), 'requests': [dict(r) for r in self.requests], 'failures': []}
++
++
++def validate_mock_receipt(value, case_id, snapshot_id, index):
++    if (not isinstance(value, dict) or value.get('case_id') != case_id or value.get('snapshot_id') != snapshot_id
++            or value.get('owner_index') != index or value.get('sealed') is not True
++            or value.get('settled') is not True or value.get('pending_connections') != 0
++            or value.get('accept_loop_stopped') is not True or value.get('backlog_drained') is not True
++            or value.get('failures') != [] or not isinstance(value.get('requests'), list)
++            or value.get('request_count') != len(value['requests'])):
++        raise ProfileError('actual_mock_request_settlement_missing_or_pending')
++    for sequence, request in enumerate(value['requests'], 1):
++        if (request.get('connection') != sequence or request.get('owner_index') != index
++                or request.get('upstream_complete') is not True or request.get('failure')
++                or not request.get('response_sha256') or 'method' not in request or 'path' not in request):
++            raise ProfileError('actual_mock_upstream_work_unsettled')
++    return value
++
++
++class MockBarrier:
++    """Pause acceptance and drain actual work after the target namespace census."""
++    def __init__(self, case_id, snapshot_id):
++        self.ledger = RequestLedger(case_id, snapshot_id)
++        self.upstream, self.deadline, self.thread = None, 0, None
++        barrier = self
++
++        class Server(ThreadingHTTPServer):
++            daemon_threads = True
++            block_on_close = False
++            def get_request(self):
++                connection, address = super().get_request()
++                identity = barrier.ledger.accept()
++                connection.settimeout(max(.001, barrier.deadline - time.monotonic()))
++                return (connection, identity), address
++            def shutdown_request(self, request):
++                connection, identity = request
++                if identity in barrier.ledger.active:
++                    barrier.ledger.finish(identity, {'failure': 'accepted_connection_unparsed_or_incomplete'})
++                super().shutdown_request(connection)
++
++        class Handler(BaseHTTPRequestHandler):
++            def __init__(self, request, address, server):
++                connection, self.identity = request
++                super().__init__(connection, address, server)
++            def log_message(self, *_args): pass
++            def handle(self):
++                try: super().handle()
++                finally:
++                    if self.identity in barrier.ledger.active:
++                        barrier.ledger.finish(self.identity, {'failure': 'accepted_request_unparsed_or_incomplete'})
++            def handle_one_request(self):
++                # Original mock services use HTTP/1.0 and one request per connection.
++                return super().handle_one_request()
++            def forward(self):
++                outcome = {}
++                try:
++                    size = int(self.headers.get('Content-Length', '0') or '0')
++                    if not 0 <= size <= MAX_HTTP_BYTES:
++                        raise ProfileError('mock_request_size_exceeded')
++                    body = self.rfile.read(size)
++                    if len(body) != size:
++                        raise ProfileError('mock_request_body_incomplete')
++                    headers = list(self.headers.raw_items())
++                    barrier.ledger.request(self.identity, self.command, self.path, headers, body)
++                    remaining = barrier.deadline - time.monotonic()
++                    if remaining <= 0:
++                        raise ProfileError('owner_deadline_before_mock_forward')
++                    status, reason, response_headers, raw = forward_http(barrier.upstream,
++                        self.command, self.path, headers, body, timeout=remaining)
++                    outcome.update(status=status, response_sha256=byte_hash(raw),
++                                   upstream_complete=response_settled(self.path, status, raw))
++                    if not outcome['upstream_complete']:
++                        outcome['failure'] = 'gateway_downstream_timeout_or_unobservable_response'
++                    try:
++                        self.send_response_only(status, reason)
++                        for name, value in response_headers: self.send_header(name, value)
++                        self.end_headers()
++                        self.wfile.write(raw)
++                        self.wfile.flush()
++                        outcome['response_delivered'] = True
++                    except (OSError, ValueError):
++                        # Actor exit does not undo upstream state already committed.
++                        outcome['response_delivered'] = False
++                except Exception as exc:
++                    outcome['failure'] = type(exc).__name__ + ':' + str(exc)
++                finally:
++                    barrier.ledger.finish(self.identity, outcome)
++                self.close_connection = True
++            do_GET = do_POST = do_PUT = do_DELETE = do_OPTIONS = do_HEAD = do_PATCH = forward
++
++        self._server_class, self._handler_class = Server, Handler
++        self.server = Server(('127.0.0.1', 0), Handler)
++        self.port = self.server.server_port
++        self.url = f'http://127.0.0.1:{self.server.server_port}'
++
++    def open_owner(self, index, deadline):
++        if not self.upstream or self.thread is not None:
++            raise ProfileError('mock_barrier_upstream_or_accept_loop_invalid')
++        if self.server.fileno() < 0:
++            self.server = self._server_class(('127.0.0.1', self.port), self._handler_class)
++        self.ledger.open_owner(index)
++        self.deadline = deadline
++        self.thread = threading.Thread(target=self.server.serve_forever, kwargs={'poll_interval': .01}, daemon=True)
++        self.thread.start()
++
++    def freeze(self):
++        self.ledger.seal()
++        if self.thread is not None:
++            self.server.shutdown()
++            self.thread.join()
++            self.thread = None
++        # No target process may survive the preceding namespace census. Stop
++        # accept before checking the listen backlog, including unparsed clients.
++        self.server.socket.setblocking(False)
++        try:
++            while True:
++                try: connection, _address = self.server.socket.accept()
++                except BlockingIOError: break
++                identity = self.ledger.accept()
++                connection.close()
++                self.ledger.finish(identity, {'failure': 'unparsed_connection_in_sealed_listen_backlog'})
++        finally:
++            self.server.socket.setblocking(True)
++        with self.ledger.condition:
++            while self.ledger.active:
++                remaining = self.deadline - time.monotonic()
++                if remaining <= 0:
++                    raise ProfileError('mock_requests_pending_at_unchanged_owner_deadline')
++                self.ledger.condition.wait(remaining)
++        receipt = self.ledger.receipt()
++        if time.monotonic() > self.deadline:
++            raise ProfileError('mock_settlement_exceeded_unchanged_owner_deadline')
++        # Close the paused listener as well: no latent previous-owner socket
++        # may be accepted when the same public location reopens for next owner.
++        self.server.server_close()
++        return dict(receipt, accept_loop_stopped=True, backlog_drained=True)
++
++    def close(self):
++        if self.thread is not None:
++            self.server.shutdown()
++            self.thread.join()
++            self.thread = None
++        self.server.server_close()
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_manager_v6.py b/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_manager_v6.py
+new file mode 100644
+index 0000000..1487160
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_manager_v6.py
+@@ -0,0 +1,40 @@
++"""Original mock manager with only its generated public endpoint substituted."""
++from __future__ import annotations
++
++import importlib.util
++from pathlib import Path
++import sys
++from urllib.parse import urlsplit
++
++
++def configure_original_manager(module, public):
++    """Substitute only runtime public locations in the original setup APIs."""
++    address = urlsplit(public)
++    if address.scheme != 'http' or address.hostname != '127.0.0.1' or not address.port or address.path:
++        raise ValueError('case_local_public_mock_gateway_required')
++    for name in ('initialize_workspace', 'initialize_state'):
++        original = getattr(module, name)
++        def with_public(args, paths, _upstream, _original=original):
++            return _original(args, paths, public)
++        setattr(module, name, with_public)
++    original_start = module.start_mock_process
++    def start(service, port, environment, paths):
++        if service == 'mock_gateway':
++            environment = dict(environment, MOCK_GATEWAY_PUBLIC_URL=public)
++        return original_start(service, port, environment, paths)
++    module.start_mock_process = start
++
++
++def main():
++    public = sys.argv[1]
++    adapter = Path(__file__).resolve().parents[3] / 'HarnessRisk/harness_adapter/harness_adapter.py'
++    spec = importlib.util.spec_from_file_location('pi_original_mock_adapter', adapter)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    configure_original_manager(module, public)
++    sys.argv = [str(adapter), *sys.argv[2:]]
++    return module.main()
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_profile_v6.py b/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_profile_v6.py
+index 62bf62c..89d264c 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_profile_v6.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_pi_owner_profile_v6.py
+@@ -85,42 +85,51 @@ def save_bytes(path, value):
+ 
+ def _unique(pairs):
+     value = {}
+     for key, item in pairs:
+         if key in value:
+             raise ProfileError('duplicate_session_JSON_key')
+         value[key] = item
+     return value
+ 
+ 
+-def read_native_session(path, scratch, *, missing_ok=False):
++def read_native_session(path, scratch, *, missing_ok=False, max_bytes=64 * 1024 * 1024):
+     """Read an untrusted scratch file without following any parent/file symlink."""
+     path, scratch = Path(path), Path(scratch).resolve(strict=True)
+     try:
+         parts = path.relative_to(scratch).parts
+     except ValueError as exc:
+         raise ProfileError('native_session_outside_scratch') from exc
+     if not parts or '..' in parts:
+         raise ProfileError('native_session_path_escape')
+     descriptors = []
+     try:
+         descriptors.append(os.open(scratch, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW))
+         for part in parts[:-1]:
+             descriptors.append(os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=descriptors[-1]))
+-        descriptors.append(os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=descriptors[-1]))
+-        if not stat.S_ISREG(os.fstat(descriptors[-1]).st_mode):
++        descriptors.append(os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=descriptors[-1]))
++        initial = os.fstat(descriptors[-1])
++        if not stat.S_ISREG(initial.st_mode):
+             raise ProfileError('native_session_not_regular_file')
+-        chunks = []
++        if type(max_bytes) is not int or max_bytes < 0 or initial.st_size > max_bytes:
++            raise ProfileError('native_session_archive_size_exceeded')
++        chunks, count = [], 0
+         while True:
+-            block = os.read(descriptors[-1], 65536)
++            block = os.read(descriptors[-1], min(65536, max_bytes - count + 1))
+             if not block: break
+             chunks.append(block)
++            count += len(block)
++            if count > max_bytes:
++                raise ProfileError('native_session_archive_size_exceeded')
++        final = os.fstat(descriptors[-1])
++        if (initial.st_size, initial.st_mtime_ns, initial.st_ctime_ns) != (final.st_size, final.st_mtime_ns, final.st_ctime_ns) or count != initial.st_size:
++            raise ProfileError('native_session_changed_during_archive')
+         return b''.join(chunks)
+     except FileNotFoundError:
+         if missing_ok: return b''
+         raise ProfileError('native_session_missing') from None
+     except OSError as exc:
+         raise ProfileError('native_session_symlink_or_unreadable') from exc
+     finally:
+         for descriptor in reversed(descriptors): os.close(descriptor)
+ 
+ 
+@@ -360,35 +369,65 @@ def validate_case(path, case_id, snapshot_id, owners=None, source_sha256=None, *
+         proof = receipt['process_settlement']
+         settings = receipt['runtime_settings']
+         if settings.get('native_model_limits') != {'context_window': 32768, 'model_max_tokens': 4096} or not isinstance(settings.get('native_compaction_settings'), dict):
+             raise ProfileError('actual_native_backend_limits_or_compaction_settings_missing')
+         manager = result['mock_manager_identity']
+         if (proof['mock_manager_pid'] != manager['pid']
+                 or proof['processes'][str(manager['pid'])]['start'] != manager['start']):
+             raise ProfileError('mock_manager_identity_changed_between_owners')
+         process_receipt({int(k): v for k, v in proof['processes'].items()},
+                         proof['mock_manager_pid'], namespace_pid=proof['namespace_pid'])
++        from flashrsi_pi_owner_mock_barrier_v6 import validate_mock_receipt
++        mock = json.loads(_inside(path, receipt['mock_archive']).read_text())
++        validate_mock_receipt(mock, case_id, snapshot_id, index)
++        if mock != receipt.get('mock_settlement'):
++            raise ProfileError('trusted_mock_request_archive_changed')
+         expected_host_records.extend((digest(r['request']['messages']), digest(r['response'])) for r in records)
+         before, session_id = archive, session['session_id']
+     privacy = json.loads((path / 'privacy_audit.json').read_text())
+     if privacy.get('protocol') != 'harnessrisk-private-case-v1' or privacy.get('roots') != ['workspace', 'seed_cases', 'mock_data']:
+         raise ProfileError('privacy_audit_missing')
+     grade = json.loads((path / 'official_rule_evaluation.json').read_text())['runs']
+-    if len(grade) != 1 or grade[0].get('case_id') != case_id:
++    if len(grade) != 1 or grade[0].get('case_id') != case_id or grade[0].get('status') != 'completed':
+         raise ProfileError('official_grade_identity_or_coverage_missing')
++    metadata = json.loads((path / 'adapter_metadata.json').read_text())
++    mock_start = metadata.get('mock_start', {})
++    reset = mock_start.get('reset', {})
++    body = reset.get('body', {})
++    services = {'mock_email', 'mock_slack', 'mock_browser', 'mock_filesystem', 'mock_skill_marketplace',
++                'mock_payment_api', 'mock_github', 'mock_ci_cd'}
++    resets = body.get('results', {})
++    if (mock_start.get('started') is not True or mock_start.get('backend') != 'process'
++            or reset.get('ok') is not True or reset.get('status') != 200
++            or body.get('ok') is not True or body.get('case_id') != case_id or set(resets) != services):
++        raise ProfileError('actual_mock_reset_missing_failed_or_wrong_case')
++    for name, entry in resets.items():
++        response = entry.get('body', {})
++        if (entry.get('status') != 200 or response.get('ok') is not True
++                or response.get('case_id') != case_id or response.get('service', name) != name):
++            raise ProfileError('actual_mock_service_reset_missing_failed_or_wrong_case:' + name)
++    exported = json.loads((path / 'trajectory/trajectory.json').read_text())
++    # Source export occurs before independent admission; its pending validity
++    # flag is preserved. All actual native outcomes and text must be identical.
++    expected_result = dict(result, measurement_validity={'valid': False, 'profile': PROFILE})
++    if (exported.get('case_id') != case_id or exported.get('run_id') != case_id
++            or exported.get('status') != 'completed' or exported.get('result') != expected_result
++            or exported.get('mock') != {'start': mock_start, 'gateway_base_url': metadata.get('mock_gateway_base_url')}):
++        raise ProfileError('source_export_identity_status_result_or_mock_changed')
+     metrics = grade[0]['metrics']
+     for name in ('utility_score', 'attack_success_rate', 'persistence_score', 'detection_score'):
+         value = metrics.get(name)
+         if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1:
+             raise ProfileError('official_metric_missing_or_invalid:' + name)
+     if require_host:
+         host = json.loads((path / 'native_owner_host.json').read_text())
+-        if (host.get('profile') != PROFILE or host.get('returncode') != 0 or host.get('namespace_exited') is not True
++        if (host.get('profile') != PROFILE or host.get('case_id') != case_id or host.get('snapshot_id') != snapshot_id
++                or host.get('returncode') != 0 or host.get('namespace_exited') is not True
+                 or host.get('model_requests_settled') is not True or host.get('timed_out') is not False):
+             raise ProfileError('host_namespace_cleanup_or_outcome_unconfirmed')
+         records = json.loads((path / 'protocol_model_evidence.json').read_text())['requests']
+         if not records or any(r.get('failure') or not r.get('response_sha256') for r in records):
+             raise ProfileError('trusted_host_provider_failure')
+         if [(r.get('forwarded_messages_sha256'), r.get('response_sha256')) for r in records] != expected_host_records:
+             raise ProfileError('trusted_host_provider_receipts_differ_from_owner_boundaries')
+     return {'profile': PROFILE, 'owners': len(turns), 'bounded_owners': sum(r['terminal']['kind'] == 'native_max_turns' for r in receipts),
+             'source_grade': grade[0], 'snapshot_id': snapshot_id, 'measurement_valid': True}
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_pi_native_owner_v6.py b/experiments/cross_harness_sft/tests/test_flashrsi_pi_native_owner_v6.py
+index 35693f7..c5bb3bb 100644
+--- a/experiments/cross_harness_sft/tests/test_flashrsi_pi_native_owner_v6.py
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_pi_native_owner_v6.py
+@@ -133,20 +133,24 @@ def test_reference_hook_builds_only_new_benchmark_and_keeps_original_six_algorit
+     assignment = next(n for n in tree.body if isinstance(n, ast.Assign)
+                       and any(isinstance(t, ast.Name) and t.id == 'ALGORITHMS' for t in n.targets))
+     assert {key.value for key in assignment.value.keys} == {'opro', 'gepa', 'evoprompt', 'ace', 'skillopt', 'evo_harness'}
+ 
+ 
+ def test_profile_identity_closure_pins_new_and_unchanged_source_paths():
+     from flashrsi_harnessrisk_pi_native_owner_initial_v6 import source_pins
+     pins = source_pins()
+     assert 'experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_entry_v6.py' in pins
+     assert 'HarnessRisk/harness_adapter/scripts/evaluate_run.py' in pins
++    assert 'experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_barrier_v6.py' in pins
++    assert 'experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_manager_v6.py' in pins
++    assert 'HarnessRisk/services/common/mock_server.py' in pins
++    assert 'HarnessRisk/services/mock_gateway/app.py' in pins
+     assert all(len(value) == 64 for value in pins.values())
+ 
+ 
+ def test_actual_native_model_limits_resolve_corrected_unknown_model_metadata():
+     """Execute only the original two pure metadata functions, no native runtime."""
+     import ast
+     from typing import Any, Mapping
+     from flashrsi_pi_owner_profile_v6 import target_config
+     native = ROOT / 'vendor/FlashRSI/flashrsi/agents/pi_agent/runtime/pi_native'
+     catalog = json.loads((native / 'model_limits.json').read_text())
+@@ -232,10 +236,230 @@ def test_all_call_observer_forwards_exact_original_arguments_and_reconciles_summ
+     assert provider_receipt(boundaries, records, {'model_calls': 2, 'summary_calls': 1}, owner)['requests'] == 2
+     records[1]['request'] = {'messages': [{'role': 'user', 'content': 'wrong summary input'}]}
+     with pytest.raises(ValueError): provider_receipt(boundaries, records, {'model_calls': 2, 'summary_calls': 1}, owner)
+ 
+ 
+ def test_native_projection_cannot_synthesize_missing_results_or_hide_errors():
+     from flashrsi_pi_owner_profile_v6 import projection_receipt, ProfileError
+     for context in ([{'role': 'assistant', 'stopReason': 'error', 'content': []}],
+                     [{'role': 'assistant', 'content': [{'type': 'toolCall', 'id': 'unfinished'}]}]):
+         with pytest.raises(ProfileError): projection_receipt(context)
++
++
++def test_fifo_archive_rejected_with_bounded_parent_deadline(tmp_path):
++    import os
++    import subprocess
++    fifo = tmp_path / 'session.jsonl'
++    os.mkfifo(fifo)
++    code = ('from flashrsi_pi_owner_profile_v6 import read_native_session, ProfileError\n'
++            'import sys\ntry: read_native_session(sys.argv[1], sys.argv[2])\n'
++            'except ProfileError as e: print(e); raise SystemExit(0)\nraise SystemExit(2)')
++    result = subprocess.run([sys.executable, '-c', code, str(fifo), str(tmp_path)],
++                            capture_output=True, text=True, timeout=2)
++    assert result.returncode == 0 and 'not_regular' in result.stdout
++
++
++def test_archive_size_and_concurrent_growth_are_bounded(tmp_path):
++    from flashrsi_pi_owner_profile_v6 import read_native_session, ProfileError
++    path = tmp_path / 'session.jsonl'
++    path.write_bytes(b'x' * 17)
++    with pytest.raises(ProfileError, match='size'):
++        read_native_session(path, tmp_path, max_bytes=16)
++    assert read_native_session(path, tmp_path, max_bytes=17) == b'x' * 17
++
++
++def test_mock_barrier_requires_real_completed_requests_not_permitted_process_tree():
++    from flashrsi_pi_owner_mock_barrier_v6 import RequestLedger
++    from flashrsi_pi_owner_profile_v6 import ProfileError
++    ledger = RequestLedger('case', 'snapshot')
++    ledger.open_owner(1)
++    identity = ledger.accept()
++    ledger.request(identity, 'POST', '/proxy/mock_payment_api/refund', [('X-Custom', 'unchanged')], b'{}')
++    ledger.seal()
++    with pytest.raises(ProfileError, match='pending'):
++        ledger.receipt()
++    ledger.finish(identity, {'upstream_complete': True, 'response_delivered': False,
++                             'status': 200, 'response_sha256': 'a' * 64})
++    receipt = ledger.receipt()
++    assert receipt['settled'] and receipt['request_count'] == 1
++    assert receipt['requests'][0]['response_delivered'] is False  # Client exit cannot erase committed work.
++    ledger.open_owner(2)
++    identity = ledger.accept()
++    ledger.seal()
++    ledger.finish(identity, {'failure': 'downstream_timeout'})
++    with pytest.raises(ProfileError, match='uncertain'):
++        ledger.receipt()
++
++
++def test_mock_transport_preserves_actual_bytes_headers_and_rejects_downstream_599():
++    from flashrsi_pi_owner_mock_barrier_v6 import forward_http, response_settled
++    calls = []
++    class Response:
++        status, reason = 403, 'Forbidden'
++        def getheaders(self): return [('Content-Type', 'application/json'), ('X-Test', 'original')]
++        def read(self, limit): return b'{"error":"normal permission denial"}'
++    class Connection:
++        def __init__(self, host, port, timeout): calls.append(('connect', host, port, timeout))
++        def putrequest(self, *args, **kwargs): calls.append(('request', args, kwargs))
++        def putheader(self, *args): calls.append(('header', args))
++        def endheaders(self, body): calls.append(('body', body))
++        def getresponse(self): return Response()
++        def close(self): calls.append(('close',))
++    headers = [('Authorization', 'unit-only-auth'), ('X-Custom', 'exact'), ('Content-Type', 'application/json')]
++    value = forward_http('http://127.0.0.1:4321', 'DELETE', '/proxy/x?case_id=a', headers, b'{ "id": 7 }',
++                         timeout=9, connection_factory=Connection)
++    assert value == (403, 'Forbidden', Response().getheaders(), b'{"error":"normal permission denial"}')
++    assert [c[1] for c in calls if c[0] == 'header'] == headers
++    assert ('body', b'{ "id": 7 }') in calls
++    assert response_settled('/proxy/x', value[0], value[3])
++    assert not response_settled('/proxy/x', 200, b'{"status":599,"error":"timed out"}')
++    assert not response_settled('/admin/reset_case', 200, b'{"results":{"mock_email":{"status":599}}}')
++
++
++def admission_fixture(path):
++    """Real retained native/metadata shapes, assembled only to exercise admission guards."""
++    from flashrsi_pi_owner_profile_v6 import (PROFILE, CONTRACT, digest, byte_hash, save_json, save_bytes,
++        session_receipt, terminal_receipt, provider_receipt, process_receipt)
++    native = retained()
++    header = next(e for e in native['events'] if e.get('type') == 'session')
++    messages = next(e['messages'] for e in reversed(native['events']) if e.get('type') == 'agent_end')
++    owner = messages[0]['content']
++    raw = session_bytes(messages, header)
++    evidence = json.loads((RETAINED / 'model_request_evidence.json').read_text())
++    records = [{'request': r, 'response': s} for r, s in zip(evidence['requests'], evidence['responses'])]
++    source = {'runtime/pi_native/loop.py': 'a' * 64}
++    context = [messages[0]]
++    boundaries = [{'kind': 'agent', 'wire_messages': r['request']['messages'], 'canonical_context': context,
++        'native_projected_context': context, 'session_sha256_at_request': byte_hash(raw),
++        'native_session_projection_sha256': digest(context),
++        'native_provider_source': {'path': 'runtime/pi_native/loop.py', 'sha256': 'a' * 64, 'qualname': '_provider_call'}}
++        for r in records]
++    processes = {1: {'ppid': 0, 'state': 'S', 'start': 1}, 2: {'ppid': 1, 'state': 'S', 'start': 2}}
++    mock = {'case_id': 'action_041', 'snapshot_id': 'snapshot', 'owner_index': 1, 'sealed': True,
++        'accept_loop_stopped': True, 'backlog_drained': True, 'pending_connections': 0,
++        'settled': True, 'request_count': 0, 'requests': [], 'failures': []}
++    receipt = {'owner_index': 1, 'session': session_receipt(b'', raw, owner, header['cwd']),
++        'terminal': terminal_receipt(native, owner), 'provider': provider_receipt(boundaries, records, native['usage'], owner),
++        'process_settlement': process_receipt(processes, 2, namespace_pid=1), 'mock_settlement': mock,
++        'runtime_settings': {'native_model_limits': {'context_window': 32768, 'model_max_tokens': 4096}, 'native_compaction_settings': {}},
++        **{k: 'native_session/' + v for k, v in [('session_archive', 'one.jsonl'), ('native_archive', 'one.native.json'),
++           ('boundary_archive', 'one.boundaries.json'), ('provider_archive', 'one.provider.json'), ('mock_archive', 'one.mock.json')]}}
++    result = {'execution_protocol': PROFILE, 'contract': CONTRACT, 'status': 'completed',
++        'driver_status': 'owner_schedule_completed', 'measurement_validity': {'valid': True, 'profile': PROFILE},
++        'snapshot_id': 'snapshot', 'case_id': 'action_041', 'native_source_sha256': source,
++        'working_dir': header['cwd'], 'original_owner_hashes': [digest(owner)], 'mock_manager_identity': {'pid': 2, 'start': 2},
++        'turns': [{'prompt': owner, 'messages': native['events'], 'usage': native['usage'], 'response_text': native['output']}],
++        'owner_receipts': [receipt]}
++    save_json(path / 'harness_result.json', result)
++    save_bytes(path / receipt['session_archive'], raw)
++    for key, value in [('native_archive', native), ('boundary_archive', boundaries), ('provider_archive', records), ('mock_archive', mock)]:
++        save_json(path / receipt[key], value)
++    save_json(path / 'privacy_audit.json', {'protocol': 'harnessrisk-private-case-v1', 'roots': ['workspace', 'seed_cases', 'mock_data']})
++    metadata = json.loads((RETAINED / 'adapter_metadata.json').read_text())
++    save_json(path / 'adapter_metadata.json', metadata)
++    exported_result = copy.deepcopy(result)
++    exported_result['measurement_validity']['valid'] = False
++    save_json(path / 'trajectory/trajectory.json', {'run_id': 'action_041', 'case_id': 'action_041', 'status': 'completed',
++        'result': exported_result, 'mock': {'start': metadata['mock_start'], 'gateway_base_url': metadata['mock_gateway_base_url']}})
++    save_json(path / 'official_rule_evaluation.json', {'runs': [{'case_id': 'action_041', 'status': 'completed',
++        'metrics': {name: 0.5 for name in ('utility_score', 'attack_success_rate', 'persistence_score', 'detection_score')}}]})
++    save_json(path / 'native_owner_host.json', {'profile': PROFILE, 'case_id': 'action_041', 'snapshot_id': 'snapshot',
++        'returncode': 0, 'namespace_exited': True, 'model_requests_settled': True, 'timed_out': False})
++    save_json(path / 'protocol_model_evidence.json', {'requests': [{'forwarded_messages_sha256': digest(r['request']['messages']),
++        'response_sha256': digest(r['response'])} for r in records]})
++    return owner, source
++
++
++@pytest.mark.parametrize('corruption', [None, 'official_status', 'reset_ok', 'reset_case', 'service_reset',
++    'export_case', 'export_status', 'export_result', 'export_mock', 'host_case', 'host_snapshot', 'mock_pending'])
++def test_complete_admission_independently_binds_actual_metadata_and_official_status(tmp_path, corruption):
++    from flashrsi_pi_owner_profile_v6 import validate_case, ProfileError, save_json
++    owner, source = admission_fixture(tmp_path)
++    mutations = {
++        'official_status': ('official_rule_evaluation.json', lambda v: v['runs'][0].update(status='error')),
++        'reset_ok': ('adapter_metadata.json', lambda v: v['mock_start']['reset'].update(ok=False)),
++        'reset_case': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body'].update(case_id='other')),
++        'service_reset': ('adapter_metadata.json', lambda v: v['mock_start']['reset']['body']['results']['mock_email'].update(status=599)),
++        'export_case': ('trajectory/trajectory.json', lambda v: v.update(case_id='other')),
++        'export_status': ('trajectory/trajectory.json', lambda v: v.update(status='error')),
++        'export_result': ('trajectory/trajectory.json', lambda v: v['result'].update(snapshot_id='other')),
++        'export_mock': ('trajectory/trajectory.json', lambda v: v['mock']['start']['reset'].update(ok=False)),
++        'host_case': ('native_owner_host.json', lambda v: v.update(case_id='other')),
++        'host_snapshot': ('native_owner_host.json', lambda v: v.update(snapshot_id='other')),
++        'mock_pending': ('harness_result.json', lambda v: v['owner_receipts'][0]['mock_settlement'].update(pending_connections=1)),
++    }
++    if corruption:
++        name, mutate = mutations[corruption]
++        value = json.loads((tmp_path / name).read_text())
++        mutate(value)
++        save_json(tmp_path / name, value)
++        with pytest.raises(ProfileError):
++            validate_case(tmp_path, 'action_041', 'snapshot', [owner], native_source=source)
++    else:
++        assert validate_case(tmp_path, 'action_041', 'snapshot', [owner], native_source=source)['measurement_valid']
++
++
++def test_actual_mock_handler_keeps_committed_work_after_client_disconnect(monkeypatch):
++    import io
++    import time
++    from types import SimpleNamespace
++    import flashrsi_pi_owner_mock_barrier_v6 as module
++    class UnboundServer:
++        def __init__(self, address, handler): self.server_port = 4321
++    monkeypatch.setattr(module, 'ThreadingHTTPServer', UnboundServer)
++    barrier = module.MockBarrier('case', 'snapshot')  # No socket/source program.
++    barrier.upstream, barrier.deadline = 'http://127.0.0.1:5432', time.monotonic() + 10
++    barrier.ledger.open_owner(1)
++    identity = barrier.ledger.accept()
++    handler = barrier._handler_class.__new__(barrier._handler_class)
++    handler.identity, handler.command, handler.path = identity, 'POST', '/proxy/mock_payment_api/refund'
++    handler.headers = SimpleNamespace(get=lambda name, default: '2', raw_items=lambda: [('X-Custom', 'unchanged')])
++    handler.rfile = io.BytesIO(b'{}')
++    def disconnected(*args): raise BrokenPipeError('actor already exited')
++    handler.send_response_only = disconnected
++    monkeypatch.setattr(module, 'forward_http', lambda *args, **kwargs: (200, 'OK', [], b'{"status":200,"body":{"ok":true}}'))
++    handler.forward()
++    barrier.ledger.seal()
++    receipt = barrier.ledger.receipt()
++    assert receipt['requests'][0]['upstream_complete'] is True
++    assert receipt['requests'][0]['response_delivered'] is False
++    assert receipt['requests'][0]['body_sha256'] == module.byte_hash(b'{}')
++
++
++def test_actual_barrier_rejects_unparsed_listen_backlog_without_sleep_or_network():
++    import time
++    from types import SimpleNamespace
++    from flashrsi_pi_owner_mock_barrier_v6 import MockBarrier, RequestLedger
++    from flashrsi_pi_owner_profile_v6 import ProfileError
++    barrier = MockBarrier.__new__(MockBarrier)
++    barrier.ledger = RequestLedger('case', 'snapshot')
++    barrier.ledger.open_owner(1)
++    barrier.thread, barrier.deadline = None, time.monotonic() + 10
++    closed, queue = [], [SimpleNamespace(close=lambda: closed.append(True))]
++    def accept():
++        if queue: return queue.pop(), ('127.0.0.1', 1234)
++        raise BlockingIOError()
++    barrier.server = SimpleNamespace(socket=SimpleNamespace(setblocking=lambda value: None, accept=accept))
++    with pytest.raises(ProfileError, match='uncertain'):
++        barrier.freeze()
++    assert closed and not barrier.ledger.active
++    assert 'unparsed_connection_in_sealed_listen_backlog' in barrier.ledger.failures
++
++
++def test_original_manager_wrappers_change_only_generated_endpoint_location():
++    from types import SimpleNamespace
++    from flashrsi_pi_owner_mock_manager_v6 import configure_original_manager
++    calls = []
++    def workspace(*args): calls.append(('workspace', args)); return 'original-workspace-result'
++    def state(*args): calls.append(('state', args)); return 'original-state-result'
++    def start(*args): calls.append(('start', args)); return 'original-process-result'
++    original = SimpleNamespace(initialize_workspace=workspace, initialize_state=state, start_mock_process=start)
++    configure_original_manager(original, 'http://127.0.0.1:4321')
++    args, paths, env = object(), object(), {'MOCK_GATEWAY_PUBLIC_URL': 'upstream', 'OTHER': 'unchanged'}
++    assert original.initialize_workspace(args, paths, 'upstream') == 'original-workspace-result'
++    assert original.initialize_state(args, paths, 'upstream') == 'original-state-result'
++    assert calls[:2] == [('workspace', (args, paths, 'http://127.0.0.1:4321')),
++                         ('state', (args, paths, 'http://127.0.0.1:4321'))]
++    assert original.start_mock_process('mock_gateway', 5432, env, paths) == 'original-process-result'
++    assert calls[-1][1][2] == {'MOCK_GATEWAY_PUBLIC_URL': 'http://127.0.0.1:4321', 'OTHER': 'unchanged'}
++    original.start_mock_process('mock_email', 5433, env, paths)
++    assert calls[-1][1][2] is env and env['MOCK_GATEWAY_PUBLIC_URL'] == 'upstream'

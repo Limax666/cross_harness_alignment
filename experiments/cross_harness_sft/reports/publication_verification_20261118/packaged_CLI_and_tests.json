@@ -1,0 +1,42 @@
+{
+  "at": "2026-11-18T12:41:54.960226+08:00",
+  "checks": [
+    {
+      "check": "train_v9_help",
+      "returncode": 0,
+      "args": [
+        "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python",
+        "scripts/train_hsrl_v9.py",
+        "--help"
+      ],
+      "log": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/rl/safe_rsi_publish_20261118/train_v9_help.log"
+    },
+    {
+      "check": "release_help",
+      "returncode": 0,
+      "args": [
+        "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python",
+        "-m",
+        "hsrl_v5.release",
+        "--help"
+      ],
+      "log": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/rl/safe_rsi_publish_20261118/release_help.log"
+    },
+    {
+      "check": "targeted_packaged_regressions",
+      "returncode": 0,
+      "args": [
+        "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/.venv-rl-pilot/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--tb=short",
+        "tests/test_hsrl_source_exception_repair_v1.py",
+        "tests/test_hsrl_source_recovery_v1.py",
+        "--junitxml=/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/rl/safe_rsi_publish_20261118/targeted_packaged_regressions.xml"
+      ],
+      "log": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/outputs/rl/safe_rsi_publish_20261118/targeted_packaged_regressions.log"
+    }
+  ],
+  "no_model_or_source_episode_started": true
+}

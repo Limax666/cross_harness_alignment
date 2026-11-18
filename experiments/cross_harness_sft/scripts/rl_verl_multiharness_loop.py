@@ -17,6 +17,7 @@ from rl_native_agentdojo_episode import NativeAgentDojoEpisode
 from rl_native_agentharm_episode import NativeAgentHarmEpisode
 from rl_multiharness_chat_template import benchmark_mcp_chat_template
 from rl_tool_attempt_audit import parse_strict_tool_turn
+from rl_generation_deadline import BackendGenerationTimeout
 
 
 class AuditAbstention(ValueError):
@@ -107,9 +108,18 @@ class NativeMultiharnessVeRLLoop(AgentLoopBase):
         # Keep the retry bounded so a systemic audit regression still fails
         # closed instead of hanging the training job indefinitely.
         if getattr(self, "whitebox", False):
-            output = await self._run_once(sampling_params, priority=priority, **kwargs)
-            output.extra_fields["multiharness_evidence"]["audit_retry_count"] = 0
-            return output
+            for attempt in range(3):
+                try:
+                    output = await self._run_once(sampling_params, priority=priority, **kwargs)
+                    evidence = output.extra_fields["multiharness_evidence"]
+                    evidence["audit_retry_count"] = 0
+                    evidence["generation_timeout_retries"] = attempt
+                    return output
+                except BackendGenerationTimeout:
+                    print(f"MULTIHARNESS_GENERATION_TIMEOUT_RETRY cell={kwargs.get('cell_id')} "
+                          f"attempt={attempt + 1}/3; fresh reset, discarded incomplete request", flush=True)
+                    if attempt == 2:
+                        raise
         for attempt in range(1, 9):
             try:
                 output = await self._run_once(sampling_params, priority=priority, **kwargs)

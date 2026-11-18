@@ -1,0 +1,107 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_report_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_report_20261117.md
+index 984f0ad..6bfb96f 100644
+--- a/experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_report_20261117.md
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_report_20261117.md
+@@ -1,9 +1,20 @@
+ # Finite ACE judge follow-up
+ 
+ Real active OpenCode ACE launcher ends after model stage; it does not start judge. New standalone scripts/flashrsi_ace_judge_followup_v17.py fills that gap after exact PID/starttick predecessors exit, without touching active code. It authenticates full128 manifest, waits, calls original strict inspect_run, refuses incomplete/invalid source stage, retains source result/manifest/selected hashes, blocks on timeout/cleanup uncertainty, and uses existing queue.schedule_judge sharedlease/cached-success/billinggate with no overwrite. Only finite judge worker, no model/service/cron. Actual live/API path not yet launched.
+ 
+ Pure read-only retained-data test: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:src:vendor/FlashRSI CUDA_VISIBLE_DEVICES='' .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_ace_judge_followup_v17.py. Result1passed0.14s; real fullOPROaccepted, wrong127identitysetrejected, real incompleteACErejectedwhile noresult. REDimport failure retained. No sourceexecution/API/model/GPU. Cleanup/billing/lease behavior inherited queue guards already covered19tests. Independent reviewer needed before finite production waiter launch.
+ 
+ ## Review fixround1
+ 
+ Original implementer is root for this small independent orchestrationtask; root amended own code and requests scoped independentreview, without overlapping Pi agentfiles. Both Important findings accepted. ImmutablePID/startticks wait survivesexec; explicit pendingjudge condition avoids falsecompletedjudge deferral; bindingrecheckoccursafterfinalpoll aswell. Pure controller boundarytests cover actual terminalsuccess/failure distinction, pendinglease, exec/PIDreuse. Exactsamecommand above final3passed0.15s (retainedfix1_green.log); REDmissinghelpers2fail1pass retainedfix1_red. No live/API/model/GPU/source/cron actions. Sourcefullacceptance stillunchanged; running/final128/judgecoverage notmanufactured.
++
++## Review fixround2
++
++Accepted nonzerojudge control-error finding. Finalterminal_status preserves needs_judge_process_repair andnonzero followerexit evenwhen actual128 cachedmanifestcomplete. Actualcoverage andrawreturncode retained, noAPIretry/overwrite. Fourterminalpredicateassertions added (cached,success,nonzero/full,sourceincomplete). Samefocusedcommand finaloutput:
++
++```
++....                                                                     [100%]
++4 passed in 0.15s
++```
++
++RED1failed3passed retainedfix2_red.log; no live/API/model/source/GPU actions.
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_ace_judge_followup_v17.py b/experiments/cross_harness_sft/scripts/flashrsi_ace_judge_followup_v17.py
+index cf0c90f..f5ea684 100644
+--- a/experiments/cross_harness_sft/scripts/flashrsi_ace_judge_followup_v17.py
++++ b/experiments/cross_harness_sft/scripts/flashrsi_ace_judge_followup_v17.py
+@@ -29,20 +29,26 @@ def drain_judges(queue, verify_binding, sleep=time.sleep):
+         before = len(queue.judges)
+         queue.schedule_judge()
+         if queue.judge is not None:
+             sleep(5)
+         elif queue.judges and len(queue.judges) == before:
+             return False  # Only pending work can be lease/billing deferred.
+     verify_binding()
+     return True
+ 
+ 
++def terminal_status(task, accepted):
++    # Canonical judge writes its manifest before summary/teardown. Preserve a
++    # failed control process even when every cached case is already available.
++    return 'needs_judge_process_repair' if task.get('judge_returncode', 0) != 0 else accepted['status']
++
++
+ def run_followup(run, out, predecessors):
+     run, out = Path(run).resolve(), Path(out).absolute()
+     if out.exists():
+         raise ValueError('followup_output_exists_preserved')
+     manifest = run.parent / 'case_manifest.json'
+     raw = manifest.read_bytes()
+     expected = {r['case_id'] for r in read(manifest)['cases']}
+     if len(expected) != 128:
+         raise ValueError('exact_128_case_manifest_required')
+     out.mkdir(mode=0o700)
+@@ -70,23 +76,24 @@ def run_followup(run, out, predecessors):
+     save(out / 'accepted_source_binding.json', binding)
+     queue.judges = [(key, run / 'selected_cases')]
+     def verify_binding():
+         if any(sha(run / name) != value for name, value in binding.items()):
+             raise ValueError('accepted_source_binding_changed')
+     if not drain_judges(queue, verify_binding):
+         queue.tasks[key]['judge_status'] = 'needs_judge_lease_or_billing'
+         queue.event(key, 'cached_judge_deferred')
+         return 1
+     accepted = inspect_run(run, expected, None)
+-    queue.tasks[key].update(status=accepted['status'], acceptance=accepted)
+-    queue.event(key, accepted['status'])
+-    return 0 if accepted['status'] == 'complete' else 1
++    status = terminal_status(queue.tasks[key], accepted)
++    queue.tasks[key].update(status=status, acceptance=accepted)
++    queue.event(key, status)
++    return 0 if status == 'complete' else 1
+ 
+ 
+ if __name__ == '__main__':
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--run', type=Path, required=True)
+     parser.add_argument('--out', type=Path, required=True)
+     parser.add_argument('--predecessor-pid', type=int, action='append', default=[])
+     args = parser.parse_args()
+     predecessors = [identity for pid in args.predecessor_pid if (identity := process_identity(pid)) is not None]
+     raise SystemExit(run_followup(args.run, args.out, predecessors))
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_ace_judge_followup_v17.py b/experiments/cross_harness_sft/tests/test_flashrsi_ace_judge_followup_v17.py
+index 519bf87..9b355ea 100644
+--- a/experiments/cross_harness_sft/tests/test_flashrsi_ace_judge_followup_v17.py
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_ace_judge_followup_v17.py
+@@ -38,10 +38,18 @@ def test_judge_finished_success_and_failure_are_not_lease_deferral():
+         def schedule_judge(self):
+             self.judge = None
+             self.tasks['opencode/ace']['status'] = self.status
+     for status in ('complete', 'source_valid_needs_judge'):
+         queue = Boundary(status)
+         assert drain_judges(queue, lambda: None, lambda _: None)
+         assert queue.tasks['opencode/ace']['status'] == status
+     queue = Boundary('source_valid_needs_judge')
+     queue.judge, queue.judges = None, [('opencode/ace', Path('/unused'))]
+     assert not drain_judges(queue, lambda: None, lambda _: None)
++
++
++def test_final_verdict_preserves_nonzero_judge_exit_even_when_manifest_is_complete():
++    from flashrsi_ace_judge_followup_v17 import terminal_status
++    assert terminal_status({}, {'status': 'complete'}) == 'complete'  # Cached.
++    assert terminal_status({'judge_returncode': 0}, {'status': 'complete'}) == 'complete'
++    assert terminal_status({'judge_returncode': 1}, {'status': 'complete'}) == 'needs_judge_process_repair'
++    assert terminal_status({'judge_returncode': 0}, {'status': 'needs_judge'}) == 'needs_judge'

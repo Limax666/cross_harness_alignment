@@ -75,7 +75,7 @@ def make_openclaw_snapshot(agent, tools, safety_policy):
         loop.write_text(source.replace(old, 'from .benchmark_bridge import ToolRunner, schemas'))
         (runtime / 'benchmark_bridge.py').write_text(_BRIDGE)
         (runtime / 'benchmark_schemas.json').write_text(json.dumps(functions, ensure_ascii=False, allow_nan=False))
-        prompt = directory / 'AGENTS.md'
+        prompt = directory / 'SOUL.md'
         original = prompt.read_text() if prompt.exists() else ''
         prompt.write_text(original.rstrip() + '\n\n## Trusted safety policy\n' + safety_policy.strip() + '\n')
         return root.commit(directory)

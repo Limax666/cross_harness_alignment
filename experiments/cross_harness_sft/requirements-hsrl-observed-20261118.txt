@@ -1,0 +1,16 @@
+# Observed environment. Select a matching official CUDA torch wheel and compile causal-conv1d for the target host.
+torch==2.11.0+cu129
+transformers==5.9.0
+peft==0.21.1
+numpy==2.3.5
+accelerate==1.15.0
+tokenizers==0.22.2
+safetensors==0.8.0
+huggingface-hub==1.33.0
+jsonschema==4.26.0
+PyYAML==6.0.3
+pytest==9.1.1
+fla-core==0.5.2
+causal-conv1d==1.7.0
+triton==3.6.0
+einops==0.8.2

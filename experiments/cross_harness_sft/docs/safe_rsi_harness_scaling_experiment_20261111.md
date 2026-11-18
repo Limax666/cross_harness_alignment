@@ -1,6 +1,12 @@
+> **2026-11-18执行覆盖：** 当前14K READY/50:50与真实v9参数RL已运行；旧GPU、小池及未启动描述是历史。请先读[当前执行规格](harness_scaling_safe_rsi_current_20261118.md)与[跨服务器交接](new_server_handoff_20261118.md)，不要照旧命令直接启动。
+
 # 跨 Harness 安全 RSI：实验设计与 4B 启动规范
 
 日期：2026-11-11。本文是当前研究设计的主入口，取代本项目此前“教师轨迹 SFT→真实 harness 多数据集 RL”和“直接把白盒 Harness Scaling 用于安全 RL”的启动顺序。历史设计、代码和运行结果保留，均按原实验条件解释。
+
+**2026-11-13 论文总体路线：**以 FlashRSI 系统基线为起点，构建 ClawLoop 式“安全任务与 harness 合成→跨 harness 在线 CHS-PO→诊断反馈”三阶段框架，设置通用 RSI 与在线 RL 两类 baseline。准确的论文阶段映射、实验矩阵、公式草案、现有结果与缺口见 [Harness Scaling 安全 RSI 总技术路线](harness_scaling_safe_rsi_technical_roadmap_20261113.md)；下文为历史设计细节，冲突处以新路线为准。
+
+**2026-11-13 当前执行设置：**正式安全基线主数据集改为 HarnessRisk，固定 4B + FlashRSI；每个 harness 先评初始 Snapshot，再评各 RSI 算法的选定 Snapshot，均尝试全部 128 条。算法、预算、7 个 harness 的实际/排队状态、规则与 LLM judge 指标、72/30/26 的数据暴露、双 GPU 队列及已知限制，以 [4B FlashRSI × HarnessRisk 安全基线](flashrsi_4b_harnessrisk_baseline_20261113.md) 为准。下文 2026-11-11 的资源、启动条件和 AgentDojo 优先顺序是历史描述。普通 FlashRSI 基线当前仅用 Utility 演化，不保证安全提示词不可修改；下文固定策略与安全准入要求适用于后续安全对齐方案及需另行实现的受控对照，不应视为普通基线已经具备。FlashRSI 资源演化不等于模型参数 RL。
 
 **最新调整：用户指定以 FlashRSI 开源框架推进 RSI，独立 coding agent 搭建五维 Harness Scaling 基建。** 下文原 ClawLoop-RL-only 部分是历史候选，不再作为默认主框架。FlashRSI 以 snapshot 形式进化 agent 的 prompt、skill、工具等资源；须选定具体算法及受控可编辑范围。模型权重在线 GRPO/CHS-PO 仍需与本项目 VeRL 训练链实现明确接口，不能把资源进化直接当作模型权重训练。固定模型的 FlashRSI 运行也可作为独立的系统级 baseline。安全策略、工具权限和 sandbox 不作为 RSI 可编辑资源。
 

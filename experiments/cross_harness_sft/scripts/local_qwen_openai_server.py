@@ -80,7 +80,36 @@ def parse_tool_calls(text, tools=None):
                 errors.append(f"{name}: duplicate argument {key}")
                 break
             try:
-                args[key] = json.loads(value.strip())
+                parsed = json.loads(value.strip())
+                prop = schemas.get(name, {}).get("properties", {}).get(key, {})
+                # A JSON document inside a string field is file content, not
+                # an object argument. Keep its exact textual representation.
+                # Project-local patch (2026-11-04): the openai_compat_proxy
+                # forwards Gemini CLI functionDeclarations with Gemini-API enum
+                # types ("STRING"), so the lowercase-only check below missed
+                # write_file content objects; they leaked through, the CLI
+                # looped on "params/content must be string", and ~75% of
+                # HarnessSafe trials were invalidated. Compare case-insensitively.
+                prop_type = prop.get("type")
+                is_string_type = (
+                    isinstance(prop_type, str) and prop_type.lower() == "string"
+                ) or (
+                    isinstance(prop_type, list)
+                    and any(isinstance(t, str) and t.lower() == "string" for t in prop_type)
+                )
+                # Project-local patch (2026-11-04b): the openai_compat_proxy
+                # forwards Gemini CLI built-in declarations SCHEMA-LESS — the
+                # CLI carries its parameter schemas in `parametersJsonSchema`,
+                # which the proxy never reads, so `parameters` arrives null and
+                # no declared type exists here. Letting parsed JSON objects
+                # through loops the CLI on "params/content must be string" and
+                # invalidates the trial. For type-less properties, preserve
+                # dict-valued parameters as their exact text (arrays stay
+                # parsed; none of the CLI built-in tools takes an object arg).
+                if "type" not in prop and isinstance(parsed, dict):
+                    args[key] = value.strip()
+                else:
+                    args[key] = value.strip() if is_string_type and not isinstance(parsed, str) else parsed
             except json.JSONDecodeError:
                 args[key] = value.strip()
         else:
@@ -203,8 +232,11 @@ def encode_segment_prompt(tokenizer, messages, tools, max_input_tokens):
     if original_tokens <= max_input_tokens:
         return encoded, None
 
+    first_user = next((i for i, message in enumerate(messages) if message.get("role") == "user"), None)
     prefix = _segment_tool_header(tools) + "".join(
         _segment_message(message) for message in messages if message.get("role") == "system")
+    if first_user is not None:
+        prefix += _segment_message(messages[first_user])
     encode = lambda value: tokenizer(value, return_tensors="pt",
                                      add_special_tokens=False)["input_ids"]
     prefix_ids = encode(prefix)
@@ -212,8 +244,8 @@ def encode_segment_prompt(tokenizer, messages, tools, max_input_tokens):
     if prefix_ids.shape[-1] + suffix_ids.shape[-1] >= max_input_tokens:
         raise ValueError("Tool schemas and system instructions exceed max_input_tokens")
     available = max_input_tokens - prefix_ids.shape[-1] - suffix_ids.shape[-1]
-    chunks = [encode(_segment_message(message)) for message in messages
-              if message.get("role") != "system"]
+    chunks = [encode(_segment_message(message)) for i, message in enumerate(messages)
+              if message.get("role") != "system" and i != first_user]
     dropped = 0
     while len(chunks) > 1 and sum(chunk.shape[-1] for chunk in chunks) > available:
         chunks.pop(0)
@@ -324,6 +356,16 @@ def make_handler(tokenizer, model, model_id, max_new_tokens, max_input_tokens, p
                     return self.send_json(response)
                 print("[request]", "stream=" + str(body.get("stream", False)),
                       "messages=" + str(len(messages)), "tools=" + str(len(tools or [])), flush=True)
+                # Project-local TEMP diagnostic (2026-11-04): dump the declared
+                # write_file schema once per process to see the exact property
+                # types the eval proxy forwards (suspected non-lowercase "type").
+                if tools and not globals().get("_WROTE_DUMPED"):
+                    for _t in tools:
+                        _f = (_t or {}).get("function") or {}
+                        if _f.get("name") == "write_file":
+                            globals()["_WROTE_DUMPED"] = True
+                            print("[write_file-schema-dump]", json.dumps(_f.get("parameters"), ensure_ascii=False)[:1500], flush=True)
+                            break
                 streaming = bool(body.get("stream"))
                 stopped = threading.Event()
                 if prompt_format == "segment":

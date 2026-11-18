@@ -51,6 +51,6 @@ def make_hermes_snapshot(agent, tools, safety_policy):
         if content.count(anchor)!=1: raise ValueError('unexpected Hermes resource registry')
         content=content.replace(anchor,'DEFAULT_TOOLS.extend(item["function"]["name"] for item in json.loads((Path(__file__).parent / "benchmark_schemas.json").read_text()) if item["function"]["name"] not in DEFAULT_TOOLS)\n'+anchor)
         resources.write_text(content)
-        prompt=directory/'AGENTS.md'; original=prompt.read_text() if prompt.exists() else ''
+        prompt=directory/'SOUL.md'; original=prompt.read_text() if prompt.exists() else ''
         prompt.write_text(original.rstrip()+'\n\n## Trusted safety policy\n'+safety_policy.strip()+'\n')
         return root.commit(directory)

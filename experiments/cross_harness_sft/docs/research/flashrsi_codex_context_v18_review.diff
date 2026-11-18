@@ -1,0 +1,248 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_codex_context_v18_implementation_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_codex_context_v18_implementation_20261117.md
+new file mode 100644
+index 0000000..59835b2
+--- /dev/null
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_codex_context_v18_implementation_20261117.md
+@@ -0,0 +1,15 @@
++# Codex actual32K metadata repair and superseding finite queue
++
++Confirmed originalnative modelunknownfallback272000/244800compaction vs actual18764/32768. Parserdepsfixalone insufficient. Stopped ONLYownedwaitingqueue1352410, verifiednochildren/no source_snapshot/model/judgedispatch; oldtasks/evidence preserved, noactiveACE/follower/services affected. Newversionfiles preserveoriginals.
++
++Codex entry wrapsactual flashrsi.agents.codex._settings returnedruntimeoverrides (the native run imports thismoduleattribute), pins actual32768window and24576 total auto-compaction threshold =32768−2×unchanged4096reply, with360timeout/no inventedturncap. Native estimator is bytes/4, not exactQwentokenproof; this headroom policy is a NEWPROFILE, not a guaranteeall128fit. Nativecompaction implementation remainsoriginal. Actualwire/usage/errors/compaction/full128 mustbevalidatedbygenuineH0; no context/output/timeincrease, no parser/sandbox/permission relaxation. Snapshotconfig/runtimefiles preservedbytes; onlyephemeraloverrideschange. FreshH0+all6RSImustusethisprofile, oldCodex17/128notmixed.
++
++Onlyfixedtrusted scripts/vendor importroots added for isolated-Ientry. Entry records nonsecretactualappliedmetadata, supervisorretainsperturnmetadata andrefusesacompletednativequerywithout exactoneappliedreceipt. Hostonlyselectsversionedsupervisor; native relay/invocation/owners/state/grades unchanged. Initialmanifest includesnativecontextcontract. Newfinitequeuev18 exact guardedtransforms v17 host/entry/contract/protocol/launcherlock; originalfull128/H0/workerlease/cleanup/sourceidentity gates remain, OpenCode/OpenClaw recipesunchanged. Newreadonlyscannerv18 includesbothqueueprotocols. Rootmustindependentlyreviewbeforelaunch andverifyactualwaiter/model/H0 path.
++
++UnitverificationactualnativeModel+_settings (no modelgeneration orAPI) proves correctedcontext and24576 compaction, declaredcredentialnotinmetadata, originalconfigbytesunchanged; compiledguardedfutureentry/supervisor/host/initial/queue/scanner, pureactualqueue expectedcontract includeshost/budgets/metadata. Affectedcommand: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:src:vendor/FlashRSI CUDA_VISIBLE_DEVICES='' .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_codex_context_v18.py tests/test_flashrsi_gpu1_queue_v17.py tests/test_flashrsi_harnessrisk_benchmark_v17.py`. Final:
++
++```
++.....................                                                    [100%]
++21 passed in 0.60s
++```
++REDmissingmodules andintermediateassertliteral-vsmetadatafieldfailurepreserved; no source task/program/model/API/GPU/daemon/cron run. RealcorrectedCodexexecution, nativecompactiontokens andall128/judge remainUNVERIFIED.
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_entry_v18.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_entry_v18.py
+new file mode 100644
+index 0000000..ed6a085
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_entry_v18.py
+@@ -0,0 +1,22 @@
++"""Original native Codex entry plus versioned runtime-only model metadata."""
++from pathlib import Path
++import sys
++ROOT = Path(__file__).resolve().parents[1]
++# This entry is launched with Python -I; only fixed trusted project roots are
++# added, never the business working directory or actor-selected import paths.
++sys.path[:0] = [str(ROOT / 'scripts'), str(ROOT / 'vendor/FlashRSI')]
++from flashrsi_harnessrisk_codex_context_v18 import wrap_settings, replace_once
++
++
++def build_source():
++    source = Path(__file__).with_name('flashrsi_harnessrisk_claude_entry.py').read_text()
++    return replace_once(source, "'usage':dict(result.usage)",
++        "'usage':dict(result.usage), 'runtime_context_metadata':CONTEXT_OBSERVED")
++
++
++if __name__ == '__main__':
++    import flashrsi.agents.codex as codex
++    observed = []
++    codex._settings = wrap_settings(codex._settings, observed)
++    exec(compile(build_source(), __file__, 'exec'), {
++        '__name__': '__main__', '__file__': __file__, 'CONTEXT_OBSERVED': observed})
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_supervisor_v18.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_supervisor_v18.py
+new file mode 100644
+index 0000000..e23366d
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_supervisor_v18.py
+@@ -0,0 +1,20 @@
++"""Original confined supervisor, selecting only a new Codex metadata entry."""
++from pathlib import Path
++from flashrsi_harnessrisk_codex_context_v18 import replace_once
++
++
++def build_source():
++    source = Path(__file__).with_name('flashrsi_harnessrisk_supervisor.py').read_text()
++    source = replace_once(source, "'flashrsi_harnessrisk_claude_entry.py' if harness in ('claude_code','codex')",
++        "'flashrsi_harnessrisk_codex_context_entry_v18.py' if harness=='codex' else 'flashrsi_harnessrisk_claude_entry.py' if harness=='claude_code'")
++    source = replace_once(source, "'messages':result.get('messages',[]),'usage':result.get('usage')",
++        "'messages':result.get('messages',[]),'usage':result.get('usage'),'runtime_context_metadata':result.get('runtime_context_metadata')")
++    source = replace_once(source, "if result.get('stop_reason')!='completed':status='error';break",
++        "if harness=='codex' and result.get('stop_reason')=='completed' and result.get('runtime_context_metadata') != [CONTEXT_METADATA]:raise RuntimeError('native_context_override_not_observed')\n                    if result.get('stop_reason')!='completed':status='error';break")
++    return source
++
++
++if __name__ == '__main__':
++    from flashrsi_harnessrisk_codex_context_v18 import CONTEXT
++    exec(compile(build_source(), __file__, 'exec'), {
++        '__name__': '__main__', '__file__': __file__, 'CONTEXT_METADATA': CONTEXT})
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_v18.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_v18.py
+new file mode 100644
+index 0000000..92b899d
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_v18.py
+@@ -0,0 +1,25 @@
++"""Explicit actual-backend metadata for a fresh, matched Codex profile."""
++import copy
++
++CONTEXT = {'protocol': 'codex-local32k-metadata/v18', 'model_context_window': 32768,
++           'model_auto_compact_token_limit': 24576, 'model_auto_compact_token_limit_scope': 'total',
++           'max_reply_tokens': 4096, 'native_timeout_seconds': 360,
++           'threshold_basis': 'actual context minus two unchanged maximum reply windows; native estimate is not exact Qwen token accounting'}
++
++
++def wrap_settings(original, observed):
++    def settings(config, *args, **kwargs):
++        if config['llm']['model_name'] != 'qwen35-4b-preflight':
++            raise ValueError('codex_context_profile_wrong_target_model')
++        overrides, environment, native = original(config, *args, **kwargs)
++        overrides = {**overrides, **{key: CONTEXT[key] for key in (
++            'model_context_window', 'model_auto_compact_token_limit', 'model_auto_compact_token_limit_scope')}}
++        observed.append(copy.deepcopy(CONTEXT))  # No key, provider env or prompt.
++        return overrides, environment, native
++    return settings
++
++
++def replace_once(source, old, new):
++    if source.count(old) != 1:
++        raise RuntimeError('codex_context_transform_not_exact:' + old)
++    return source.replace(old, new)
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_codex_context_v18.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_codex_context_v18.py
+new file mode 100644
+index 0000000..a5014c4
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_codex_context_v18.py
+@@ -0,0 +1,13 @@
++"""Same native relay and isolation, new Codex metadata supervisor only."""
++from pathlib import Path
++from flashrsi_harnessrisk_codex_context_v18 import replace_once
++
++
++def build_source():
++    source = Path(__file__).with_name('flashrsi_harnessrisk_host_native_v3.py').read_text()
++    return replace_once(source, "'scripts/flashrsi_harnessrisk_supervisor.py'",
++                        "'scripts/flashrsi_harnessrisk_codex_context_supervisor_v18.py'")
++
++
++if __name__ == '__main__':
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_initial_v18.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_initial_v18.py
+new file mode 100644
+index 0000000..ae3ebc9
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_initial_v18.py
+@@ -0,0 +1,13 @@
++"""Full128 initial v17 observation plus explicit new Codex context contract."""
++from flashrsi_harnessrisk_initial_v17 import run_host, build_source as prior_source
++from flashrsi_harnessrisk_codex_context_v18 import CONTEXT, replace_once
++
++
++def build_source():
++    return replace_once(prior_source(), "'temperature':0,'max_tokens_per_turn':4096,",
++        "'temperature':0,'max_tokens_per_turn':4096,**({'native_context_metadata':CONTEXT_METADATA} if harness=='codex' else {}),")
++
++
++if __name__ == '__main__':
++    CONTEXT_METADATA = CONTEXT
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v18.py b/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v18.py
+new file mode 100644
+index 0000000..77865cd
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v18.py
+@@ -0,0 +1,22 @@
++"""Finite GPU1 v17 queue, corrected fresh Codex32K model metadata profile."""
++from pathlib import Path
++from flashrsi_harnessrisk_codex_context_v18 import CONTEXT, replace_once
++
++
++def build_source():
++    source = Path(__file__).with_name('flashrsi_matrix_gpu1_queue_v17.py').read_text()
++    for old, new in (
++        ("'codex': 'flashrsi_harnessrisk_host_native_v3.py'", "'codex': 'flashrsi_harnessrisk_host_codex_context_v18.py'"),
++        ('scripts/flashrsi_matrix_gpu1_queue_v17.py', 'scripts/flashrsi_matrix_gpu1_queue_v18.py'),
++        ("['scripts/flashrsi_harnessrisk_initial_v17.py']", "['scripts/flashrsi_harnessrisk_initial_v18.py']"),
++        (".flashrsi_gpu1_finite_queue_v17.lock", ".flashrsi_gpu1_finite_queue_v18.lock"),
++        ('gpu1-finite-strict-matrix/v17', 'gpu1-finite-strict-matrix/v18'),
++        ('    return contract\n', "    if harness == 'codex':\n        contract['native_context_metadata'] = CONTEXT_METADATA\n    return contract\n"),
++    ):
++        source = replace_once(source, old, new)
++    return source
++
++
++if __name__ == '__main__':
++    CONTEXT_METADATA = CONTEXT
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v18.py b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v18.py
+new file mode 100644
+index 0000000..b301818
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v18.py
+@@ -0,0 +1,15 @@
++"""Read-only original strict scanner including the new v18 finite queue."""
++from pathlib import Path
++
++
++def build_source():
++    source = Path(__file__).with_name('flashrsi_matrix_repair_scan_v17.py').read_text()
++    # The expression occurs twice (root collection and queue reporting).
++    old = ".get('protocol') == 'gpu1-finite-strict-matrix/v17'"
++    if source.count(old) != 2:
++        raise RuntimeError('strict_scanner_v18_transform_drift')
++    return source.replace(old, ".get('protocol') in ('gpu1-finite-strict-matrix/v17', 'gpu1-finite-strict-matrix/v18')")
++
++
++if __name__ == '__main__':
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_codex_context_v18.py b/experiments/cross_harness_sft/tests/test_flashrsi_codex_context_v18.py
+new file mode 100644
+index 0000000..5982895
+--- /dev/null
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_codex_context_v18.py
+@@ -0,0 +1,49 @@
++"""Native metadata/configuration checks, no model, API or source task execution."""
++from pathlib import Path
++import sys
++
++sys.path[:0] = [str(Path(__file__).resolve().parents[1] / x) for x in ('scripts', 'src', 'vendor/FlashRSI')]
++
++
++def test_actual_native_model_reserves_two_reply_windows_without_changing_snapshot(tmp_path):
++    from flashrsi_harnessrisk_codex_context_v18 import CONTEXT, wrap_settings
++    from flashrsi.agents.codex import _settings
++    from flashrsi.agents.codex.python_core.models import Model
++    (tmp_path / 'config.toml').write_text('model_context_window = 272000\n')
++    old = (tmp_path / 'config.toml').read_bytes()
++    observed = []
++    override, _, _ = wrap_settings(_settings, observed)(
++        {'llm': {'model_name': 'qwen35-4b-preflight', 'api_key': 'unit-placeholder',
++                 'base_url': 'http://127.0.0.1:1/v1'}}, tmp_path, tmp_path)
++    native = Model('qwen35-4b-preflight', override)
++    assert native.info['context_window'] == 32768
++    assert native.auto_compact_token_limit == 24576
++    assert native.auto_compact_token_limit + 2 * CONTEXT['max_reply_tokens'] == 32768
++    assert (tmp_path / 'config.toml').read_bytes() == old
++    assert observed == [CONTEXT]
++    assert 'unit-placeholder' not in str(observed)
++
++
++def test_new_profile_transforms_only_future_entry_host_initial_and_queue():
++    import flashrsi_harnessrisk_codex_context_entry_v18 as entry
++    import flashrsi_harnessrisk_codex_context_supervisor_v18 as supervisor
++    import flashrsi_harnessrisk_host_codex_context_v18 as host
++    import flashrsi_harnessrisk_initial_v18 as initial
++    import flashrsi_matrix_gpu1_queue_v18 as queue
++    import flashrsi_matrix_repair_scan_v18 as scanner
++    for module in (entry, supervisor, host, initial, queue, scanner):
++        compile(module.build_source(), str(module.__file__), 'exec')
++    assert 'flashrsi_harnessrisk_codex_context_entry_v18.py' in supervisor.build_source()
++    assert 'flashrsi_harnessrisk_codex_context_supervisor_v18.py' in host.build_source()
++    assert 'flashrsi_harnessrisk_host_codex_context_v18.py' in queue.build_source()
++    assert 'flashrsi_harnessrisk_initial_v18.py' in queue.build_source()
++    assert "'native_context_metadata':CONTEXT_METADATA" in initial.build_source()
++    namespace = {'__file__': queue.__file__, '__name__': 'pure_controller_check',
++                 'CONTEXT_METADATA': queue.CONTEXT}
++    exec(compile(queue.build_source(), queue.__file__, 'exec'), namespace)
++    contract = namespace['expected_initial_contract'](
++        b'{"model_revision":"source-test","flashrsi_revision":"runtime-test"}', 'codex')
++    assert contract['host_script'] == 'flashrsi_harnessrisk_host_codex_context_v18.py'
++    assert contract['native_context_metadata'] == queue.CONTEXT
++    assert contract['max_turns_per_owner_turn'] is None
++    assert contract['native_timeout_seconds_per_owner_turn'] == 360

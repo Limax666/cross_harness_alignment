@@ -1,0 +1,144 @@
+{
+  "dataset": "RUC-AIBOX/ClawGym-Task",
+  "hf_revision": "bd9043cff88b913922a165d9c022a4796aee3f3a",
+  "raw_sha256": "0455f13c4f7a4839d39c3c1da9704c4959046ed529040d44f46f8f9bd07f7774",
+  "raw_records": 15402,
+  "raw_bytes": 405688752,
+  "selected_official_tasks": 2000,
+  "prompt_matches": 2000,
+  "prompt_matches_unique": true,
+  "selected_git_revision": "0e8526d8f5e0999896c74cee4d6b998fb8a0429e",
+  "matching_input_checker_files": 8647,
+  "restored_missing_input_files": [
+    {
+      "path": "input_files/fermentation_runs/2026-04-10_ipa/logs/fermentation.log",
+      "sha256": "d0d77ef668a36bc80f867a2ddce3c0db60a637c4fbccffb5096388eca1b8b9d5",
+      "task": "task_1106"
+    },
+    {
+      "path": "input_files/input/logs/2026-04-19-render.log",
+      "sha256": "0cc878d63f044c8de776d45ed262cbafa5874b7e7d5af173e4250ba552de37f2",
+      "task": "task_0765"
+    },
+    {
+      "path": "input_files/input/logs/2026-04-26-render.log",
+      "sha256": "05da6ce053bab1e41b1aa5bc1d5af8fe25ef4fa2cd4caf8688b800bd482545cf",
+      "task": "task_0765"
+    },
+    {
+      "path": "input_files/input/logs/press_fetch.log",
+      "sha256": "6ab53ab5049bee830e18621820a975d5486f3c3a26ccac701078dde597c50fbc",
+      "task": "task_1795"
+    },
+    {
+      "path": "input_files/input/logs/access.log",
+      "sha256": "3e9e7648f464201250fbfb459314bc47267866a3d8357e8b799b2d5f60d0b0c6",
+      "task": "task_0249"
+    },
+    {
+      "path": "input_files/logs/ingest.log",
+      "sha256": "d5c5e27f93dadea8be5989d4b03b3b50911315518651c8badacb12182a2a8922",
+      "task": "task_0244"
+    },
+    {
+      "path": "input_files/logs/ingest.1.log",
+      "sha256": "798b812f7c69b2512be9108193da9c15410c6f329eade1eb24f4771c25f41373",
+      "task": "task_0244"
+    },
+    {
+      "path": "input_files/input/build.log",
+      "sha256": "996d54782a1ad31f3d3259c2931d636226270d35574c269a39fce46f3b3de8a5",
+      "task": "task_1156"
+    },
+    {
+      "path": "input_files/logs/translate_run.log",
+      "sha256": "3df8489346aba63d2b6f26f6aed66cb8e1c70f4bf6a7b74d243f2c160028d8e6",
+      "task": "task_0278"
+    },
+    {
+      "path": "input_files/logs/run-2026-04-17.log",
+      "sha256": "e206e5c3abb8ef3be14f21ef19e8d3e841962015832dc651b0a2c52c11b0bdfa",
+      "task": "task_1664"
+    },
+    {
+      "path": "input_files/input/logs/pos_front.log",
+      "sha256": "471cf1fdf7b096a02f360a711a467fc9c0c4821885cf85b776c95c5e32d6284e",
+      "task": "task_1341"
+    },
+    {
+      "path": "input_files/input/logs/kitchen_display.log",
+      "sha256": "635e9434d1ca7b79e17cf5405ae9cad7441660ec21ed47e7b254933a30034ab6",
+      "task": "task_1341"
+    },
+    {
+      "path": "input_files/logs/incident.log",
+      "sha256": "645dd9ba130f4367c0bfd5c33b289d97574d5107aae4a6838c9ef7a831884781",
+      "task": "task_0899"
+    },
+    {
+      "path": "input_files/logs/reconcile-2026-04-15.log",
+      "sha256": "66270e2a08167ed88f2138d4ce06b2bff880732609ac16610b7ad8ac5ba6e739",
+      "task": "task_0905"
+    },
+    {
+      "path": "input_files/input/scribo/logs/app.log",
+      "sha256": "9deb1816212aacc9d44aded0e776e411f96da223634e79d70d19873a024aa87a",
+      "task": "task_1797"
+    },
+    {
+      "path": "input_files/input/logs/backup_2026-04-18.log",
+      "sha256": "6d8555c202193023170f2320d802a23db039fe6a0f500ba6c4a26e0220e8ad2f",
+      "task": "task_1975"
+    },
+    {
+      "path": "input_files/logs/watering.log",
+      "sha256": "b10b37daeb90ab41f10d4a7647b81539abbf43c5a93ada37921ae1c7345e85d2",
+      "task": "task_1622"
+    },
+    {
+      "path": "input_files/logs/weather.log",
+      "sha256": "567be274b51630f00e317f596c909f14911e50d570152e56ab10388b9cd1331e",
+      "task": "task_1622"
+    },
+    {
+      "path": "input_files/logs/gradle_build.log",
+      "sha256": "2dab4a176d119627f8afd1064bc8eb3e0e147d3053bedf361d9d2742f5314c74",
+      "task": "task_1526"
+    },
+    {
+      "path": "input_files/scripts/run_validation.sh",
+      "sha256": "b663c3ffbb04f54ecb679f322a1905700b52e50dea8a110bad2fb59426b26460",
+      "task": "task_0359"
+    },
+    {
+      "path": "input_files/input/command_output.log",
+      "sha256": "cc9c49a2b57a17099ab8cfe1c991b171ae43035f3db5103b133323d506c7580c",
+      "task": "task_1612"
+    },
+    {
+      "path": "input_files/input/public/logs/debug.log",
+      "sha256": "c13df7f63588f377ab629e8a7426948773ac0a1071efec142833822346452497",
+      "task": "task_0436"
+    },
+    {
+      "path": "input_files/input/.env",
+      "sha256": "7356fa798d89322e96d8f6ee1ceecc9830bbcebaca9327c7c7dd39725bbb1671",
+      "task": "task_0436"
+    },
+    {
+      "path": "input_files/input/noise_events.log",
+      "sha256": "80c9a818faef0ee77279dde6148e9c1c025cbb985f10e38618cefb90659bdc44",
+      "task": "task_0458"
+    },
+    {
+      "path": "input_files/input/eligibility_cli.log",
+      "sha256": "d9b2a15f1c70d528f727ad60a79db115486071015e855e4e8637c4985072c38e",
+      "task": "task_0449"
+    }
+  ],
+  "raw_path": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/data/rl_sources/clawgym_task_hf_bd9043c/syn_task.jsonl",
+  "materialized_tasks": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/data/rl_sources/clawgym_selected2k_hf_bd9043c/tasks",
+  "materialization_manifest": "/data/home/liumingxiao/cross_harness_alignment/experiments/cross_harness_sft/data/rl_sources/clawgym_selected2k_hf_bd9043c/HF_MATERIALIZATION.json",
+  "verification": "raw LFS SHA256, parse15402, unique prompt matching2000, existing8647 exact bytes, restore25input files (23logs, one validation script, one task fixture config; never loaded as host environment); no task execution, model calls or RL updates",
+  "benchmark_train_weight": 0
+}

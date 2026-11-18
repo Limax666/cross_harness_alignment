@@ -32,7 +32,7 @@ New independent output will rerun the entire unupdated step with one repaired so
 - [x] T3: implement independent continuation entry. Original optimization body remains byte-identical; identity binds repair code/certificate and parent lineage; normal resume rejects drift.
 - [ ] T4: scoped existing source/batch/training/retention checks and the actual affected Dataset API in the real isolated container pass; retain official raw grader and cleanup proof. This is targeted real-failure regression, not a simulated or smoke RL experiment.
 - [x] T5: fresh independent review; address all Critical/Important issues, then recheck GPU1 exclusivity and dispatch exactly one formal actor.
-- [ ] T6: observe genuine generated trajectories/official scores, saved initial optimizer step4/scheduler4/adapter hash, live isolation and counters before updating current_run/status/AGENT and hourly report. Production restore is not declared successful from Popen alone.
+- [x] T6: observe genuine generated trajectories/official scores, saved initial optimizer step4/scheduler4/adapter hash, live isolation and counters before updating current_run/status/AGENT and hourly report. Production restore is not declared successful from Popen alone.
 
 ## Review focus
 
@@ -43,3 +43,7 @@ Unknown inflight/RNG; hidden grader exposure; source import or filesystem/networ
 T1/T2/T3/T5 implemented and verified: targeted regression14/14 passed with retained JUnit; fresh two independent reviews have no Critical/Important findings. T4 actual affected Dataset Docker API, official raw grader and exact cleanup passed. Broader unchanged-source regression is still reading the large admitted inventory; its result remains pending and is not claimed passed. Full7000-task/7809-program namespace scan found no remaining missing builtin names.
 
 Formal v9 controller3467186/actor3467200 dispatched at06:33:56 on exclusively rechecked GPU1. Real installed initial checkpoint matches all496 AdamW states/moments, scheduler and parent accepted adapter4 exactly; known postfailure RNG also matches exactly.632 spent attempts retained;120 partial attempts quarantined. First genuine eight-environment wave is generating, terminal scores/journal commit still pending. T6 remains open until that actual evidence passes.
+
+## Actual formal recovery acceptance, 06:45 CST
+
+T6 passed: fresh v9 wave8/8 realvalid/official checker/joint journal commit; 9 aligned finite logprob segments, 16 confirmed cleanup receipts and334 pinned runtime files verified. Actual firstwave433.875s, batch histogram8:1/1:1, peak8live sources, 36.151actiontoken/s. Newphase remains updates4/effective4, spent648/currentpartial8, next8reserved; not a new optimizer update or independent model safety improvement. current_run/status/hourly_report/AGENT and hourly contract migrated. Broader old-source fixture15190/3461085 is still pending, not reported passed; exact status in the audit directory.

@@ -2,14 +2,16 @@
 import asyncio,json,os,sys
 from pathlib import Path
 
-ROOT=Path('/output/cross_harness_alignment/experiments/cross_harness_sft')
+ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'vendor/FlashRSI'),str(ROOT/'scripts')]
 from flashrsi.agents.hermes import Hermes
 from flashrsi.core.agent import _Execution
+from flashrsi_completion_budget import completion_budget
 
 request=json.load(sys.stdin)
 token=os.environ['FLASHRSI_GATEWAY_TOKEN']; base=os.environ['FLASHRSI_GATEWAY_URL']
-config={'llm':{'model_name':'qwen35-4b-preflight','api_key':token,'base_url':base+'/v1','max_tokens':512,'temperature':0,'stream':False},'max_turns':12,'timeout':300,'session':{'persist':False},'compaction':{'enabled':False}}
+budget=completion_budget({'FLASHRSI_COMPLETION_BUDGET':os.environ.get('FLASHRSI_COMPLETION_BUDGET','512')})
+config={'llm':{'model_name':'qwen35-4b-preflight','api_key':token,'base_url':base+'/v1','max_tokens':budget,'temperature':0,'stream':False},'max_turns':12,'timeout':300,'session':{'persist':False},'compaction':{'enabled':False}}
 schemas=json.loads((Path(request['snapshot_dir'])/'runtime/hermes_native/benchmark_schemas.json').read_text())
 config['enabled_tools']=[item['function']['name'] for item in schemas]
 config['compression']={'enabled':False}

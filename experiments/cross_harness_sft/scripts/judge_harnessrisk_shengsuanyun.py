@@ -42,6 +42,7 @@ def main() -> int:
         "--deployment", args.deployment, "--model", args.deployment,
         "--api-key-env", "SHENGSUANYUN_API_KEY",
         "--max-completion-tokens", "2048",
+        "--completed-only",
     ]
     if args.dry_run:
         command.append("--dry-run")

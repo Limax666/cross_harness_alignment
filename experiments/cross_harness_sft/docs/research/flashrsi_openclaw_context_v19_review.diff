@@ -1,0 +1,226 @@
+diff --git a/experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_implementation_20261117.md b/experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_implementation_20261117.md
+new file mode 100644
+index 0000000..b292366
+--- /dev/null
++++ b/experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_implementation_20261117.md
+@@ -0,0 +1,12 @@
++# OpenClaw actual backend input metadata and finite queue v19
++
++Sourceaudit found nativeOpenClaw loop157–174 defaultinputbudget120000 despite actual18764/32768 backend. Correctedcaseenvv3 hadPATH/mime/SQLite/environmentfixes but nomodelcapacitymetadata. Newfuture-onlyprofile openclaw-local32k-metadata/v4 setsconfig.context.max_tokens24576 =32768−2×unchanged4096reply. Nativecontextestimator isapproximate; actualQwentokenfit/compaction/full128NOTproven. OriginalSnapshot/vendorbytes, compactionenabled/threshold/tail/pruning policy, alltools/owners/SQLitehistory, mock/env/PATH/mime, sandbox/readroots/network, maxturn12/timeout360/host2400/requestreply4096 unchanged. Newentry copiesconfigonly, retainsnonsecretmetadata; supervisorrequiresactualreceipt andretainsperowner; hostusesoriginalenvironmentv2withsamecaseenvflag andnewsupervisor. NeedfreshfullH0+6RSI newprofile, old13/128notreclassified.
++
++Newinitialv19 bindsbothCodex/OpenClawcontextcontracts; newfinitequeuev19 composesguardedv18/v17source withonlynewOpenClawhost, initial, contract, launcher/protocol/lock changes. ExistingH0exactidentity, strict128/private/rule/judge, cleanupstickyblock, dependency/sourcefreeze, workerlease/billing/cachedsuccessfulAPIguards preserved. Independentreviewrequiredbeforewaitingqueuev18superseded. ActiveACE/follower/services untouched. Scannerincludesv17/18/19. PiandClaudeimplementationremainsseparateblockedtickets untilnewprofileindependentlyverified.
++
++Puretestactualconfigurationcompatibility: preserveinputdict/llm/maxturn/timeout/compaction enabledFalse/tail; thresholdderivedfromactualwindowwithoutreplyincrease. Guardednewentry/supervisor/host/initial/queue/scannercompile; compiledactualcontrollerexpectedcontractbindsbothnativeprofiles/hosts. No sourceprogram/model/API/GPU/Docker/cron actions. Exactcommand fromexperiment: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=scripts:src:vendor/FlashRSI CUDA_VISIBLE_DEVICES='' .venv-rl-pilot/bin/python -m pytest -q tests/test_flashrsi_openclaw_context_v19.py tests/test_flashrsi_codex_context_v18.py tests/test_flashrsi_gpu1_queue_v17.py tests/test_flashrsi_harnessrisk_benchmark_v17.py`. Final:
++```
++.......................                                                  [100%]
++23 passed in 0.67s
++```
++REDmissingmodules2failretained. NoactualOpenClawnewprotocolrunorjudgeclaim.
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_openclaw_context_v4.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_openclaw_context_v4.py
+new file mode 100644
+index 0000000..ac4f50e
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_openclaw_context_v4.py
+@@ -0,0 +1,15 @@
++"""Existing corrected OpenClaw environment host, new metadata supervisor."""
++from pathlib import Path
++from flashrsi_harnessrisk_openclaw_context_v4 import replace_once
++
++
++def build_source():
++    source = Path(__file__).with_name('flashrsi_harnessrisk_host_openclaw_environment_v2.py').read_text()
++    source = replace_once(source, 'scripts/flashrsi_harnessrisk_openclaw_environment_supervisor_v2.py',
++                          'scripts/flashrsi_harnessrisk_openclaw_context_supervisor_v4.py')
++    return replace_once(source, "'HR_HARNESS':os.environ.get('HR_HARNESS','miniagent')}",
++        "'HR_HARNESS':os.environ.get('HR_HARNESS','miniagent'),'HR_OPENCLAW_CASE_ENV_V3':'1'}")
++
++
++if __name__ == '__main__':
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_initial_v19.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_initial_v19.py
+new file mode 100644
+index 0000000..eeebd09
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_initial_v19.py
+@@ -0,0 +1,16 @@
++"""Full128 initial with explicit Codex and OpenClaw actual backend metadata."""
++from flashrsi_harnessrisk_initial_v17 import run_host
++from flashrsi_harnessrisk_initial_v18 import build_source as prior_source
++from flashrsi_harnessrisk_codex_context_v18 import CONTEXT as CODEX_CONTEXT, replace_once
++from flashrsi_harnessrisk_openclaw_context_v4 import CONTEXT as OPENCLAW_CONTEXT
++
++
++def build_source():
++    return replace_once(prior_source(),
++        "**({'native_context_metadata':CONTEXT_METADATA} if harness=='codex' else {}),",
++        "**({'native_context_metadata':CONTEXT_METADATA} if harness=='codex' else {'native_context_metadata':OPENCLAW_CONTEXT_METADATA} if harness=='openclaw' else {}),")
++
++
++if __name__ == '__main__':
++    CONTEXT_METADATA, OPENCLAW_CONTEXT_METADATA = CODEX_CONTEXT, OPENCLAW_CONTEXT
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_entry_v4.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_entry_v4.py
+new file mode 100644
+index 0000000..b7610b8
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_entry_v4.py
+@@ -0,0 +1,18 @@
++"""Original OpenClaw environment entry, explicit32K-compatible input budget."""
++from pathlib import Path
++import sys
++ROOT = Path(__file__).resolve().parents[1]
++sys.path[:0] = [str(ROOT / 'scripts'), str(ROOT / 'vendor/FlashRSI')]
++from flashrsi_harnessrisk_openclaw_context_v4 import CONTEXT, apply_context, replace_once
++
++
++def build_source():
++    source = Path(__file__).with_name('flashrsi_harnessrisk_openclaw_environment_entry_v2.py').read_text()
++    source = replace_once(source, "config=request['config'];", "config=apply_context(request['config']);")
++    return replace_once(source, "'usage':result.get('usage',{}),",
++                        "'usage':result.get('usage',{}),'runtime_context_metadata':CONTEXT_METADATA,")
++
++
++if __name__ == '__main__':
++    CONTEXT_METADATA = CONTEXT
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_supervisor_v4.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_supervisor_v4.py
+new file mode 100644
+index 0000000..cc9551d
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_supervisor_v4.py
+@@ -0,0 +1,19 @@
++"""Same case environment/session/permissions, record the new input metadata."""
++from pathlib import Path
++from flashrsi_harnessrisk_openclaw_context_v4 import CONTEXT, replace_once
++
++
++def build_source():
++    source = Path(__file__).with_name('flashrsi_harnessrisk_openclaw_environment_supervisor_v2.py').read_text()
++    source = replace_once(source, 'flashrsi_harnessrisk_openclaw_environment_entry_v2.py',
++                          'flashrsi_harnessrisk_openclaw_context_entry_v4.py')
++    source = replace_once(source, "'adapter_protocol':result.get('adapter_protocol')",
++        "'adapter_protocol':result.get('adapter_protocol'),'runtime_context_metadata':result.get('runtime_context_metadata')")
++    source = replace_once(source, 'result=json.loads(child.stdout)',
++        "result=json.loads(child.stdout)\n                    if result.get('runtime_context_metadata') != CONTEXT_METADATA:raise RuntimeError('actual_openclaw_context_receipt_missing')")
++    return source
++
++
++if __name__ == '__main__':
++    CONTEXT_METADATA = CONTEXT
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_v4.py b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_v4.py
+new file mode 100644
+index 0000000..caabe55
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_v4.py
+@@ -0,0 +1,16 @@
++"""Correct actual-backend input metadata, leaving native policy/resources intact."""
++import copy
++from flashrsi_harnessrisk_codex_context_v18 import replace_once
++
++CONTEXT = {'protocol': 'openclaw-local32k-metadata/v4', 'backend_context_window': 32768,
++    'max_context_tokens': 24576, 'max_reply_tokens': 4096,
++    'threshold_basis': 'actual backend minus two unchanged reply windows; native estimate is not exact Qwen accounting',
++    'resource_compaction_policy_unchanged': True}
++
++
++def apply_context(config):
++    if config['llm']['model_name'] != 'qwen35-4b-preflight' or config['llm']['max_tokens'] != 4096:
++        raise ValueError('openclaw_context_wrong_model_or_reply_budget')
++    result = copy.deepcopy(config)
++    result['context'] = {**result.get('context', {}), 'max_tokens': CONTEXT['max_context_tokens']}
++    return result
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v19.py b/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v19.py
+new file mode 100644
+index 0000000..33c8cee
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v19.py
+@@ -0,0 +1,23 @@
++"""Finite GPU1 queue with both new native actual32K metadata profiles."""
++from flashrsi_matrix_gpu1_queue_v18 import build_source as prior_source
++from flashrsi_harnessrisk_codex_context_v18 import CONTEXT as CODEX_CONTEXT, replace_once
++from flashrsi_harnessrisk_openclaw_context_v4 import CONTEXT as OPENCLAW_CONTEXT
++
++
++def build_source():
++    source = prior_source()
++    for old, new in (
++        ("'openclaw': 'flashrsi_harnessrisk_host_openclaw_caseenv_v3.py'", "'openclaw': 'flashrsi_harnessrisk_host_openclaw_context_v4.py'"),
++        ('scripts/flashrsi_matrix_gpu1_queue_v18.py', 'scripts/flashrsi_matrix_gpu1_queue_v19.py'),
++        ("['scripts/flashrsi_harnessrisk_initial_v18.py']", "['scripts/flashrsi_harnessrisk_initial_v19.py']"),
++        ('.flashrsi_gpu1_finite_queue_v18.lock', '.flashrsi_gpu1_finite_queue_v19.lock'),
++        ('gpu1-finite-strict-matrix/v18', 'gpu1-finite-strict-matrix/v19'),
++        ('    return contract\n', "    if harness == 'openclaw':\n        contract['native_context_metadata'] = OPENCLAW_CONTEXT_METADATA\n    return contract\n"),
++    ):
++        source = replace_once(source, old, new)
++    return source
++
++
++if __name__ == '__main__':
++    CONTEXT_METADATA, OPENCLAW_CONTEXT_METADATA = CODEX_CONTEXT, OPENCLAW_CONTEXT
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v19.py b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v19.py
+new file mode 100644
+index 0000000..0aaa1ad
+--- /dev/null
++++ b/experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v19.py
+@@ -0,0 +1,14 @@
++"""Read-only strict scanner including all three finite queue protocols."""
++from flashrsi_matrix_repair_scan_v18 import build_source as prior_source
++
++
++def build_source():
++    source = prior_source()
++    old = "('gpu1-finite-strict-matrix/v17', 'gpu1-finite-strict-matrix/v18')"
++    if source.count(old) != 2:
++        raise RuntimeError('scanner_v19_transform_drift')
++    return source.replace(old, "('gpu1-finite-strict-matrix/v17', 'gpu1-finite-strict-matrix/v18', 'gpu1-finite-strict-matrix/v19')")
++
++
++if __name__ == '__main__':
++    exec(compile(build_source(), __file__, 'exec'))
+diff --git a/experiments/cross_harness_sft/tests/test_flashrsi_openclaw_context_v19.py b/experiments/cross_harness_sft/tests/test_flashrsi_openclaw_context_v19.py
+new file mode 100644
+index 0000000..bad7dd9
+--- /dev/null
++++ b/experiments/cross_harness_sft/tests/test_flashrsi_openclaw_context_v19.py
+@@ -0,0 +1,39 @@
++"""Metadata and immutable transformation guards; no task/model/API execution."""
++import copy
++from pathlib import Path
++import sys
++
++sys.path[:0] = [str(Path(__file__).resolve().parents[1] / x) for x in ('scripts', 'src', 'vendor/FlashRSI')]
++
++
++def test_openclaw_input_budget_preserves_resource_compaction_policy_and_other_limits():
++    from flashrsi_harnessrisk_openclaw_context_v4 import apply_context, CONTEXT
++    original = {'llm': {'model_name': 'qwen35-4b-preflight', 'max_tokens': 4096},
++        'max_turns': 12, 'timeout': 360, 'compaction': {'enabled': False, 'tail_turns': 5},
++        'context': {'max_tokens': 120000, 'other': 'unchanged'}}
++    preserved = copy.deepcopy(original)
++    measured = apply_context(original)
++    assert measured['context'] == {'max_tokens': 24576, 'other': 'unchanged'}
++    assert measured['llm'] == original['llm'] and measured['max_turns'] == 12 and measured['timeout'] == 360
++    assert measured['compaction'] == original['compaction']
++    assert original == preserved
++    assert CONTEXT['max_context_tokens'] + 2 * CONTEXT['max_reply_tokens'] == CONTEXT['backend_context_window']
++
++
++def test_future_v19_profile_has_actual_host_metadata_and_preserves_codex_repair():
++    import flashrsi_harnessrisk_openclaw_context_entry_v4 as entry
++    import flashrsi_harnessrisk_openclaw_context_supervisor_v4 as supervisor
++    import flashrsi_harnessrisk_host_openclaw_context_v4 as host
++    import flashrsi_harnessrisk_initial_v19 as initial
++    import flashrsi_matrix_gpu1_queue_v19 as queue
++    import flashrsi_matrix_repair_scan_v19 as scanner
++    for module in (entry, supervisor, host, initial, queue, scanner):
++        compile(module.build_source(), module.__file__, 'exec')
++    namespace = {'__file__': queue.__file__, '__name__': 'pure_controller_check',
++        'CONTEXT_METADATA': queue.CODEX_CONTEXT, 'OPENCLAW_CONTEXT_METADATA': queue.OPENCLAW_CONTEXT}
++    exec(compile(queue.build_source(), queue.__file__, 'exec'), namespace)
++    raw = b'{"model_revision":"source-test","flashrsi_revision":"runtime-test"}'
++    contract = namespace['expected_initial_contract'](raw, 'openclaw')
++    assert contract['host_script'] == 'flashrsi_harnessrisk_host_openclaw_context_v4.py'
++    assert contract['native_context_metadata'] == queue.OPENCLAW_CONTEXT
++    assert namespace['expected_initial_contract'](raw, 'codex')['native_context_metadata'] == queue.CODEX_CONTEXT

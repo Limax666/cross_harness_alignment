@@ -1,0 +1,2090 @@
+{
+  "schema": "safe-rsi-publication-source-inventory/v1",
+  "copied_files": [
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor_hermes_workspace_v13.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_agentharm_full_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/hsrl_v5_reward_contract.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_audit_v5.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_hermes_workspace_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_opencode_session_v7.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_canonical_judge_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_restricted_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_gepa_security.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_textfile_recovery.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_native_v7.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_pi.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_seccomp.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_benchmark_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_supervisor_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_full_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/rl_verl_multiharness_loop.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v15.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_sandbox_exec.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_validation_sweep.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_final_transcript_v7.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_reference_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_opencode_entry_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_privacy.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_gpu1_v4_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_claude_events_tools_v4_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/judge_harnessrisk_shengsuanyun.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_miniagent_skillopt_dev.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/watch_hsrl_hourly_codex.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor_hermes_workspace_v14.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_ports_judge_queue.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_manifest.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_hermes.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_claude_v8_control_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_codex_context_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_agentharm.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_hermes_full_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_gpu1_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_opencode.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_audit_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_b0_candidate.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_port_entry.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_b1_result_status.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_opencode_full_host_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_contextfit_v5_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v16.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_supervisor_v5.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_openclaw_agentdojo_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/rl_generation_deadline.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_hermes_entry.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_pi_interpreter_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_opencode_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_snapshot_guard.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_owner_profile_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_opencode_full_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_opencode_session_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_miniagent_transcript_v6_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_path_profile.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_evoharness_final_v6_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_seccomp.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/harnesssafe_restricted_bridge.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_evo_skill_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_session_v5_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_opencode_mime_v3.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_entry.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_opencode_session_v5.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_loop.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_native_prune_v14_20261116.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_agentharm_full_supervisor_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_claude_owner_transport_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_pi_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_entry_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_opencode_entry.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_supervisor_v10.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_initial_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_entry.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_gateway.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_mcp_stdio.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_opencode_session_v8.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_final_v5.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor_8192.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_opencode_session_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_owned_lifetime_v1.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_opencode.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_entry_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_openclaw_full_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v19.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_evo_dispatch.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_skill_miniagent.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_mime_supervisor_v3.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_session_v4_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_agentdojo.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_openclaw_full_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v13.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_entry_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_native_v8.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_pi_plaintext_v5.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_openclaw_caseenv_v3_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_agentdojo_full_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_hermes_full_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_ace_judge_followup_v17.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_entry_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_full_baseline_ledger.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_openclaw_environment_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_retry_infrastructure.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_session_audit_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_agentharm.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_opencode_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_supervisor_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_plaintext_supervisor_v5.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_tool_attestation.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_protocol_relay.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_final_turn_proxy.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_owner_anchor_v11.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_interpreter_supervisor_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_context_supervisor_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor_hermes_workspace_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_context_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_hermes_gepa_contextfit_v10.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_gepa_contextfit_v11_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_codex_queue.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_private_queue.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_evo_skill.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_gepa_contextfit_v10_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v14.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_hermes_agentdojo_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_sandbox_exec.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_hermes_workspace_v13.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_supervisor_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_caseenv_v12_20261116.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_hermes_workspace_v14.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_opencode_agentdojo_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_miniagent_evoharness_dev.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_openclaw_context_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v7.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_claude_owner_identity_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_plaintext_attachment.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_remaining_lane_v7_20261116.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_supervisor_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_agentdojo.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v21.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_agentdojo_full_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_pi.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_port_agentdojo.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_owner_anchor_v8.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_queue_claude_dev.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_mime_v3_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_port_algorithm_dev.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_opro_suffix_v5_20261116.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_gpu1_v3_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_miniagent_algorithm_dev.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_supervisor_v11.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_gepa_security_agentdojo.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_environment_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_native_v3.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_claude_owner_adapter_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_manager_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_hermes_workspace_v12.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor_hermes_workspace_v8.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_supervisor_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_audit_v7.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_final_transcript_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_contextfit_v5.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_opencode_session_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_hermes.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_hermes_v13.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_gepa_quoted_v6_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_entry.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_claude_owner_profile_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_b1_agentdojo_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_session_pair_upgrade_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_b0_qualification.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_benchmark_v17.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_gepa_workspace_v8_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_hermes_context_profile_v13.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_opencode_gepa_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_ports_queue.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_openclaw_caseenv_v4_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_initial_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_opencode_session_v11.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_session_v7_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_gepa_workspace_v9_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_hermes_workspace_v11.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_claude_native_owner_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/rl_agentdojo_path_audit.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_agentdojo_full_supervisor_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_hermes_gepa_reflection_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_pi_native_owner_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_agentdojo_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_gpu1_v2_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_full_host_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v19.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_agentdojo_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_initial_v19.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_agentharm_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v17.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_native_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_model_relay.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_safe_evoprompt.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_openclaw.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v21.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor_hermes_workspace_v12.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_environment_supervisor_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_adaptive_recovery.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_mime_entry_v3.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_agentdojo_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_reference_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_openclaw_environment_v2_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_opencode_gepa_contextfit_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_agentharm_full_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_sandbox.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_full_supervisor_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_environment_entry_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_openclaw_entry.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_initial_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_b1_agentdojo_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v17.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_tool_gate.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_parallel_queue.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v20.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_miniagent_gepa_final_v5_20261114.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_repair_scan_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_gpu1_queue_v19.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_agentdojo_full_host_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_freeze_full_openclaw.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_full_host.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_native_owner_benchmark_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_miniagent_initial.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_native_initial_dev.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/local_qwen_openai_server.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_miniagent_skillopt_final_v5_20261114.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_queue.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_initial_v17.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_evo_skill_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_gepa_session_v7_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_target8192_recovery.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_stream_gateway.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_pi_interpreter_v4_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_landlock.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_opencode_full_supervisor_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_validation_verifiers.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor_events_tools_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_opencode_full_supervisor.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_mock_identity_v10.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_claude_owner_model_barrier_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_miniagent_queue.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_agentharm_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_claude_entry_events_tools_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_miniagent_transcript_v6_routefix_20261114.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_pi_native_owner_benchmark_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_retry_queue.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_pi_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_opro_pilot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/watch_flashrsi_harnessrisk_codex.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_openclaw_caseenv_v3.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_session_v6_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor_events_tools_v7.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_gepa_session_v6_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_agentharm_full_host_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_opencode_gepa_contextfit_v6_20261116.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_safe_ace.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_hermes_v14.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_inventory.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_entry_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_projection_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_algorithm_reference_v17.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_hermes_workspace_v8.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_run_full_agentdojo.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_native_prune_v13_20261116.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_openclaw_session_audit_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_hermes_gepa_workspace_v8r2_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_host_opencode_session_v10.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_supervisor_v7.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_safe_opro.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_supervisor_v4.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_b0_plan.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_pi_owner_mock_barrier_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_opencode_session_supervisor_v8.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_summary.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_benchmark.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_supervisor_hermes_workspace_v11.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_completion_budget.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_miniagent_evoharness_final_v5_20261114.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_matrix_claude_events_tools_v7_20261115.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/flashrsi_harnessrisk_judge_queue.sh",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_plaintext_attachment.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_matrix_inventory.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_harnessrisk_openclaw_caseenv_launcher.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_path_profile.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_hermes_workspace_mount_v8.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_hermes_workspace_copy_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_sandbox_exec.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_model_relay.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v20.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opencode_session_v5.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_stream_envelope.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_harnessrisk_openclaw_case_environment.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_gateway.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_restricted_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_validation_verifiers.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_completion_budget.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opencode_agentdojo_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_native_tool_gate.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_native_mcp_stdio.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_hermes_supervisor_namespace_v14.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_seccomp.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_hermes_agentdojo_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_b0_candidate.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_hermes_native_prune_v13.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_b0_plan.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v17.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_hermes_gepa_reflection_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_snapshot_guard.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_harnessrisk_openclaw_caseenv_v4_launcher.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_hermes_gepa_contextfit_v10.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_evo_dispatch.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_harnessrisk_openclaw_timeout.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_remaining_lane_v7.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opencode_portable.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_safe_opro.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_harnessrisk_resume_missing.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_pi_agentdojo_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_judge_nested_tools_v2.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_final_turn_proxy.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_harnessrisk_benchmark_v17.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opencode_session_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opencode_owner_anchor_v11.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_native_protocol_relay.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_full_baseline_ledger.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_claude_native_owner_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_landlock.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_harnessrisk_manifest.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_tool_attestation.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_pi_native_owner_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_b0_qualification.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_b1_local_paths.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_safe_ace.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_b1_result_status.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_validation_sweep.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_hermes_case_environment_v12.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_native_seccomp.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opro_pilot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_owned_lifetime_v1.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_ace_judge_followup_v17.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_structured_audit.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_final_transcript_v7.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_local_qwen_tool_calls.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_evo_skill.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_openclaw_agentdojo_snapshot.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_safe_evoprompt.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_rl_multiharness_audit_retry.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_openclaw_context_v19.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opencode_owner_anchor_v8.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opencode_environment_v9.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_b1_qualification.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_gpu1_queue_v21.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opencode_mock_identity_v10.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_opencode_gepa_contextfit_v6.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_flashrsi_codex_context_v18.py",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/eval_native.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentharm_nanobot_glm53flash_test_public.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/codex_agentdojo_native_full_windows.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/claude_agentdojo_openrouter_gpt56_sol_pilot_windows.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/rl_2b_whitebox_verified_progress.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/codex_agentdojo_openrouter_formal.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentdojo_worker.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentharm_hermes_qwen38max_test_public.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentharm_worker.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/rl_native_pilot_agent_loop.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentharm_worker_val.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/rl_2b_whitebox_grpo_outcome_v1.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentharm_rl_train_worker.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/codex_agentdojo_native_full.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/formal_native.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/rl_multiharness_agent_loop.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/harnesssafe_gemini_9b_sft.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/harnesssafe_gemini_9b_sft_ready88.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/static_safety_prompt.txt",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/codex_agentdojo_native_pilot.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/rl_2b_curriculum_verified_progress_protocol.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentharm_claudecode_glm53flash_test_public.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/rl_2b_whitebox_verified_outcome.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/rl_2b_whitebox_verified_progress_protocol.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentharm_codex_gpt56_sol_test_public.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/claude_agentdojo_openrouter_gpt56_sol_full_windows.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentharm_codex_gpt56_sol_val.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/rl_9b_whitebox_loop.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/agentharm_worker_test_public.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/flashrsi_b0_safety_policy.txt",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/codex_agentdojo_openrouter_pilot.yaml",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/harnesssafe_gemini_9b_base_ready88.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/patches/verl_project_local_02a318c3.patch",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/patches/harnessrisk_judge_flashrsi_tool_evidence_20261116.patch",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/patches/verl_harness_scaling_20261103.patch",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/patches/verl_nonzero_cuda_visible_devices.patch",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/patches/verl_chspo_zero_signal_resample.patch",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/patches/verl_sft_sampler_shuffle.patch",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/9b_cross_harness_rl_design_20261027.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/hsrl_hourly_loop_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/rl_2b_design_snapshot_20261027.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/4b_harness_scaling_rl_single_gpu_design_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/verified_progress_reward_20261030.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/flashrsi_4b_harnessrisk_baseline_20261113.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/harness_scaling_safe_rsi_design_20261111.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/flashrsi_integration_20261111.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/harness_scaling_safe_rsi_technical_roadmap_20261113.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/safe_rsi_research_protocol_20261113.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/harness_scaling_rl_training_pool_v5_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/flashrsi_local_resume_20261112.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/flashrsi_b0_bridge_progress_20261111.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/harness_scaling_infrastructure_20261111.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/full_flashrsi_security_baseline_20261112.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/safe_rsi_harness_scaling_experiment_20261111.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/9b_real_harness_multidataset_rl_design_20261106.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/4b_safe_rsi_local_launch_plan_20261111.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/harness_scaling_rl_security_selection_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/flashrsi_matrix_repair_loop_20261114.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/harness_scaling_rl_dataset_research_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/2b_harness_scaling_rl_redesign_20261030.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_codex_context_v18_implementation_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_fix2_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v20_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v20_implementation_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_rereview1_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/skilllife_lifecycle_split_20261116.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/security_data_vote_a_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_fix1_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_claude_native_owner_v9_fix1_fixture_cleanup_20261117.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/safety_scale_harness_sources_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/hsrl_training_pool_recipe_v5_20261116.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_rereview2_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/security_data_vote_b_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_codex_context_v18_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_bounded_owner_profile_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_rereview1_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/security_data_vote_c_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_report_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v20_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v17_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/safety_scale_env_sources_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/agentdog_rl_safety7000_candidate_index_20261116.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_native_bounded_continuation_recon_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_fix1_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_rereview2_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_fix1_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_resume_diagnosis_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_fix1_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_codex_context_v18_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/hsrl_safety_collection_status_20261116.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_claude_implementation_preflight_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v17_fix1_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_implementation_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_rereview1_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/harness_scaling_rl_dataset_inventory_20261116.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_rereview1_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/clawgym_hf_source_binding_20261116.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_implementation_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_implementation_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v17_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/agentdog_rl_safety7000_root_verification_20261116.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_openclaw_context_v19_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/safety_scale_rl_sources_20261116.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_v17_observation_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_claude_codex_next_repair_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_brief_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_review_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_rereview1_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v21_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_claude_native_continuation_implementation_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_gpu1_queue_v17_rereview1_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_pi_native_continuation_brief_20261117.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/flashrsi_ace_judge_followup_v17_fix1_review.diff",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/superpowers/plans/2026-11-17-flashrsi-single-gpu-completion.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/superpowers/plans/2026-11-16-hsrl-v5-ready-dataset.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/superpowers/plans/2026-11-13-flashrsi-harnessrisk.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-16-complete-two-rsi-lanes.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-12-flashrsi-security-baseline.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-27-9b-cross-harness-rl.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-12-flashrsi-4b-gepa-security.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-12-flashrsi-complete-baselines.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/reports/harnesssafe_eval_metrics_passk_20261106.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/reports/harnessrisk_sft_grpo20_chspo150_comparison.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/reports/harness_scaling_safe_rsi_progress_20261115.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/reports/harnessrisk_sft_grpo20_chspo150_comparison.json",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/reports/harness_scaling_detailed_review_20261025.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/reports/flashrsi_4b_completed_results_20261114.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    },
+    {
+      "path": "experiments/cross_harness_sft/configs/hsrl_tools_v4.Dockerfile",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/hsrl_v3/hf_claw.py",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/hsrl_v3/runtime.py",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/scripts/hsrl_v3/sandbox.py",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_hsrl_v4_components.py",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/tests/test_hsrl_v6_initial_context.py",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/superpowers/plans/2026-11-18-hsrl-source-exception-recovery.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/hsrl_safe_backend_recon.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/hsrl_v5_agentdog_runtime_recon.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/hsrl_v4_source_code_review.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/hsrl_torch_recon.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/hsrl_v5_cross_source_prompt_overlap_20261116.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "experiments/cross_harness_sft/docs/research/hsrl_v5_cross_source_prompt_overlap_20261116.json",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": ".agents/skills/verify-hsrl-dataset/SKILL.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": ".agents/skills/verify-hsrl-dataset/features/environments.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": ".agents/skills/verify-hsrl-dataset/features/release.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": ".agents/skills/verify-hsrl-dataset/features/README.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": ".agents/skills/verify-hsrl-dataset/features/admission.md",
+      "source": "/data/home/liumingxiao/hsrl_v3_worktree_20261116"
+    },
+    {
+      "path": "AGENT.md",
+      "source": "/data/home/liumingxiao/cross_harness_alignment"
+    }
+  ],
+  "note": "No ignored weights/data/checkpoints/live outputs, credentials, private research bundles or unrelated core changes."
+}
