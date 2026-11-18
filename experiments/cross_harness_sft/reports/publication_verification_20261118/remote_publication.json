@@ -1,0 +1,10 @@
+{
+  "at": "2026-11-18T12:47:59.056539+08:00",
+  "repository": "https://github.com/Limax666/cross_harness_alignment",
+  "branch": "main",
+  "verified_main_commit_before_receipt": "5a1cab60ec38933f24711b4fea605a18bd367de1",
+  "push_from_previous_main": "dec9534",
+  "source_frozen_commit_retained_in_history": "855effb",
+  "evidence": "git push exit0 and independent git ls-remote exact SHA match",
+  "note": "This receipt is committed in a subsequent documentation-only child; the referenced main commit was already confirmed remotely."
+}
