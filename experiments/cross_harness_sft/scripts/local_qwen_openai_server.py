@@ -11,12 +11,15 @@ import time
 import uuid
 import traceback
 import threading
+import warnings
 from collections.abc import Mapping
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import torch
 from peft import PeftModel
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, StoppingCriteria, StoppingCriteriaList
+from safetensors import safe_open
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, StoppingCriteria, StoppingCriteriaList
 
 CALL_RE = re.compile(r"<tool_call>(.*?)</tool_call>", re.S)
 FUNC_RE = re.compile(r"<function=([^>\s]+)>(.*?)</function>", re.S)
@@ -169,6 +172,21 @@ def normalize_messages(messages):
     return normalized
 
 
+def adapter_base_class(base_model, adapter):
+    if adapter:
+        weights = Path(adapter) / "adapter_model.safetensors"
+        if weights.is_file():
+            with safe_open(str(weights), framework="pt", device="cpu") as tensors:
+                wrapped_decoder = any(
+                    key.startswith("base_model.model.model.language_model.layers.")
+                    for key in tensors.keys()
+                )
+            if wrapped_decoder and AutoConfig.from_pretrained(base_model).model_type == "qwen3_5":
+                from transformers import Qwen3_5ForConditionalGeneration
+                return Qwen3_5ForConditionalGeneration
+    return AutoModelForCausalLM
+
+
 def build_server(args):
     dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
     quant = None if args.full_precision else BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
@@ -176,10 +194,13 @@ def build_server(args):
     tokenizer = AutoTokenizer.from_pretrained(args.base_model)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(args.base_model, dtype=dtype,
+    model_class = adapter_base_class(args.base_model, args.adapter)
+    model = model_class.from_pretrained(args.base_model, dtype=dtype,
         use_kernels=False, quantization_config=quant, device_map={"": 0})
     if args.adapter:
-        model = PeftModel.from_pretrained(model, args.adapter)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("error", message=r".*Found missing adapter keys while loading the checkpoint")
+            model = PeftModel.from_pretrained(model, args.adapter)
     model.eval()
     return tokenizer, model
 

@@ -1,0 +1,49 @@
+diff --git a/harness_adapter/scripts/evaluate_run.py b/harness_adapter/scripts/evaluate_run.py
+index 76d0525..f29efb3 100755
+--- a/harness_adapter/scripts/evaluate_run.py
++++ b/harness_adapter/scripts/evaluate_run.py
+@@ -196,12 +196,21 @@ def transcript_text(ctx):
+     texts = []
+     for row in ctx.transcripts:
+         entry = row.get("entry", {})
++        if not isinstance(entry, dict):
++            continue
+         if entry.get("role") in {"assistant", "user"} and entry.get("content"):
+             texts.append(str(entry.get("content")))
+-        msg = row.get("entry", {}).get("message", {})
+-        for part in msg.get("content", []) or []:
+-            if isinstance(part, dict) and "text" in part:
+-                texts.append(str(part["text"]))
++        msg = entry.get("message")
++        if isinstance(msg, str):
++            # Hermes and NanoBot export each turn as a user message string
++            # paired with an assistant response_text string.
++            texts.append(msg)
++        elif isinstance(msg, dict):
++            for part in msg.get("content", []) or []:
++                if isinstance(part, dict) and "text" in part:
++                    texts.append(str(part["text"]))
++        if entry.get("response_text"):
++            texts.append(str(entry["response_text"]))
+     return "\n".join(texts)
+
+
+@@ -209,10 +218,17 @@ def final_answer_text(ctx):
+     texts = []
+     for row in ctx.transcripts:
+         entry = row.get("entry", {})
++        if not isinstance(entry, dict):
++            continue
+         if entry.get("role") == "assistant" and entry.get("content"):
+             texts.append(str(entry.get("content")))
+             continue
+-        msg = row.get("entry", {}).get("message", {})
++        if entry.get("response_text"):
++            texts.append(str(entry["response_text"]))
++            continue
++        msg = entry.get("message")
++        if not isinstance(msg, dict):
++            continue
+         role = msg.get("role")
+         stop = msg.get("stopReason")
+         for part in msg.get("content", []) or []:

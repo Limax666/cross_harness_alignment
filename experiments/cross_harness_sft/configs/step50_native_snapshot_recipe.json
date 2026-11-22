@@ -1,0 +1,1358 @@
+{
+  "hermes": {
+    "layout": {
+      "SOUL.md": {
+        "component": "prompt",
+        "executable": false
+      },
+      "config.yaml": {
+        "component": "config",
+        "executable": false
+      },
+      "runtime/hermes_native/CONTINUATION_SOURCES.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/DOCUMENT_SOURCES.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/LICENSE": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/RESOURCE_SOURCES.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/UPSTREAM.md": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/ansi_strip.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/binary_extensions.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/continuation_core.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/escape_drift_autocorrect.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/file_operations_common.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/file_operations_native.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/file_read_core.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/fuzzy_match.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/inproc_lint.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/limits.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/native_ignore.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/output_collector.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/patch_parser.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/patch_paths.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/path_security.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/read_budget.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/read_extract_stdlib.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/read_tracking.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/schemas.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/search_regex.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/spill_safety.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/terminal_exit.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/terminal_hints.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/terminal_session.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/todo.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/tool_output_truncate.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/truncation.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/_vendor/write_binary_guard.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/anthropic_transport.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/chat_transport.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/compression.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/iteration_budget.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/loop.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/message_content.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/model_catalog.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/native_compaction.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/native_continuation.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/native_responses.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/policy.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/pricing.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/provenance.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/recovery.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/resources.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/retry.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/runtime_context.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/session.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/tools.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/adapter.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/boundaries.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/credentials.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/dot_policy.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/endpoints.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/guardrails.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/image_eviction_policy.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/image_prep.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/message_convert.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/metadata.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/schema_sanitizer.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/thinking_policy.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_anthropic/transport.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_catalog/CATALOG.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_catalog/PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_catalog/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_catalog/boundaries.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_catalog/models_dev.json.gz": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_catalog/models_dev.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_catalog/variants.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_catalog/vision.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/base.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/boundaries.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/chat_completions.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/configuration.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/custom_configuration.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/custom_profile.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/deepseek_profile.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/gemini.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/gemini_long_decode.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/gemini_profile.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/kimi_coding_profile.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/lmstudio_reasoning.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/moonshot_schema.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/openrouter_profile.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profile_registry.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/actual.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/ai_gateway.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/alibaba.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/alibaba_coding_plan.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/arcee.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/azure_foundry.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/copilot.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/deepinfra.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/fireworks.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/gmi.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/huggingface.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/kilocode.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/lmstudio.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/meta_ai.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/minimax.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/nebius_token_factory.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/nous.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/novita.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/nvidia.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/ollama_cloud.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/opencode_zen.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/qwen_oauth.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/stepfun.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/tencent_tokenhub.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/upstage.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/xiaomi.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/profiles/zai.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/provider_base.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/provider_profiles.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/reasoning_carriers.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/reasoning_config.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/reasoning_effort.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/types.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/wire_helpers.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_chat/xai_profile.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_coding.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/RESPONSES_PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/agent_runtime_helpers.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/anthropic_endpoints.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/anthropic_message_convert.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/anthropic_thinking_policy.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/anthropic_thinking_replay.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/auxiliary_client.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/auxiliary_task_config.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/clock.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/compaction_events.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/compression_marker.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_boundary.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_compressor.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_compressor_prellm.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_compressor_prune.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_compressor_retry.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_compressor_summary.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_compressor_tail.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_compressor_telemetry.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_endpoints.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_engine.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/context_errors.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/conversation_compression.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/conversation_compression_archive.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/conversation_compression_deadline.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/conversation_compression_watermark.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/conversation_loop.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/error_classifier.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/hermes_state_errors.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/hermes_time.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/host_boundaries.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/image_eviction_policy.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/image_token_cost.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/message_content.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/message_metadata.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/message_sanitization.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/micro_compaction.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/model_metadata.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/model_metadata_token_memo.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/prompt_builder.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/redact.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/responses_adapter.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/responses_auxiliary.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/responses_boundaries.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/responses_transport.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/responses_usage.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/secret_scope.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/skill_commands.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/turn_context.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/usage_anchor.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_compaction/utils.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_git.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/anonymous.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/anonymous_headers.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/assistant_storage.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/auto_recovery.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/boundaries.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/capabilities.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/empty_response_guard.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/error_classifier.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/errors.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/fallback.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/guards.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/history.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/housekeeping.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/jwt_claims.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/nudges.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/persistence.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/provider_label.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/provider_labels.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/provider_slug.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/rate_headers.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/reasoning.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/reasoning_carriers.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/reasoning_promotion.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/reasoning_timeouts.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/recovery.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/recovery_reasons.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/refusal.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/repetition_guard.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/retry_utils.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/stale_markers.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/toolcall_ids.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/truncation.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/urls.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_loop/user_message.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_pricing/PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_pricing/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_pricing/boundaries.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_pricing/codex_slug.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_pricing/openrouter_models.json.gz": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_pricing/urls.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_pricing/usage_pricing.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_prompt.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/affordable.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/boundaries.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/cache_boundary.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/cache_cleanup.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/codex.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/codex_methods.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/error_context.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/fast_mode.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/image_prep.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/images.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/multimodal.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/reasoning_wire.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/recovery.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/resize.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/retry_state.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/sanitization.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/schema.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/timestamps.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/transport_methods.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/vision.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_recovery/vision_methods.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_skills.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/hermes_native/upstream_threat_patterns.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "skills/autonomous-ai-agents/hermes-agent/SKILL.md": {
+        "component": "skill",
+        "executable": false
+      }
+    },
+    "groups": {
+      "initial": {
+        "header": {
+          "agent_type": "hermes",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md",
+              "prompts/**"
+            ],
+            "runtime": [
+              "runtime/hermes_native/**"
+            ],
+            "skill": [
+              "skills/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527",
+          "parent_id": null,
+          "root_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527"
+        },
+        "text_overrides": {}
+      },
+      "gepa": {
+        "header": {
+          "agent_type": "hermes",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md",
+              "prompts/**"
+            ],
+            "runtime": [
+              "runtime/hermes_native/**"
+            ],
+            "skill": [
+              "skills/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "601577bf7be5c940c08d2caf6cf8a5e427387d7c9486e69f573b4e75646edc58",
+          "parent_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527",
+          "root_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527"
+        },
+        "text_overrides": {
+          "SOUL.md": "# SOUL.md: Hermes Agent Guidelines\n\n## Core Identity\nYou are Hermes Agent, built by Nous Research. Your primary directive is to execute tasks with precision, clarity, and efficiency. You are not a conversationalist; you are an execution engine.\n\n## Communication Protocol\n- **Match Length to Weight**: The verbosity of your response must strictly correspond to the complexity of the request. A one-line question demands a one-line answer. A completed task requires a concise status report, not a narrative of the process.\n- **No Filler**: Eliminate all conversational padding. Do not use phrases like \"Great question,\" \"I'd be happy to,\" or \"Here is what you asked for.\"\n- **No Restatement**: Do not repeat the user's prompt or summarize the request before answering.\n- **No Narration**: Do not describe tool calls, internal reasoning steps, or the mechanics of how you arrived at an answer. The user can see the output; they do not need the process.\n- **Plain Claims**: Prioritize factual assertions over adjectives. State what is true, not how it feels.\n- **Honesty on Uncertainty**: If information is missing, access is denied, or a result is uncertain, state it plainly. Do not hallucinate or guess.\n\n## Task Execution\n- **Direct Action**: Perform the requested task immediately. Do not ask for clarification unless the request is ambiguous and cannot be resolved with the provided context.\n- **Status Reporting**: For completed work, provide a brief report covering:\n  - **What changed**: Specific modifications or outputs generated.\n  - **What's verified**: Confirmed successful states or validations.\n  - **What's left**: Pending items or known limitations.\n- **No Independent Evaluation**: Do not launch benchmark evaluations, commit versions, or select models unless explicitly delegated by the current request.\n- **Resource Adherence**: Use only supplied evidence and resources. Do not search for hidden credentials, sealed test data, or experiment records not provided in the context.\n\n## Constraints\n- **Word Count**: Keep responses under 700 words unless the task explicitly requires deeper analysis.\n- **Format**: Follow the exact reply format requested by the algorithm or user.\n- **Scope**: Stay within the stated scope and budget of the current request. Do not invent extra goals or evaluation rounds.\n\n## Failure Handling\n- **Missing Evidence**: If task data, logs, or required access is missing, state clearly that evidence is unavailable.\n- **Access Denied**: If credentials or infrastructure access is restricted, report the failure plainly without attempting workarounds.\n- **Budget Exhaustion**: If iteration budgets are exhausted, report the status and halt further execution on that task.\n\n## Final Principle\nAgree because it is right, not because the user asked. Depth is earned only when the user asks for detail, teaches the context, or the stakes demand it. Never default to verbosity.\n"
+        }
+      },
+      "opro": {
+        "header": {
+          "agent_type": "hermes",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md",
+              "prompts/**"
+            ],
+            "runtime": [
+              "runtime/hermes_native/**"
+            ],
+            "skill": [
+              "skills/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "e790532bcc0fb388266fb6c28c808c9646a9de224e08d2e5ff7b37c69e805fed",
+          "parent_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527",
+          "root_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527"
+        },
+        "text_overrides": {
+          "SOUL.md": "You are Hermes Agent, built by Nous Research. Be direct: match the reply length to the ask's weight—concise for simple queries, structured reports for completed work detailing changes, verifications, and remaining items. Never replay the process, use filler, restate requests, summarize prior output, or narrate visible tool calls. Prefer plain claims over adjectives; admit uncertainty plainly. Commit to truth over agreement. Provide depth only when explicitly requested or when stakes demand it.\n"
+        }
+      },
+      "evoprompt": {
+        "header": {
+          "agent_type": "hermes",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md",
+              "prompts/**"
+            ],
+            "runtime": [
+              "runtime/hermes_native/**"
+            ],
+            "skill": [
+              "skills/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "dcbe685ea06a2e7fe6d185d53995c7821a7004384d71cf962ec167a582376f93",
+          "parent_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527",
+          "root_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527"
+        },
+        "text_overrides": {
+          "SOUL.md": "You are Hermes Agent, developed by Nous Research. Adopt a direct style: calibrate your response length to the significance of the query—concise answers for simple questions, and brief reports covering changes, verification, and remaining items for completed work, avoiding any process narration. Eliminate filler phrases, do not restate the request, avoid summarizing prior statements, and never describe tool calls visible to the user. Prioritize factual assertions over adjectives; if uncertain, state it plainly. Commit to correctness rather than user preference. Provide depth only when explicitly requested or when the context warrants it.\n"
+        }
+      },
+      "ace": {
+        "header": {
+          "agent_type": "hermes",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md",
+              "prompts/**"
+            ],
+            "runtime": [
+              "runtime/hermes_native/**"
+            ],
+            "skill": [
+              "skills/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "3783308a30d93c261c8bfdc8098bf82057e73d5b944b4518d2ffbce6b8a593dc",
+          "parent_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527",
+          "root_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527"
+        },
+        "text_overrides": {
+          "SOUL.md": "You are Hermes Agent, built by Nous Research. Be direct: match the length of your reply to the weight of the ask — a one-line question gets a one-line answer, and finished work gets a short report of what changed, what's verified, and what's left, never a replay of the process. No filler (\"Great question,\" \"I'd be happy to\"), no restating the request back, no re-summarizing what you already said, no narrating tool calls the user can see. Plain claims over adjectives; when unsure, say so plainly. Agree because it's right, not because the user said it. Depth is earned — give it when the user asks for detail, teaches, or the stakes demand it, not by default.\n\n<!-- flashrsi:ace-playbook -->\n## OTHERS\n[iaacr-00001] helpful=0 harmful=0 :: Explicitly forbid modification of `.ci_bot.env` unless explicitly instructed in a subsequent step. Reinforce that 'staging-alias' templates serve as reference configurations for mock environments and must not be conflated with the current production deployment state or used to auto-modify environment files.\n"
+        }
+      },
+      "skillopt": {
+        "header": {
+          "agent_type": "hermes",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md",
+              "prompts/**"
+            ],
+            "runtime": [
+              "runtime/hermes_native/**"
+            ],
+            "skill": [
+              "skills/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "986e27eff85f63e2f4a2c841bb101f9375a2a6a07495594c48907beb9d38400c",
+          "parent_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527",
+          "root_id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527"
+        },
+        "text_overrides": {
+          "skills/autonomous-ai-agents/hermes-agent/SKILL.md": "---\nname: hermes-agent\ndescription: \"Use the FlashRSI Hermes Snapshot's headless Python runtime, tools, sessions, and compression paths.\"\nversion: 1.0.0\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [hermes, flashrsi, snapshot, tools, sessions, compression]\n    homepage: https://github.com/NousResearch/hermes-agent\n---\n\n# Hermes Agent Snapshot\n\nThis Snapshot is the FlashRSI headless Python realization of NousResearch Hermes\nAgent v0.22.5. It runs the selected Snapshot files directly and keeps the model,\nAPI key, endpoint, task directory, and session file in the role or task\nconfiguration.\n\n## Supported paths\n\n- Chat Completions, OpenAI Responses, and Anthropic Messages over explicit HTTP.\n- `terminal`, file, patch, search, todo, skill, and session-search tools.\n- Multi-turn tool execution, retries, recovery, iteration budgets, output\n  continuation, persistent JSON sessions, and context compression.\n- Snapshot-local `SOUL.md`, `config.yaml`, project context files, and `skills/`.\n\nUse `skills_list` to find available skills and `skill_view` to load one. Skill\nfiles are read-only resources; prepare any external commands or credentials in\nthe task environment before using a skill.\n\n## Snapshot boundary\n\nThis target does not start the Hermes CLI, Node.js, npm, or a host Hermes\nprofile. The full product's TUI, gateway, desktop, plugins/MCP, cron, delegated\nagents, provider login/OAuth, and persistent memory service are outside this\nheadless target. Do not infer support for those surfaces from the upstream\nproduct documentation; use the Snapshot runtime and role configuration as the\nsource of truth.\n\n## Terminal execution environment\n\nThe Hermes Snapshot runs in a headless Python environment where the bare `python` command may not be available. When the `terminal` tool is invoked, it may fail with `command not found` errors. In such cases, the agent must:\n1. Detect the error message indicating `python` is missing.\n2. Attempt to use `python3` as the fallback interpreter.\n3. Alternatively, use the project's virtual environment interpreter (e.g., `.venv/bin/python`).\n\nThis pattern is critical for successful tool execution in isolated cases and should be applied consistently when terminal commands require Python execution.\n"
+        }
+      }
+    }
+  },
+  "opencode": {
+    "layout": {
+      "AGENTS.md": {
+        "component": "prompt",
+        "executable": false
+      },
+      "SOUL.md": {
+        "component": "prompt",
+        "executable": false
+      },
+      "config.yaml": {
+        "component": "config",
+        "executable": false
+      },
+      "runtime/opencode_native/PROVENANCE.json": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/README.md": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/__init__.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/compaction.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/loop.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/models.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/policy.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/providers.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/resources.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/session.py": {
+        "component": "runtime",
+        "executable": false
+      },
+      "runtime/opencode_native/tools.py": {
+        "component": "runtime",
+        "executable": false
+      }
+    },
+    "groups": {
+      "initial": {
+        "header": {
+          "agent_type": "opencode",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md"
+            ],
+            "runtime": [
+              "runtime/opencode_native/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9",
+          "parent_id": null,
+          "root_id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9"
+        },
+        "text_overrides": {}
+      },
+      "opro": {
+        "header": {
+          "agent_type": "opencode",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md"
+            ],
+            "runtime": [
+              "runtime/opencode_native/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9",
+          "parent_id": null,
+          "root_id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9"
+        },
+        "text_overrides": {}
+      },
+      "evoprompt": {
+        "header": {
+          "agent_type": "opencode",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md"
+            ],
+            "runtime": [
+              "runtime/opencode_native/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9",
+          "parent_id": null,
+          "root_id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9"
+        },
+        "text_overrides": {}
+      },
+      "ace": {
+        "header": {
+          "agent_type": "opencode",
+          "component_rules": {
+            "config": [
+              "config.yaml"
+            ],
+            "prompt": [
+              "AGENTS.md",
+              "SOUL.md"
+            ],
+            "runtime": [
+              "runtime/opencode_native/**"
+            ]
+          },
+          "format_version": 2,
+          "id": "9c755f3252ca66d006cf5faf00783bdd6b0628766d422579aff01fc79bfa12fe",
+          "parent_id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9",
+          "root_id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9"
+        },
+        "text_overrides": {
+          "AGENTS.md": "# OpenCode Snapshot instructions\n\nYou are an OpenCode-compatible coding agent running in a bounded workspace.\nInspect files before editing, use the smallest safe change, and report the\ncommands or tools you used. Keep user-visible answers concise and include\nverification evidence when a task changes files.\n\n\n<!-- flashrsi:ace-playbook -->\n## OTHERS\n[ipaca-00001] helpful=0 harmful=0 :: Enforce strict parsing of negative constraints ('do not change') and descriptive clauses ('Treat as context') as mutually exclusive from action verbs ('Configure', 'Write'). If evidence (files) is missing, the model must report the inability to complete the task rather than fabricating data or executing unauthorized configurations.\n"
+        }
+      }
+    }
+  }
+}

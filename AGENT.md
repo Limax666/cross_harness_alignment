@@ -2,6 +2,10 @@
 
 这是当前入口，优先于归档的旧 GPU 分工、旧小池方案和“继续小时巡检”等历史指令。
 
+## A6000 交接 · 2026-11-22
+
+4B step‑50 已训练完成。本机继续 MiniAgent，A6000 接 OpenCode 和 Hermes 的原生 FlashRSI 受限配对评测。[A6000 运行手册](experiments/cross_harness_sft/docs/a6000_step50_opencode_hermes.md) 包含权重和案例版本、两组入口、Snapshot 重选关系、规则评分和独立 judge 命令。新服务器先对两种 harness 执行 `prepare`，再按本机 GPU 分配运行 `run`。新协议用同一设备上的基座和已加载 step‑50 LoRA 做对照。
+
 先读：
 
 1. [当前实验规格](experiments/cross_harness_sft/docs/harness_scaling_safe_rsi_current_20261118.md)：三阶段、14K/50:50、五维 OA18/K2、奖励、已验收结果和限制。

@@ -1,0 +1,89 @@
+{
+  "model": {
+    "hf_repository": "Limax11/harness_alignment",
+    "hf_commit": "8efba1d7714196e2a69216d8cfda5944dc2a21b0",
+    "step": 50,
+    "base": "Qwen/Qwen3.5-4B",
+    "base_revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+    "file_sha256": {
+      "SHA256SUMS": "c8f6002ecdc6e4c6583d213db9e7543ed962bbf778d1e726ef7c84825c90e971",
+      "adapter_model.safetensors": "c06adf53704d344e71c3d67bb464c6b73988688f5eb8dc47c6309f299ba3873b",
+      "adapter_config.json": "7710e41cf6faf98b581b5114635d7b6103debfb1f6cb9cc763e573cbfde7295e",
+      "model_identity.json": "73c9569d1760b6b1800b91ac2e28232956ef50393c5bb11d12971386c6dff743"
+    },
+    "lora_tensors": 496
+  },
+  "case_manifest_sha256": "ed831fb242d81632cb4b4e118d5077faf6d84861d391a5521a6dc2a61d66bce3",
+  "flashrsi_commit": "778e2d01a995491fe63db210dcf46db1723a4430",
+  "harnessrisk_commit": "07671f25b515fb936e0312dfdd3ca60b4bdf2f92",
+  "scorer_sha256": "8e65ea35d2af44cfe937e0595adc1ea08571a48187460fe643e936517025ccf6",
+  "snapshots": {
+    "hermes": {
+      "initial": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_hermes_caseenv_v12_20261116/hermes_initial_full/initial_snapshot.json",
+        "file_sha256": "b7ac0f21898402eba88c2af3be2b5db314250e7aad4104fc3bbc04f1e409b52f",
+        "id": "8d863f18bab840e7d6cf6728a259c46744afbae74b0f401c9056e8c6f4416527"
+      },
+      "gepa": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_hermes_native_prune_v14_20261116/hermes_gepa_full/snapshots/selected.json",
+        "file_sha256": "9a43446a05b59d277baa5d684935140ef9f663d98e298bd229930189151f2654",
+        "id": "601577bf7be5c940c08d2caf6cf8a5e427387d7c9486e69f573b4e75646edc58"
+      },
+      "opro": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_hermes_v14_remaining_20261116/hermes_opro_full/snapshots/selected.json",
+        "file_sha256": "08e76f23d70db74b383b1ab6e6fe3e9bbba5fcbcc09fc450bedc7a41e7f00ffa",
+        "id": "e790532bcc0fb388266fb6c28c808c9646a9de224e08d2e5ff7b37c69e805fed"
+      },
+      "evoprompt": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_hermes_v14_remaining_20261116/hermes_evoprompt_full/snapshots/selected.json",
+        "file_sha256": "baca800b552b8b6818eaa1f8171555237db77bc56536e997a30dc2ec6f8caa4d",
+        "id": "dcbe685ea06a2e7fe6d185d53995c7821a7004384d71cf962ec167a582376f93"
+      },
+      "ace": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_hermes_v3_20261114/hermes_ace_full/snapshots/selected.json",
+        "file_sha256": "eb98358784aaac7f28a4b9b443bc2d005ff74a82f12681304ed74c3bc0434a50",
+        "id": "3783308a30d93c261c8bfdc8098bf82057e73d5b944b4518d2ffbce6b8a593dc"
+      },
+      "skillopt": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_hermes_v3_20261114/hermes_skillopt_full/snapshots/selected.json",
+        "file_sha256": "76cfeefb7dfb80cb5b37c8a7d86b548b15a7fdcdd988f934540503751d451ea4",
+        "id": "986e27eff85f63e2f4a2c841bb101f9375a2a6a07495594c48907beb9d38400c"
+      }
+    },
+    "opencode": {
+      "initial": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_opencode_gpu1_v4_20261115/opencode_initial_full/initial_snapshot.json",
+        "file_sha256": "36ced3f2206b6a6a1732ab7a6c731419efa3f0050ba91a46ebc5b7e51ead315a",
+        "id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9"
+      },
+      "opro": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_opencode_opro_suffix_v5_20261116/opencode_opro_full/snapshots/selected.json",
+        "file_sha256": "36ced3f2206b6a6a1732ab7a6c731419efa3f0050ba91a46ebc5b7e51ead315a",
+        "id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9"
+      },
+      "evoprompt": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_opencode_gpu1_v4_20261115/opencode_evoprompt_full/snapshots/selected.json",
+        "file_sha256": "36ced3f2206b6a6a1732ab7a6c731419efa3f0050ba91a46ebc5b7e51ead315a",
+        "id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9"
+      },
+      "ace": {
+        "path": "runs/flashrsi_harnessrisk_4b_private_opencode_gpu1_v4_20261115/opencode_ace_full/snapshots/selected.json",
+        "file_sha256": "8226de77ae542cfad85c830597d98324742c6c6bd025a523dfbe6766f790c649",
+        "id": "9c755f3252ca66d006cf5faf00783bdd6b0628766d422579aff01fc79bfa12fe"
+      }
+    }
+  },
+  "base_files": {
+    "chat_template.jinja": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+    "config.json": "ddc63e1c717afa86c865bb5e01313d89d72bb53b97ad4a8a03ba8510c0621670",
+    "merges.txt": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+    "model.safetensors-00001-of-00002.safetensors": "26a93f066e1916adb13453dae5a0c707c0fbc71299ed98779571a907b8e74c61",
+    "model.safetensors-00002-of-00002.safetensors": "cb544bd9bfae93dc59b0f22b292f5933573854a7f9b97835c67060d7d910e188",
+    "model.safetensors.index.json": "cf3f798ee02ba45f9622aa8892a47369ab667d0afbf154ee7c2212de42e6302d",
+    "preprocessor_config.json": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+    "tokenizer.json": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+    "tokenizer_config.json": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+    "video_preprocessor_config.json": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+    "vocab.json": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+  }
+}
