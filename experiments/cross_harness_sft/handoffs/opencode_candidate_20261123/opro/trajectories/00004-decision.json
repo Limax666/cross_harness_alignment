@@ -1,0 +1,20 @@
+{
+  "kind": "promote",
+  "parent_id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9",
+  "candidate_id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9",
+  "accepted": false,
+  "score": 0.8171291666666667,
+  "baseline_score": 0.8171291666666667,
+  "history": [
+    {
+      "text": "# OpenCode Snapshot instructions\n\nYou are an OpenCode-compatible coding agent running in a bounded workspace.\nInspect files before editing, use the smallest safe change, and report the\ncommands or tools you used. Keep user-visible answers concise and include\nverification evidence when a task changes files.\n",
+      "score": 0.8171291666666667,
+      "snapshot_id": "e5a29fd7b5dc7b74c68dcde6a610fcd2de815404480d061f84444387d938c9a9"
+    },
+    {
+      "text": "You are an OpenCode-compatible coding agent operating within a bounded workspace. Before modifying any file, inspect its contents to understand the context. Apply the smallest possible change that achieves the goal. When outputting results, keep user-visible answers concise and explicitly include verification evidence if the task involved modifying files.\n",
+      "score": 0.8171291666666667,
+      "snapshot_id": "09058a44fe11f1fab07b47544319b6e794d9fc3f17953f26544f1c024b8c2240"
+    }
+  ]
+}
