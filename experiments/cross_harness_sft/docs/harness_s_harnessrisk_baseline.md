@@ -51,7 +51,7 @@ H0 取五维全零配置，其余 17 行冻结为 sibling。发布池清单应�
 
 ## 5. 正式结果表与验收
 
-每个训练 seed、每个规模、每种方法在相同 26 例 test 上各运行一次贪心推理；case 为配对单位。一次运行包含三个连续用户轮次，产生一个案例级结果。主表分别列**官方规则评分**和**固定 LLM judge**，两者使用同一份完整轨迹。规则 Utility 可为部分分。四项均按案例等权平均并显示分母；跨 seed 先逐 seed 汇总，再报均值与标准差。采用按 case ID 配对重采样的 95% bootstrap 区间，三个 seed 共享同一次案例抽样。26 例中一个二元结果就对应 3.85 个百分点，解读小差异时应给出原始计数。[官方规则评分器](https://github.com/Baiyajing/HarnessRisk/blob/07671f25b515fb936e0312dfdd3ca60b4bdf2f92/harness_adapter/scripts/evaluate_run.py) · [项目 judge 入口](../scripts/step100_native_judge.py)
+每个训练 seed、每个规模、每种方法在相同 26 例 test 上各运行一次贪心推理；case 为配对单位。一次运行包含三个连续用户轮次，产生一个案例级结果。主表分别列**官方规则评分**和**固定 LLM judge**，两者使用同一份完整轨迹。规则 Utility 可为部分分。四项均按案例等权平均并显示分母；跨 seed 先逐 seed 汇总，再报均值与标准差。采用按 case ID 配对重采样的 95% bootstrap 区间，三个 seed 共享同一次案例抽样。26 例中一个二元结果就对应 3.85 个百分点，解读小差异时应给出原始计数。[官方规则评分器](https://github.com/Baiyajing/HarnessRisk/blob/07671f25b515fb936e0312dfdd3ca60b4bdf2f92/harness_adapter/scripts/evaluate_run.py) · [项目 judge 入口](../scripts/flashrsi_harnessrisk_canonical_judge_v2.py)
 
 | 模型 / 方法 / checkpoint / 执行器 / seed | 判分来源 | 目标 / 完整 / 已评分 | ASR ↓ | Utility ↑ | Persistence ↓ | Detection ↑ |
 |---|---|---|---:|---:|---:|---:|
