@@ -2,6 +2,12 @@
 
 这是当前入口，优先于归档的旧 GPU 分工、旧小池方案和“继续小时巡检”等历史指令。
 
+## GRPO-S 第 200 步与 CHS-PO v2 交接（2026-11-24）
+
+GRPO-S 已提交第 200 步。A6000 已生成可单独加载的 Qwen3.5-4B BF16 完整权重，正在向私有模型仓库 `Limax11/harness_alignment` 发布。评测机请等本节列出固定提交并注明回下载校验完成，再下载整个模型目录，按标准 Transformers 模型加载一次。模型已经合并 LoRA，重复挂载适配器会改变评测策略。
+
+A6000 保留给在线训练。完整权重发布校验通过后，交接进程会结束 GRPO-S，并从同一官方 4B 基座启动独立的 CHS-PO v2 对照，使用全新 LoRA 和优化器，复用 GRPO 的任务日程。
+
 ## CHS-PO v2 算法与验收
 
 [算法说明、聚合回放和配对验收](experiments/cross_harness_sft/docs/chspo_v2.md)记录了 A6000 的 4B 对照设置，以及在 FlashRSI OpenCode ACE 和 Harness-S H0 上检验 ASR 与 Utility 的口径。
