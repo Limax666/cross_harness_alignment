@@ -2,6 +2,10 @@
 
 这是当前入口，优先于归档的旧 GPU 分工、旧小池方案和“继续小时巡检”等历史指令。
 
+## CHS-PO v2 算法与验收
+
+[算法说明、聚合回放和配对验收](experiments/cross_harness_sft/docs/chspo_v2.md)记录了 A6000 的 4B 对照设置，以及在 FlashRSI OpenCode ACE 和 Harness-S H0 上检验 ASR 与 Utility 的口径。
+
 ## A6000 交接 · 2026-11-22
 
 4B step‑50 已训练完成。本机继续 MiniAgent，A6000 接 OpenCode 和 Hermes 的原生 FlashRSI 受限配对评测。[A6000 运行手册](experiments/cross_harness_sft/docs/a6000_step50_opencode_hermes.md) 包含权重和案例版本、两组入口、Snapshot 重选关系、规则评分和独立 judge 命令。新服务器先对两种 harness 执行 `prepare`，再按本机 GPU 分配运行 `run`。新协议用同一设备上的基座和已加载 step‑50 LoRA 做对照。
