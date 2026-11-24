@@ -4,7 +4,7 @@
 
 ## GRPO-S 第 200 步与 CHS-PO v2 交接（2026-11-24）
 
-GRPO-S 已提交第 200 步。A6000 已生成可单独加载的 Qwen3.5-4B BF16 完整权重，正在向私有模型仓库 `Limax11/harness_alignment` 发布。评测机请等本节列出固定提交并注明回下载校验完成，再下载整个模型目录，按标准 Transformers 模型加载一次。模型已经合并 LoRA，重复挂载适配器会改变评测策略。
+GRPO-S 已在第 200 步结束。Qwen3.5-4B BF16 完整权重已上传至私有 HF 仓库，固定提交下的 14 个文件均已回下载并通过 SHA-256 校验。评测机可下载整个目录，按标准 Transformers 模型直接加载。LoRA 已合并，无需额外挂载。[HF 固定权重](https://huggingface.co/Limax11/harness_alignment/tree/f8ca0ae2af5f52527572e933f03f5bfa6b8df5cd/online_rl/a6000_r1_lora_2g8_300_20261121/step_0200_merged)
 
 目标目录为 `online_rl/a6000_r1_lora_2g8_300_20261121/step_0200_merged`。本次导出的 `SHA256SUMS` 文件 SHA-256 为 `a23f0d769aa04deeb266d0c19ced30d45bad07a856449e12d6f630727cf9f8e2`。评测机可用它确认下载的是同一次导出，再在模型目录执行 `sha256sum -c SHA256SUMS` 校验分片和配置文件。
 
