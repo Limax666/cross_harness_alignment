@@ -10,6 +10,14 @@ GRPO-S 已在第 200 步结束。Qwen3.5-4B BF16 完整权重已上传至私有 
 
 GRPO-S 已在第 200 步安全退出。A6000 已从同一官方 Qwen3.5-4B 基座启动独立的 CHS-PO v2 在线训练，使用全新 LoRA 和优化器，复用 GRPO 的前 200 步任务日程。GRPO 完整权重由独立 CPU 进程上传和校验，可与训练并行。
 
+## GRPO step 200 的 FlashRSI × HarnessRisk 评测交接
+
+模型为私有 HF 仓库 Limax11/harness_alignment 的固定提交 f8ca0ae2af5f52527572e933f03f5bfa6b8df5cd，目录 online_rl/a6000_r1_lora_2g8_300_20261121/step_0200_merged。下载整个目录后执行 sha256sum -c SHA256SUMS。该 BF16 模型已合并 LoRA，用 Transformers 直接加载。
+
+在 experiments/cross_harness_sft 下，阅读 docs/a6000_step50_opencode_hermes.md，评测代码为 scripts/step50_native_pair.py、scripts/step50_native_case_tools.py、scripts/step50_native_judge.py。固定案例清单及快照重建材料为 configs/step50_harnessrisk_case_manifest.json、configs/step50_native_snapshot_recipe.json，规则评分补丁为 patches/harnessrisk_step50_rule_reader.patch。FlashRSI 固定提交 778e2d01a995491fe63db210dcf46db1723a4430，HarnessRisk 固定提交 07671f25b515fb936e0312dfdd3ca60b4bdf2f92。
+
+现有入口针对官方基座加 step-50 LoRA 的配对加载和身份校验。step-200 合并模型需要先接入完整模型加载并核验身份，不能直接作为 adapter 参数。已有基座结果，本次重点评测 GRPO step-200 模型，分别报告官方规则和 LLM judge 的 ASR、Utility、Persistence、Detection 及实际覆盖数。OpenCode 的初始、OPRO、EvoPrompt 曾选回同一 snapshot，共享结果须明确标注。
+
 ## CHS-PO v2 算法与验收
 
 [算法说明、聚合回放和配对验收](experiments/cross_harness_sft/docs/chspo_v2.md)记录了 A6000 的 4B 对照设置，以及在 FlashRSI OpenCode ACE 和 Harness-S H0 上检验 ASR 与 Utility 的口径。
