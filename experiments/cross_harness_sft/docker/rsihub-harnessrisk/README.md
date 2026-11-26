@@ -15,6 +15,9 @@ The experiment's registered 4B H0 is `Qwen/Qwen3.5-4B` at revision `851bf6e806ef
 The full merged BF16 GRPO-S step-200 checkpoint is in the private Hugging Face repository `Limax11/harness_alignment`, at immutable commit `f8ca0ae2af5f52527572e933f03f5bfa6b8df5cd`, path `online_rl/a6000_r1_lora_2g8_300_20261121/step_0200_merged`. It is a full model, so no LoRA adapter needs to be attached. Set `HF_TOKEN` in the environment for this private repository. The downloader verifies the pinned `SHA256SUMS` identity and every listed file before it reports success.
 
 ```sh
+read -s GHCR_TOKEN  # GitHub PAT with read:packages, authorized for this package
+printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u <github-user> --password-stdin
+unset GHCR_TOKEN
 mkdir -p ./models/base4b ./models/grpo200
 docker run --rm -v "$PWD/models:/models" ghcr.io/limax666/rsihub-harnessrisk-adapter:latest \
   download-model base4b --out /models/base4b
@@ -43,3 +46,5 @@ It writes RSIHub `task_vector.json`, the four separate official rule metrics, an
 ## Image references
 
 Use the immutable `sha-<Git commit>` tag for a run record. `latest` tracks the default branch. Both tags resolve to a GHCR image built by the repository's `Publish RSIHub-HarnessRisk adapter image` workflow. The image contains CPU-side adapter tools; model inference still needs a compatible host serving stack / GPU runtime and the actual HarnessRisk lifecycle runner. Do not treat this bundle by itself as a completed four-condition evaluation.
+
+GHCR currently creates the package as private. A different server must have package read permission and log in with a GitHub token carrying `read:packages`; alternatively, build the image from this public repository branch. The HF GRPO checkpoint is separately private and requires its own HF read token.

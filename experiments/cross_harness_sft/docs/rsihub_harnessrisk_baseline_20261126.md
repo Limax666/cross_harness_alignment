@@ -99,6 +99,6 @@ RSIHub 优化需要单一标量时，预注册安全成功标志：有效完整�
 
 ## 7. 远端运行包与模型获取
 
-适配器 Dockerfile、固定版本清单和模型下载器位于 [`docker/rsihub-harnessrisk`](../docker/rsihub-harnessrisk/README.md)；提交后由 GitHub Actions 构建并推送 `ghcr.io/limax666/rsihub-harnessrisk-adapter`。用 `sha-<代码提交>` 固定镜像身份；`latest` 只跟随 main。镜像含 RSIHub/HarnessRisk 固定源码、案例身份 manifest、官方回执转换器及 HF 下载器，不含案例内容、权重或凭证。它提供已验证的 receipt→task-vector 接缝和资源，不等于已完成完整候选生命周期/搜索器到 HarnessRisk evaluator 的集成。
+适配器 Dockerfile、固定版本清单和模型下载器位于 [`docker/rsihub-harnessrisk`](../docker/rsihub-harnessrisk/README.md)；GitHub Actions 构建并推送 `ghcr.io/limax666/rsihub-harnessrisk-adapter`。用 `sha-<代码提交>` 固定镜像身份；`latest` 只跟随 main。GHCR 默认将新包设为 private；跨服务器拉取需授予 package read 并用 `read:packages` token 登录，或从公开 GitHub 分支本地构建。镜像含 RSIHub/HarnessRisk 固定源码、案例身份 manifest、官方回执转换器及 HF 下载器，不含案例内容、权重或凭证。它提供已验证的 receipt→task-vector 接缝和资源，不等于已完成完整候选生命周期/搜索器到 HarnessRisk evaluator 的集成。
 
 实验 H0 权重从 `Qwen/Qwen3.5-4B` 固定 revision `851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a` 下载；这里的 H0 不是另一个 `Qwen/Qwen3.5-4B-Base` 仓库。GRPO-S step 200 完整合并权重从私有仓库 `Limax11/harness_alignment` 的 commit `f8ca0ae2af5f52527572e933f03f5bfa6b8df5cd`、目录 `online_rl/a6000_r1_lora_2g8_300_20261121/step_0200_merged` 下载。可用镜像命令 `download-model base4b` / `download-model grpo200`；后者需 HF read token，并在报告成功前验证固定 `SHA256SUMS` 及所有分片。见 Docker README 的完整命令与挂载说明。
