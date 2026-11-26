@@ -1,0 +1,71 @@
+name: Publish RSIHub-HarnessRisk adapter image
+
+on:
+  push:
+    paths:
+      - .github/workflows/publish-rsihub-harnessrisk-image.yml
+      - experiments/cross_harness_sft/docker/rsihub-harnessrisk/**
+      - experiments/cross_harness_sft/scripts/rsihub_harnessrisk_adapter.py
+      - experiments/cross_harness_sft/configs/step50_harnessrisk_case_manifest.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare minimal build context
+        shell: bash
+        run: |
+          set -euo pipefail
+          ctx="$RUNNER_TEMP/rsihub-harnessrisk-context"
+          mkdir -p "$ctx"
+          cp experiments/cross_harness_sft/docker/rsihub-harnessrisk/{Dockerfile,entrypoint.sh,download_models.py,source-pins.json,README.md} "$ctx/"
+          cp experiments/cross_harness_sft/scripts/rsihub_harnessrisk_adapter.py "$ctx/adapter.py"
+          cp experiments/cross_harness_sft/configs/step50_harnessrisk_case_manifest.json "$ctx/harnessrisk_case_manifest.json"
+          echo "CONTEXT=$ctx" >> "$GITHUB_ENV"
+          echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/rsihub-harnessrisk-adapter" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build pinned image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker buildx build \
+            --platform linux/amd64 \
+            --load \
+            --build-arg RSIHUB_COMMIT=d6554299c58bf0fe2db04ddda0277f9db67ea680 \
+            --build-arg HARNESSRISK_COMMIT=07671f25b515fb936e0312dfdd3ca60b4bdf2f92 \
+            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --tag "$IMAGE:sha-$GITHUB_SHA" \
+            "$CONTEXT"
+
+      - name: Check packaged entry points
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm "$IMAGE:sha-$GITHUB_SHA" versions
+          docker run --rm "$IMAGE:sha-$GITHUB_SHA" evolve --help >/dev/null
+          docker run --rm "$IMAGE:sha-$GITHUB_SHA" adapt-receipt --help >/dev/null
+          docker run --rm "$IMAGE:sha-$GITHUB_SHA" download-model --help >/dev/null
+
+      - name: Publish immutable commit tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker push "$IMAGE:sha-$GITHUB_SHA"
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            docker tag "$IMAGE:sha-$GITHUB_SHA" "$IMAGE:latest"
+            docker push "$IMAGE:latest"
+          fi
