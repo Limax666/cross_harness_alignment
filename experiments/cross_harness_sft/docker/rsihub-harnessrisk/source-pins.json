@@ -1,0 +1,24 @@
+{
+  "schema": "rsihub-harnessrisk-runtime-pins/v1",
+  "rsihub": {
+    "repository": "https://github.com/simple-agent-lab/RSIHub",
+    "commit": "d6554299c58bf0fe2db04ddda0277f9db67ea680"
+  },
+  "harnessrisk": {
+    "repository": "https://github.com/Baiyajing/HarnessRisk",
+    "commit": "07671f25b515fb936e0312dfdd3ca60b4bdf2f92",
+    "manifest_sha256": "ed831fb242d81632cb4b4e118d5077faf6d84861d391a5521a6dc2a61d66bce3"
+  },
+  "models": {
+    "protocol_base4b": {
+      "repository": "Qwen/Qwen3.5-4B",
+      "revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+    },
+    "grpo200_merged": {
+      "repository": "Limax11/harness_alignment",
+      "revision": "f8ca0ae2af5f52527572e933f03f5bfa6b8df5cd",
+      "path": "online_rl/a6000_r1_lora_2g8_300_20261121/step_0200_merged",
+      "sha256sums_sha256": "a23f0d769aa04deeb266d0c19ced30d45bad07a856449e12d6f630727cf9f8e2"
+    }
+  }
+}
