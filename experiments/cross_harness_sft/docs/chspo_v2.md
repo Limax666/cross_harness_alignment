@@ -1,6 +1,6 @@
 # Harness Scaling RL 的 CHS-PO v2
 
-CHS-PO v2 检验两个问题：模型完成一部分合法工作时，哪些证据足以给它正优势？同一组里有几条轨迹都完成了合法任务时，怎样鼓励避开已登记风险的做法？v2 在经过审计的两类轨迹上调整优势。离线回放已经测到训练信号的变化；FlashRSI 和 Harness-S 上的 ASR、Utility 仍待正式配对评测。[冻结实验配置](../configs/chspo_v2_design.json)
+CHS-PO v2 检验两个问题：模型完成一部分合法工作时，哪些证据足以给它正优势？同一组里有几条轨迹都完成了合法任务时，怎样鼓励避开已登记风险的做法？v2 在经过审计的两类轨迹上调整优势。离线回放已经测到训练信号的变化；FlashRSI 与 RSIHub × HarnessRisk 上的 ASR、Utility 仍待正式配对评测。[冻结实验配置](../configs/chspo_v2_design.json)
 
 ## 与 GRPO-S 匹配的训练条件
 
@@ -31,9 +31,9 @@ GRPO-S 先计算合法效用减来源风险代价、再减 0.1 倍协议代价�
 
 ## 正式验收
 
-使用两种冻结的部署配置：FlashRSI 的 OpenCode ACE 选定快照，以及 Harness-S 的五维全零基础执行器 H0。每个配置分别用 GRPO-S 和 CHS-PO v2 第 200 步权重，在相同 26 个 HarnessRisk 测试案例上运行，计划共 104 条三轮轨迹。H0 测量权重在基础执行器上的迁移；Harness-S 的 sibling 救援训练另有实验协议。[Harness-S 协议](harness_s_harnessrisk_baseline.md)
+使用两条冻结评测线：FlashRSI 的 OpenCode ACE 选定快照，以及 RSIHub × HarnessRisk 矩阵中的冻结 H0 和各自搜索选中的配置。每个可用模型层（GRPO-S 与 CHS-PO v2 checkpoint）在相同的 26 个封存 test 案例上按规则评分与 LLM judge 分开报告。RSIHub 四种方法的搜索预算、候选谱系、覆盖要求和矩阵分母以[正式方案](rsihub_harnessrisk_baseline_20261126.md)为准；不再沿用旧 Harness-S sibling 救援的 104 条轨迹计划。单案例 evaluator/task-vector smoke 不是算法结果，正式算法闭环和 matrix 尚待运行。旧 Harness-S 方案已[归档](archive/harness_s_harnessrisk_baseline_superseded_20261126.md)。
 
-官方规则和固定 LLM judge 分表，按案例配对，报告分母、缺失、四项指标以及 CHS-PO 减 GRPO 的差值。主判据为 ΔASR < 0 且 ΔUtility > 0。对两个执行配置、两种评分来源、两个主指标共八个端点做 Bonferroni 校正，使用 20,000 次案例配对 bootstrap。四组比较均完整、暴露审计通过、各组校正区间均严格支持两个方向时，才报告同时改善。历史评测已覆盖这 26 例，须另行披露，并核对本轮训练、快照和 checkpoint 选择的暴露。[配对验收实现](../scripts/score_chspo_v2_harnessrisk.py)
+官方规则和固定 LLM judge 分表，按案例配对，报告分母、缺失、四项指标以及 CHS-PO 与 GRPO-S 的差值。RSIHub 搜索配置和 seed 以[正式方案](rsihub_harnessrisk_baseline_20261126.md)为准：三个预登记 seed，逐 seed 报告，再给均值、标准差和按 case ID 配对的 bootstrap 95% 区间。比较只在相同模型身份、harness、search 条件、seed、案例和评分来源内配对；不可把不同 RSI 算法或未完成的 checkpoint 合并成一个效果。CHS-PO step 200 权重完成并冻结后才能进入该层；此前单案例 smoke 只说明 adapter contract 通过，不构成模型效果。历史评测已覆盖这 26 例，须另行披露，并核对本轮训练、快照和 checkpoint 选择的暴露。[配对验收实现](../scripts/score_chspo_v2_harnessrisk.py)
 
 ### CPU 复核
 

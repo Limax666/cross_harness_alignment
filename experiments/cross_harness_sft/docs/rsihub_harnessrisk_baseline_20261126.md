@@ -6,7 +6,7 @@
 
 比较 Harness Scaling（HS）在线安全对齐前后的策略，在相同 HarnessRisk 任务与固定 harness 下，经 RSIHub 的不同 RSI 方法搜索可编辑的 harness 配置后，其安全性与正常任务效用如何变化。RSIHub 是候选方案/策略演化框架，AHE、Hyperagents、A-Evolve、GEPA 是框架中的演化方法；它们不是模型训练算法，也不替代 HS 的 GRPO-S、CHS-PO。
 
-这项工作复用 HarnessRisk 官方执行器、案例、规则评分和独立 LLM judge；RSIHub 负责候选配置的生成、评估生命周期和选择。所有结论限于本实验锁定的模型、harness、案例划分、编辑权限和搜索预算。保持既有 FlashRSI × HarnessRisk、Harness-S × HarnessRisk 为独立结果线。
+这项工作复用 HarnessRisk 官方执行器、案例、规则评分和独立 LLM judge；RSIHub 负责候选配置的生成、评估生命周期和选择。所有结论限于本实验锁定的模型、harness、案例划分、编辑权限和搜索预算。RSIHub 已替代 Harness-S 成为当前计划的第二 RSI 基线；既有 FlashRSI × HarnessRisk 是独立对照线。Harness-S 旧方案仅存档，不并入本矩阵。
 
 ## 2. 上游版本与已完成核验
 
@@ -16,7 +16,7 @@
 | 论文 | [arXiv:2610.32253](https://arxiv.org/abs/2610.32253) |
 | HarnessRisk | commit `07671f25b515fb936e0312dfdd3ca60b4bdf2f92` |
 | 案例身份 | 128/128 个案例文件与冻结 manifest 一致；manifest SHA-256 `ed831fb242d81632cb4b4e118d5077faf6d84861d391a5521a6dc2a61d66bce3` |
-| 原项目划分 | train 72、dev 30、test 26；按案例 ID 互斥；细节见 [`harness_s_harnessrisk_baseline.md`](harness_s_harnessrisk_baseline.md) §2 |
+| 原项目划分 | train 72、dev 30、test 26；按案例 ID 互斥；原始划分审计见[归档材料](archive/harness_s_harnessrisk_baseline_superseded_20261126.md) §2 |
 | RSIHub 评测记录契约 | 33 个上游 `evaluation_records`、`evaluation_contract` 测试通过；有效完整奖励与基础设施失败分开，后者不得伪造为 0 分。上游的本地执行指 Harbor `LocalEnvironment`；没有 HarnessRisk 原生 evaluator，不能把 `evaluator.engine=local` 当作可用接入 |
 | A6000 交接 | CHS-PO 在 update 142 完整边界暂停；journal version=142、pending=0、训练进程退出，GPU 空闲。checkpoint `COMPLETE.json` SHA-256 `ef3a074b310b6db14a7d5f79ff545d23b6d79ba7b657253d15b2ca5922876506`；adapter SHA-256 `60990fe5bc8f4b5e843d38bd97df0d62e19f4bf05141953ac52e1ca496a374f2`；含 resume/optimizer/scheduler/RNG 状态 |
 
