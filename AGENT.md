@@ -22,6 +22,10 @@ GRPO-S 已在第 200 步安全退出。A6000 已从同一官方 Qwen3.5-4B 基�
 
 [算法说明、聚合回放和配对验收](experiments/cross_harness_sft/docs/chspo_v2.md)记录了 A6000 的 4B 对照设置，以及在 FlashRSI OpenCode ACE 和 Harness-S H0 上检验 ASR 与 Utility 的口径。
 
+## RSIHub × HarnessRisk 第二基线（2026-11-26）
+
+已固定 RSIHub upstream commit `d6554299c58bf0fe2db04ddda0277f9db67ea680`、HarnessRisk commit `07671f25b515fb936e0312dfdd3ca60b4bdf2f92` 和 128 案例 manifest。方案、evaluator/评分契约、50 格/seed 正式矩阵与 GPU pilot 记录见 [正式实验文档](experiments/cross_harness_sft/docs/rsihub_harnessrisk_baseline_20261126.md) 与 [pilot 执行记录](experiments/cross_harness_sft/reports/rsihub_harnessrisk_pilot_20261126.md)。RSIHub 的 AHE、Hyperagents、A-Evolve、GEPA 是 harness 搜索方法；不可与 HS 的 GRPO-S/CHS-PO 混称。A6000 已在 CHS-PO update 142 的完整边界暂停，单案例 OpenCode H0 evaluator/规则分数→task-vector smoke 通过（ASR=0、Utility=0.5、Persistence=0、Detection=1.0，safe_success=0）；未运行 RSIHub 搜索算法、LLM judge 或正式矩阵，不得据此报告方法效果。下一步先实现真实 RSIHub evaluator/candidate lifecycle 并完成一代方法闭环，再扩展矩阵。训练恢复应从上述同一完整 checkpoint 进行，避免丢失 optimizer/scheduler/RNG 状态。
+
 ## A6000 交接 · 2026-11-22
 
 4B step‑50 已训练完成。本机继续 MiniAgent，A6000 接 OpenCode 和 Hermes 的原生 FlashRSI 受限配对评测。[A6000 运行手册](experiments/cross_harness_sft/docs/a6000_step50_opencode_hermes.md) 包含权重和案例版本、两组入口、Snapshot 重选关系、规则评分和独立 judge 命令。新服务器先对两种 harness 执行 `prepare`，再按本机 GPU 分配运行 `run`。新协议用同一设备上的基座和已加载 step‑50 LoRA 做对照。

@@ -2,6 +2,7 @@
 from datetime import datetime
 import hashlib
 import json
+import re
 import uuid
 
 from flashrsi_harnessrisk_privacy import assert_no_oracle
